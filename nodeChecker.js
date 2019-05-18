@@ -3,9 +3,8 @@ const fs = require('fs');
 
 module.exports = function(fileInfo, api, options) {
     const j = api.jscodeshift;
-    const superClasses = [];
-    const leafClasses = [];
-    let classes = ['Node'];
+    console.log(fileInfo);
+/*    
     const r = j(fileInfo.source);
     const paths = r.find(j.ClassDeclaration, p => p.superClass).paths();
     while(classes.length) {
@@ -57,7 +56,7 @@ module.exports = function(fileInfo, api, options) {
     //    classes = paths.map((n) => n.value.id.name);
 
     //const cl = x.find(j.ClassDeclaration, p => p.superClass && p.superClass.name === 'Element').paths().map((n) => n.value.id.name);
-
+*/
 return api.jscodeshift(fileInfo.source);/*
     .findVariableDeclarators('foo').module
   .renameTo('bar')
