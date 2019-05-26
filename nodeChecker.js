@@ -1,11 +1,27 @@
 const recast = require('recast');
 const fs = require('fs');
+const path = require('path');
+const root = '/local/home/jade/docutils-dev/docutils-monorepo/docutils-js';
 
 module.exports = function(fileInfo, api, options) {
     const j = api.jscodeshift;
-    console.log(fileInfo);
-/*    
+    const source = fileInfo.source;
+    const p = fileInfo.path;
+    const d = path.dirname(p);
+
     const r = j(fileInfo.source);
+    console.log(d);
+    const x = r.find(j.ImportDeclaration, n => {
+//        console.log(`d: ${d}, ${n.source.value}, ${root}`);
+        const path2 = path.relative(root, path.join(d, n.source.value));
+  //      console.log(path2);
+       return  path2 === 'src/nodes' || path2 === 'src/index' &&
+    });
+    x.paths().forEach(p => {
+        console.log(p.value.specifiers.map(s => s.local.name));
+    });
+
+/*
     const paths = r.find(j.ClassDeclaration, p => p.superClass).paths();
     while(classes.length) {
         const nextClasses = [];

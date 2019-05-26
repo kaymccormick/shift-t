@@ -2,12 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/t.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transforms/coreTestParse.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transform.js" beforeDir="false" afterPath="$PROJECT_DIR$/transform.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/parsers/restructuredtext.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/parsers/restructuredtext.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/parsers/rst/Inliner.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/parsers/rst/Inliner.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/plugin.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/plugin.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/writers/draftFlattener.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/writers/draftFlattener.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/fn/baseReaderTransforms.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/fn/baseReaderTransforms.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/fn/reader.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/fn/reader.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/nodes.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/nodes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives/images.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives/images.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/transforms/references.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/transforms/references.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/src/transforms/universal.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/transforms/universal.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-js/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nodeChecker.js" beforeDir="false" afterPath="$PROJECT_DIR$/nodeChecker.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -21,19 +32,19 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transform.js">
+        <entry file="file://$PROJECT_DIR$/nodeChecker.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="810">
-              <caret line="45" selection-start-line="45" selection-end-line="45" />
+            <state>
+              <caret line="17" column="64" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="64" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/genJest.js">
+        <entry file="file://$PROJECT_DIR$/transforms/coreTestParse.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="344">
-              <caret line="35" column="18" selection-start-line="35" selection-start-column="18" selection-end-line="35" selection-end-column="18" />
+            <state relative-caret-position="60">
+              <caret line="4" selection-start-column="4" selection-end-line="4" />
             </state>
           </provider>
         </entry>
@@ -41,7 +52,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/code.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="84">
+            <state>
               <caret line="5" column="21" selection-start-line="5" selection-start-column="21" selection-end-line="5" selection-end-column="21" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
@@ -53,7 +64,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/t.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="82">
+            <state>
               <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
             </state>
           </provider>
@@ -62,7 +73,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="862">
+            <state>
               <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
             </state>
           </provider>
@@ -82,7 +93,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="113778">
+            <state>
               <caret line="6321" column="16" selection-start-line="6321" selection-start-column="16" selection-end-line="6321" selection-end-column="16" />
             </state>
           </provider>
@@ -91,7 +102,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/testUtils.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
+            <state>
               <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
             </state>
           </provider>
@@ -100,7 +111,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/Worker.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="702">
+            <state>
               <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
             </state>
           </provider>
@@ -109,7 +120,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/core.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2646">
+            <state>
               <caret line="155" column="20" selection-start-line="155" selection-start-column="20" selection-end-line="155" selection-end-column="20" />
             </state>
           </provider>
@@ -146,26 +157,43 @@
         <option value="$PROJECT_DIR$/t.js" />
         <option value="$PROJECT_DIR$/transform.js" />
         <option value="$PROJECT_DIR$/genJest.js" />
+        <option value="$PROJECT_DIR$/nodeChecker.js" />
+        <option value="$PROJECT_DIR$/transforms/coreTestParse.js" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="32" />
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/docutils-js/package.json" />
+  </component>
+  <component name="ProjectFrameBounds" extendedState="2">
     <option name="width" value="1240" />
-    <option name="height" value="636" />
+    <option name="height" value="632" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="shift" type="b2602c69:ProjectViewProjectNode" />
+              <item name="shift" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="editor.config.ad.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/node_modules" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../docutils-dev/docutils-monorepo/tools" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -174,6 +202,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="yarn" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -192,7 +221,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Node.js.genJest.js">
+  <component name="RunManager" selected="Node.js.nodeChecker (1)">
     <configuration name="genJest.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="genJest.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
@@ -202,10 +231,18 @@
     <configuration name="jscodeshift" type="NodeJSConfigurationType" application-parameters="--no-babel -d $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/src/nodes.js" nameIsGenerated="true" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
+    <configuration name="nodeChecker (1)" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t nodeChecker.js $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/__tests__/document.test.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="nodeChecker" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t $PROJECT_DIR$/nodeChecker.js src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js">
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Node.js.jscodeshift" />
       <item itemvalue="Node.js.genJest.js" />
       <item itemvalue="Node.js.jscodeshift t" />
+      <item itemvalue="Node.js.nodeChecker" />
+      <item itemvalue="Node.js.nodeChecker (1)" />
     </list>
   </component>
   <component name="SvnConfiguration">
@@ -221,23 +258,27 @@
       <workItem from="1557796487401" duration="12347000" />
       <workItem from="1557810751081" duration="6701000" />
       <workItem from="1557893629936" duration="11906000" />
+      <workItem from="1558209813896" duration="3405000" />
+      <workItem from="1558355466320" duration="670000" />
+      <workItem from="1558356482408" duration="85000" />
+      <workItem from="1558492604975" duration="794000" />
+      <workItem from="1558554419395" duration="623000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="30954000" />
+    <option name="totallyTimeSpent" value="36531000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-4" y="0" width="1248" height="672" extended-state="6" />
-    <editor active="true" />
+    <frame x="-4" y="0" width="1249" height="632" extended-state="2" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.16009852" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15845649" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.23888889" />
-      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" weight="0.4462963" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.44444445" />
+      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" weight="0.39087301" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -289,26 +330,32 @@
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/t.js</url>
           <line>8</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transform.js</url>
           <line>29</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="25" />
         </line-breakpoint>
         <line-breakpoint type="javascript">
           <url>file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js</url>
           <line>632</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="26" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transform.js</url>
           <line>28</line>
-          <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="27" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/nodeChecker.js</url>
+          <line>20</line>
+          <option name="timeStamp" value="35" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/nodeChecker.js</url>
+          <line>17</line>
+          <option name="timeStamp" value="36" />
         </line-breakpoint>
         <breakpoint enabled="true" type="javascript-exception">
           <properties name="SyntaxError" />
@@ -323,16 +370,17 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="NodeJSConfigurationType">
-        <watch expression="api.jscodeshift(fileInfo.source).find('ClassDeclaration').map(x =&gt; x.id)" language="JavaScript" />
-        <watch expression="classes" language="JavaScript" />
-        <watch expression="classes.flatMap()" language="JavaScript" />
-        <watch expression="r.find(j.MethodDefinition).paths()[0]" language="JavaScript" />
-        <watch expression="paths[11].value" language="JavaScript" />
+        <watch expression="x.size()" language="JavaScript" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>x.size()</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>r.paths()[0].value.program</expression-string>
         <language-id>JavaScript</language-id>
@@ -378,11 +426,6 @@
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>r.paths()[0].value.program.body[0]</expression-string>
-        <language-id>JavaScript</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
@@ -400,6 +443,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/transform.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="45" selection-start-line="45" selection-end-line="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/genJest.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="558">
+          <caret line="31" column="12" selection-start-line="31" selection-start-column="12" selection-end-line="31" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/nodeChecker.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="17" column="64" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="5" column="21" selection-start-line="5" selection-start-column="21" selection-end-line="5" selection-end-column="21" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/t.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/template.js">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -411,67 +499,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="113778">
+        <state>
           <caret line="6321" column="16" selection-start-line="6321" selection-start-column="16" selection-end-line="6321" selection-end-column="16" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/testUtils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
+        <state>
           <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/Worker.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="702">
+        <state>
           <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/core.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2646">
+        <state>
           <caret line="155" column="20" selection-start-line="155" selection-start-column="20" selection-end-line="155" selection-end-column="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
+    <entry file="file://$PROJECT_DIR$/transforms/coreTestParse.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="862">
-          <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/t.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="82">
-          <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/code.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="5" column="21" selection-start-line="5" selection-start-column="21" selection-end-line="5" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/transform.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="810">
-          <caret line="45" selection-start-line="45" selection-end-line="45" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/genJest.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="344">
-          <caret line="35" column="18" selection-start-line="35" selection-start-column="18" selection-end-line="35" selection-end-column="18" />
+        <state relative-caret-position="60">
+          <caret line="4" selection-start-column="4" selection-end-line="4" />
         </state>
       </provider>
     </entry>
