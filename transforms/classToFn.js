@@ -1,42 +1,65 @@
-const recast = require('recast');
+const assert = require('assert');
 const fs = require('fs');
+const recast = require('recast');
 const camelcase = require('camelcase');
-const astTypes = require('ast-types');
+const { namedTypes, builders, getFieldNames } = require('ast-types');
 
-module.exports = function(fileInfo, api, options) {
-    const map = JSON.parse(fs.readFileSync('map.json', { encoding: 'utf-8' }));
-    const j = api.jscodeshift;
-    const r = j(fileInfo.source);
-    const p = r.find(j.MethodDefinition);//, n => n.kind === "method");
-    const funcs = [];
-    p.forEach(p => {
-	const n = p.value;
-	const decl = p.parentPath.parentPath.parentPath.value;
-        const spec = `${decl.id.name}.${n.key.name}`;
-        const fname = camelcase(spec);
-        let newName = map[spec];
-        if(!newName) {
-            map[spec] = fname;
-            newName = fname;
+const b = builders;
+
+module.exports = (fileInfo, api, options) => {
+  const { report } = api;
+  const map = JSON.parse(fs.readFileSync('map.json', { encoding: 'utf-8' }));
+  const j = api.jscodeshift;
+  const r = j(fileInfo.source);
+
+  const newBody = [];// b.expressionStatement(b.assignmentExpression("=", b.identifier("foo"), b.identifier("bar")))];
+  const newFile = b.file(b.program(newBody));
+
+  r.find(j.ImportDeclaration);
+  r.find(j.ClassDeclaration).forEach((classPath) => {
+    const decl = classPath.value;
+    let superClassName;
+    if (decl.superClass) {
+      assert.equal(decl.superClass.type, 'Identifier');
+      superClassName = decl.superClass.name;
+      const x2 = j(fileInfo.source).find(j.ClassDeclaration, x => x.id.name === superClassName);
+      const [superDeclPath] = x2.paths();
+      if (superDeclPath) {
+        const superNode = superDeclPath.value;
+      } else {
+          throw new Error('need class');
+      }
+    }
+    j(classPath).find(j.MethodDefinition).forEach((methodPath) => {
+      const methodNode = methodPath.value;
+      const spec = `${decl.id.name}.${methodNode.key.name}`;
+      const fname = camelcase(spec);
+      let newName = map[spec];
+      if (!newName) {
+        map[spec] = fname;
+        newName = fname;
+      }
+      const func = j.functionDeclaration(j.identifier(newName), methodNode.value.params, methodNode.value.body);
+      j(methodNode.value.body).find(j.Super).forEach((superPath) => {
+        const superNode = superPath.value;
+        const memberExp = superPath.parent.value;
+        assert.equal(memberExp.type, 'MemberExpression');
+        const { property } = memberExp;
+        assert.equal(property.type, 'Identifier');
+        const id = property.name;
+
+        const spec2 = `${superClassName}.${id}`;
+        const fname2 = camelcase(spec);
+        let newName2 = map[spec2];
+        if (!newName2) {
+          map[spec2] = fname2;
+          newName2 = fname2;
         }
-        //	process.stdout.write(`${spec}\t${fname}\n`);
-        const f = { type: "FunctionDeclaration" };
-        api.report(astTypes.getFieldNames(f).join(', '));
-        const func=j.functionDeclaration(j.identifier(newName), n.value.params, n.value.body);
-        funcs.push(func);
+        report(newName2);
+      });
+      newBody.push(func);
     });
-    const f = j.file(j.program(funcs));
-    api.report(recast.print(f).code);
-    const program = r.paths()[0].value.program;
-    program.body = [...program.body, ...funcs];
-//    r.paths()[0].value.program.body.push(...funcs);
-    api.report(r.toSource());
-    //recast.print(r.paths()[0].value).code + '\n');
-
-    return api.jscodeshift(fileInfo.source);/*
-    .findVariableDeclarators('foo').module
-  .renameTo('bar')
-    .toSource();*/
-}
-
-//fs.writeFileSync('out.json', JSON.stringify(map), 'utf-8');
+  });
+  return api.jscodeshift(recast.print(newFile).code);/* .findVariableDeclarators('foo').module  .renameTo('bar')`    .toSource(); */
+};
+// fs.writeFileSync('out.json', JSON.stringify(map), 'utf-8');
