@@ -4,12 +4,13 @@
     "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
     "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
     "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
-    "classStructure1": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/Exceptions.ts",
+    "classStructure1": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/nodes.ts",
     "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src"
   },
   "dependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
+    "@babel/node": "^7.4.5",
     "@babel/preset-env": "^7.4.4",
     "@typescript-eslint/eslint-plugin": "^1.10.2",
     "@typescript-eslint/parser": "^1.10.2",

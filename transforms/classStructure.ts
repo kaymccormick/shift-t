@@ -15,11 +15,13 @@ module.exports = function(fileInfo, api, options) {
     const leafClasses = [];
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
+    const moduleName = fullpath.replace(/\.ts$/, '');
 
     const thisFile = { imported: {}, exported: {}, classes: {},
-        defaultExport: undefined
+        defaultExport: undefined,
+        module: moduleName,
     };
-    sources.file[fullpath] = thisFile;
+    sources.file[moduleName] = thisFile;
     r.find(j.ImportDeclaration).forEach(p => {
         const n = p.value;
         const source = n.source.value;
