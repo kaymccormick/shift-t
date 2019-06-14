@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="updates">
+    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/nodes.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/nodes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-t/src/parsers/rst/RSTStateMachine.ts" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-t/src/parsers/rst/RSTStateMachine.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/processSources1.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/processSources1.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transforms/classStructure.ts" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/classStructure.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -33,7 +28,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-156">
+            <state relative-caret-position="-10">
               <caret line="18" selection-start-line="18" selection-end-line="18" />
             </state>
           </provider>
@@ -51,10 +46,15 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/processSources1.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
-              <caret line="25" column="39" lean-forward="true" selection-start-line="25" selection-start-column="39" selection-end-line="25" selection-end-column="39" />
+            <state relative-caret-position="51">
+              <caret line="3" selection-start-line="3" selection-end-line="3" />
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="mock://internal/modules/cjs/loader.js">
+          <provider selected="true" editor-type-id="vmFileEditor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -89,15 +89,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-10">
               <caret line="5" column="50" selection-start-line="5" selection-start-column="50" selection-end-line="5" selection-end-column="50" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transforms/mutability.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -170,9 +161,8 @@
   </component>
   <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
     <option name="x" value="4" />
-    <option name="y" value="28" />
     <option name="width" value="1306" />
-    <option name="height" value="640" />
+    <option name="height" value="636" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -372,16 +362,23 @@
       <workItem from="1560197249039" duration="599000" />
       <workItem from="1560208415846" duration="1807000" />
       <workItem from="1560290534296" duration="161000" />
-      <workItem from="1560305555736" duration="17043000" />
+      <workItem from="1560305555736" duration="20809000" />
     </task>
+    <task id="LOCAL-00001" summary="update">
+      <created>1560528847545</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1560528847546</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="112060000" />
+    <option name="totallyTimeSpent" value="115826000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="-29" width="1240" height="727" extended-state="6" />
-    <editor active="true" />
+    <frame x="0" y="-29" width="1241" height="695" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.15371901" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -390,8 +387,8 @@
       <window_info anchor="bottom" id="TypeScript" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.538206" />
-      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.90804595" weight="0.62458473" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.538206" />
+      <window_info active="true" anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.90804595" visible="true" weight="0.36666667" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -556,7 +553,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="updates" />
+    <MESSAGE value="update" />
+    <option name="LAST_COMMIT_MESSAGE" value="update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -650,12 +648,6 @@
           <option name="timeStamp" value="81" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/src/processSources1.js</url>
-          <line>64</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="82" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
           <line>102</line>
           <properties lambdaOrdinal="-1" />
@@ -669,9 +661,15 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/processSources1.js</url>
-          <line>37</line>
+          <line>35</line>
           <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/processSources1.js</url>
+          <line>51</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="93" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -682,10 +680,7 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="NodeJSConfigurationType">
-        <watch expression="p2.parent.value.loc" language="JavaScript" />
-        <watch expression="p2.parent.value.loc.lines.get(0)" language="JavaScript" />
-        <watch expression="path.delimiter" language="JavaScript" />
-        <watch expression="p2.join('/')" language="JavaScript" />
+        <watch expression="c.superSpec" language="JavaScript" />
       </configuration>
       <configuration name="js.build_tools.npm">
         <watch expression="n" language="TypeScript" />
@@ -694,6 +689,11 @@
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>c.superSpec</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>p2.join('/')</expression-string>
         <language-id>JavaScript</language-id>
@@ -736,11 +736,6 @@
       </expression>
       <expression>
         <expression-string>r.closestScope()</expression-string>
-        <language-id>JavaScript</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>r</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -986,15 +981,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-156">
+        <state relative-caret-position="-10">
           <caret line="18" selection-start-line="18" selection-end-line="18" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/processSources1.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="25" column="39" lean-forward="true" selection-start-line="25" selection-start-column="39" selection-end-line="25" selection-end-column="39" />
+        <state relative-caret-position="51">
+          <caret line="3" selection-start-line="3" selection-end-line="3" />
         </state>
       </provider>
     </entry>
