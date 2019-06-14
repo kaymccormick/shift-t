@@ -1,17 +1,13 @@
+import { getFieldNames, getFieldValue, eachField } from 'ast-types';
 const recast = require('recast');
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
 
-import { A } from '../misc';
-
 module.exports = function(fileInfo, api, options) {
     const sources = JSON.parse(fs.readFileSync('sources_1.json', { encoding: 'utf-8' }));
-    if(sources.namespace === undefined) {
-        sources.namespace = {};
-    }
-    if(sources.files === undefined) {
-        sources.files = {};
+    if(sources.file === undefined) {
+        sources.file = {};
     }
     const report = api.report;
     const j = api.jscodeshift;
@@ -19,7 +15,11 @@ module.exports = function(fileInfo, api, options) {
     const leafClasses = [];
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
-    sources.namespace[fullpath] = {};
+
+    const thisFile = { imported: {}, exported: {}, classes: {},
+        defaultExport: undefined
+    };
+    sources.file[fullpath] = thisFile;
     r.find(j.ImportDeclaration).forEach(p => {
         const n = p.value;
         const source = n.source.value;
@@ -32,30 +32,71 @@ module.exports = function(fileInfo, api, options) {
                 if(kind.type === 'ImportSpecifier') {
                     assert.equal(kind.imported.type, 'Identifier');
                     report(kind.imported.name);
-                    sources.namespace[fullpath][kind.imported.name] = [full];
+                    thisFile.imported[kind.imported.name] = [full];
                 } else if(kind.type === 'ImportDefaultSpecifier') {
+                    const local = kind.local;
+                    report(local.name);
+                    //                  eachField(local, (n, v) => report(`${n}: ${v}`));
+                    thisFile.imported[local.name] = [full, 'default'];
                 }
                 x.push(kind.type);
             });
-            sources.files[full] = { x };
         } else {
             report(source);
         }
     });
-    const paths = r.find(j.ClassDeclaration).paths();
-    paths.forEach(p => {
+
+    r.find(j.ExportDefaultDeclaration).forEach(p => {
         const n = p.value;
-        if(n.superClass) {
-            if(n.superClass.type === 'MemberExpression') {
-                const o = n.superClass.object;
-                const p = n.superClass.property;
-                assert.equal(p.type, 'Identifier');
-                report(`${o.name}.${p.name}`);
-            } else {
-                assert.equal(n.superClass.type, 'Identifier');
+        let name;
+        if(n.declaration.type === 'ClassDeclaration') {
+            name = n.declaration.id.name;
+        } else {
+            name = n.declaration.name;
+        }
+        thisFile.defaultExport = name;
+    });
+    r.find(j.ExportNamedDeclaration).forEach(p => {
+        const n = p.value;
+        if(n.declaration && n.declaration.type === 'ClassDeclaration') {
+            if(!n.declaration.id) {
+                throw new Error(n.declaration.type);
+            }
+            thisFile.exported[n.declaration.id.name] = n.declaration.id.name;
+        }
+        n.specifiers.forEach(sp => {
+            const x= [];
+            eachField(sp, (k1, v1) => x.push(`${k1} ${v1}`));
+            //        report(x.join('\n'));
+            const local = sp.local.name;
+            const exported = sp.exported.name;
+            thisFile.exported[exported] = local;
+        });
+    });
+    const ss = thisFile.classes;
+    r.find(j.ClassDeclaration).forEach(p => {
+        const n = p.value;
+        const class_ = {};
+        const classIdName = n.id.name;
+        ss[classIdName] = class_;
+        const super_ = n.superClass;
+        let spec;
+        let id;
+        if (super_) {
+            if (super_.type === 'MemberExpression') {
+                const oname = super_.object.name;
+                id = oname;
+                const pname = super_.property.name;
+                spec = [oname, pname];
+            } else if (super_.type === 'Identifier') {
+                spec = super_.name;
+                id = spec;
+
             }
         }
+        class_.superSpec = spec;
     });
+
 
     fs.writeFileSync('sources_1.json', JSON.stringify(sources), 'utf-8');
 }

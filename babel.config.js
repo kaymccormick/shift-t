@@ -1,9 +1,10 @@
 // babel.config.js
 module.exports = {
     "ignore": ["**/.#*"],
-  presets: [
+    presets: [
+        ['@babel/typescript'],
     [
-      '@babel/preset-env',
+        '@babel/env',
       {
         targets: {
           node: '10',
@@ -11,5 +12,6 @@ module.exports = {
       },
     ],
   ],
-//  plugins: [ '@babel/plugin-proposal-class-properties' ],
+    plugins: [ '@babel/plugin-proposal-class-properties',
+             '@babel/plugin-proposal-object-rest-spread'],
 };

@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/transforms/coreTestParse.js" afterDir="false" />
+    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="updates">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/jade.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/derp.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/misc.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transforms/settings.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/parsers/restructuredtext.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/parsers/restructuredtext.test.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/parsers/rst/Inliner.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/parsers/rst/Inliner.test.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/plugin.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/plugin.test.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/__tests__/writers/draftFlattener.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/__tests__/writers/draftFlattener.test.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/fn/baseReaderTransforms.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/fn/baseReaderTransforms.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/fn/reader.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/fn/reader.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/babel.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/babel.config.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docutils-js/src/nodes.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/nodes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives/images.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/parsers/rst/directives/images.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/transforms/references.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/transforms/references.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/src/transforms/universal.js" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/src/transforms/universal.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docutils-js/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-js/yarn.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nodeChecker.js" beforeDir="false" afterPath="$PROJECT_DIR$/nodeChecker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docutils-t/src/parsers/rst/RSTStateMachine.ts" beforeDir="false" afterPath="$PROJECT_DIR$/docutils-t/src/parsers/rst/RSTStateMachine.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transforms/classStructure.ts" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/classStructure.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transforms/classToFn.js" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/classToFn.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transforms/extractRegexps.js" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/extractRegexps.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -32,96 +29,91 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/nodeChecker.js">
+        <entry file="file://$PROJECT_DIR$/transforms/settings.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="17" column="64" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="64" />
+            <state relative-caret-position="90">
+              <caret line="15" column="8" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/transforms/coreTestParse.js">
+        <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="4" selection-start-column="4" selection-end-line="4" />
+            <state relative-caret-position="18">
+              <caret line="60" column="68" selection-start-line="60" selection-start-column="68" selection-end-line="60" selection-end-column="68" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/code.js">
+        <entry file="file://$PROJECT_DIR$/node_modules/ast-types/gen/namedTypes.d.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="5" column="21" selection-start-line="5" selection-start-column="21" selection-end-line="5" selection-end-column="21" />
-              <folding>
-                <element signature="e#0#35#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="99">
+              <caret line="148" column="14" selection-start-line="148" selection-start-column="14" selection-end-line="148" selection-end-column="14" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/t.js">
+        <entry file="file://$PROJECT_DIR$/src/processSources1.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
+            <state relative-caret-position="227">
+              <caret line="28" column="24" selection-start-line="28" selection-start-column="24" selection-end-line="28" selection-end-column="24" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
+        <entry file="file://$PROJECT_DIR$/sources_1.json">
           <provider selected="true" editor-type-id="text-editor">
             <state>
-              <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
+              <caret column="1" selection-start-column="1" selection-end-column="1" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/template.js">
+        <entry file="file://$PROJECT_DIR$/transforms/classStructure2.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
+            <state relative-caret-position="36">
+              <caret line="16" column="10" selection-start-line="16" selection-start-column="10" selection-end-line="16" selection-end-column="10" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js">
+        <entry file="file://$PROJECT_DIR$/sources.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="6321" column="16" selection-start-line="6321" selection-start-column="16" selection-end-line="6321" selection-end-column="16" />
+            <state relative-caret-position="-139">
+              <caret column="32616" selection-start-column="32616" selection-end-column="32616" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/testUtils.js">
+        <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
+            <state relative-caret-position="90">
+              <caret line="5" column="50" selection-start-line="5" selection-start-column="50" selection-end-line="5" selection-end-column="50" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/Worker.js">
+        <entry file="file://$PROJECT_DIR$/transforms/mutability.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
+            <state relative-caret-position="324">
+              <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/core.js">
+        <entry file="file://$PROJECT_DIR$/src/templates.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="155" column="20" selection-start-line="155" selection-start-column="20" selection-end-line="155" selection-end-column="20" />
+            <state relative-caret-position="198">
+              <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -135,8 +127,11 @@
       <find>j.nodepath</find>
       <find>console.log</find>
       <find>var</find>
-      <find>var</find>
       <find>++</find>
+      <find>13</find>
+      <find>assert</find>
+      <find>find:</find>
+      <find>_</find>
     </findStrings>
     <replaceStrings>
       <replace>wal</replace>
@@ -159,15 +154,26 @@
         <option value="$PROJECT_DIR$/genJest.js" />
         <option value="$PROJECT_DIR$/nodeChecker.js" />
         <option value="$PROJECT_DIR$/transforms/coreTestParse.js" />
+        <option value="$PROJECT_DIR$/derp.js" />
+        <option value="$PROJECT_DIR$/transforms/extractRegexps.js" />
+        <option value="$PROJECT_DIR$/transforms/mutability.js" />
+        <option value="$PROJECT_DIR$/files/classToFn1.js" />
+        <option value="$PROJECT_DIR$/transforms/classToFn.js" />
+        <option value="$PROJECT_DIR$/transforms/settings.js" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/sources.json" />
+        <option value="$PROJECT_DIR$/transforms/classStructure.js" />
+        <option value="$PROJECT_DIR$/transforms/classStructure.ts" />
       </list>
     </option>
   </component>
   <component name="PackageJsonUpdateNotifier">
-    <dismissed value="$PROJECT_DIR$/docutils-js/package.json" />
+    <dismissed value="$PROJECT_DIR$/package.json" />
   </component>
-  <component name="ProjectFrameBounds" extendedState="2">
-    <option name="width" value="1240" />
-    <option name="height" value="632" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="4" />
+    <option name="width" value="1306" />
+    <option name="height" value="640" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -175,25 +181,16 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="shift" type="b2602c69:ProjectViewProjectNode" />
-              <item name="shift" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="Scope" />
+      <pane id="ProjectPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="editor.config.ad.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../docutils-dev/docutils-monorepo/tools" />
+    <property name="full.screen.before.presentation.mode" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/processSources1.js" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -203,6 +200,8 @@
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="yarn" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="ts.external.directory.path" value="$PROJECT_DIR$/docutils-t/node_modules/typescript/lib" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -221,7 +220,22 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Node.js.nodeChecker (1)">
+  <component name="RunManager" selected="Node.js.processSources1.js">
+    <configuration name="classToFn" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/classToFn.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="extractRegexps Body" type="NodeJSConfigurationType" application-parameters="--run-in--no-babel -band -d -t transforms/extractRegexps.js docutils-js/src/parsers/rst/states/Body.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="extractRegexps (1)" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/extractRegexps.js derp.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="extractRegexps no run in band" type="NodeJSConfigurationType" application-parameters="-d -t transforms/extractRegexps.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="extractRegexps" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/extractRegexps.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
     <configuration name="genJest.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="genJest.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
@@ -231,19 +245,103 @@
     <configuration name="jscodeshift" type="NodeJSConfigurationType" application-parameters="--no-babel -d $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/src/nodes.js" nameIsGenerated="true" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
+    <configuration name="mutability Body (1)" type="NodeJSConfigurationType" application-parameters="--run-in--no-babel -band -d -t transforms/mutability.js docutils-js/src/parsers/rst/states/Body.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
     <configuration name="nodeChecker (1)" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t nodeChecker.js $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/__tests__/document.test.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="nodeChecker" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t $PROJECT_DIR$/nodeChecker.js src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js">
       <method v="2" />
     </configuration>
+    <configuration name="processSources1.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="src/processSources1.js" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="classStructure" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="classStructure" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="classStructure1" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="classStructure1" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="classStructure2" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="classStructure2" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="npm classToFn" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="classToFn" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="npm extractRegexps" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="extractRegexps" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="settings" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="settings" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <list>
+      <item itemvalue="Node.js.processSources1.js" />
       <item itemvalue="Node.js.jscodeshift" />
+      <item itemvalue="Node.js.classToFn" />
+      <item itemvalue="Node.js.extractRegexps" />
+      <item itemvalue="Node.js.extractRegexps Body" />
+      <item itemvalue="Node.js.mutability Body (1)" />
+      <item itemvalue="Node.js.extractRegexps no run in band" />
+      <item itemvalue="Node.js.extractRegexps (1)" />
       <item itemvalue="Node.js.genJest.js" />
       <item itemvalue="Node.js.jscodeshift t" />
       <item itemvalue="Node.js.nodeChecker" />
       <item itemvalue="Node.js.nodeChecker (1)" />
+      <item itemvalue="npm.npm extractRegexps" />
+      <item itemvalue="npm.npm classToFn" />
+      <item itemvalue="npm.classStructure" />
+      <item itemvalue="npm.classStructure1" />
+      <item itemvalue="npm.classStructure2" />
+      <item itemvalue="npm.settings" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="npm.settings" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -263,22 +361,57 @@
       <workItem from="1558356482408" duration="85000" />
       <workItem from="1558492604975" duration="794000" />
       <workItem from="1558554419395" duration="623000" />
+      <workItem from="1558831015740" duration="8853000" />
+      <workItem from="1558901295877" duration="9530000" />
+      <workItem from="1558978952415" duration="4409000" />
+      <workItem from="1558989317737" duration="1523000" />
+      <workItem from="1559002901787" duration="28278000" />
+      <workItem from="1559690191009" duration="826000" />
+      <workItem from="1559693479648" duration="595000" />
+      <workItem from="1560117894122" duration="698000" />
+      <workItem from="1560121239645" duration="1207000" />
+      <workItem from="1560197249039" duration="599000" />
+      <workItem from="1560208415846" duration="1807000" />
+      <workItem from="1560290534296" duration="161000" />
+      <workItem from="1560305555736" duration="12557000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="36531000" />
+    <option name="totallyTimeSpent" value="107574000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-4" y="0" width="1249" height="632" extended-state="2" />
+    <frame x="0" y="0" width="1240" height="668" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15845649" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15371901" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info id="npm" order="3" side_tool="true" />
+      <window_info anchor="bottom" id="TypeScript" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.53974897" />
+      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.90804595" weight="0.62552303" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Terminal" order="9" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.07471264" side_tool="true" weight="0.25632378" />
+      <window_info anchor="bottom" id="Messages" order="11" weight="0.31171548" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+    <layout-to-restore>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15681446" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.44444445" />
-      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" weight="0.39087301" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.44291338" />
+      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" visible="true" weight="0.25770926" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -289,78 +422,248 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-    </layout>
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/shared.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/node-path.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/scope.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/equiv.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/path.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/path.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/path-visitor.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/shared.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/path-visitor.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/node-path.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/types.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/equiv.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/lib/scope.js" />
+        <option value="$PROJECT_DIR$/../ast-types/fork.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/kinds.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/types.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/visitor.js" />
+        <option value="$PROJECT_DIR$/../ast-types/types.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/builders.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/fork.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/builders.js" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/kinds.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/namedTypes.js" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/visitor.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/kinds.js" />
+        <option value="$PROJECT_DIR$/../ast-types/main.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/visitor.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/main.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/gen/namedTypes.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/namedTypes.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/script/gen-types.js" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/kinds.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/script/gen-types.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/builders.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/builders.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/babel.js" />
+        <option value="$PROJECT_DIR$/../ast-types/script/gen-types.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/esprima.js" />
+        <option value="$PROJECT_DIR$/../ast-types/script/gen-types.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/typescript.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/visitor.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/flow.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/gen/namedTypes.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/core.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/flow.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es6.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/perf.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/typescript.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/perf.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es-proposals.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/type-annotations.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/babel-core.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/api.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/core.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/run.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es7.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/typescript.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es7.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/ecmascript.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/jsx.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/typescript.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/flow.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/flow.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es6.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/type-annotations.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/type-annotations.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/ecmascript.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/babel-core.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/shared.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/babel.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/api.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/esprima.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/test/run.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/es-proposals.js" />
+        <option value="$PROJECT_DIR$/../ast-types/test/shared.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/jsx.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/scope.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/def/type-annotations.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/equiv.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/shared.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/main.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/node-path.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/types.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/path-visitor.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/main.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/shared.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/types.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/path.js" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/fork.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/path.d.ts" />
+        <option value="$PROJECT_DIR$/node_modules/ast-types/fork.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/types.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/types.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/path-visitor.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/node-path.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/babel.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/esprima.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/equiv.js" />
+        <option value="$PROJECT_DIR$/../ast-types/lib/scope.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/core.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es6.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/typescript.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/flow.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/babel-core.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/core.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/typescript.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es-proposals.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/jsx.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/flow.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es7.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es7.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/babel-core.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/babel.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es6.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/type-annotations.js" />
+        <option value="$PROJECT_DIR$/../ast-types/def/jsx.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/type-annotations.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/esprima.d.ts" />
+        <option value="$PROJECT_DIR$/../ast-types/def/es-proposals.js" />
+        <option value="$PROJECT_DIR$/src/processSources1.js" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/mod.js</url>
-          <line>1</line>
-          <option name="timeStamp" value="1" />
+          <url>file://$PROJECT_DIR$/transforms/extractRegexps.js</url>
+          <line>26</line>
+          <option name="timeStamp" value="58" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js</url>
-          <line>6321</line>
-          <option name="timeStamp" value="5" />
+          <url>file://$PROJECT_DIR$/transforms/mutability.js</url>
+          <line>16</line>
+          <option name="timeStamp" value="59" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transform.js</url>
-          <line>60</line>
-          <option name="timeStamp" value="15" />
+          <url>file://$PROJECT_DIR$/src/templates.js</url>
+          <line>16</line>
+          <option name="timeStamp" value="61" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transform.js</url>
-          <line>47</line>
-          <option name="timeStamp" value="17" />
+          <url>file://$PROJECT_DIR$/src/templates.js</url>
+          <line>11</line>
+          <option name="timeStamp" value="62" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transform.js</url>
-          <line>35</line>
-          <option name="timeStamp" value="21" />
+          <url>file://$PROJECT_DIR$/transforms/extractRegexps.js</url>
+          <line>18</line>
+          <option name="timeStamp" value="63" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/t.js</url>
-          <line>9</line>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/t.js</url>
-          <line>8</line>
-          <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transform.js</url>
-          <line>29</line>
-          <option name="timeStamp" value="25" />
+          <url>file://$PROJECT_DIR$/transforms/classToFn.js</url>
+          <line>23</line>
+          <option name="timeStamp" value="66" />
         </line-breakpoint>
         <line-breakpoint type="javascript">
-          <url>file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js</url>
-          <line>632</line>
-          <option name="timeStamp" value="26" />
+          <url>file://$PROJECT_DIR$/node_modules/jscodeshift/src/collections/Node.js</url>
+          <line>34</line>
+          <option name="timeStamp" value="67" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transform.js</url>
+          <url>file://$PROJECT_DIR$/transforms/classToFn.js</url>
+          <line>63</line>
+          <option name="timeStamp" value="69" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/settings.js</url>
+          <line>25</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="70" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/settings.js</url>
+          <line>23</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="71" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/settings.js</url>
+          <line>21</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/settings.js</url>
+          <line>15</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="73" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/classStructure.js</url>
+          <line>27</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="76" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/classStructure.js</url>
+          <line>9</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="77" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/classStructure2.ts</url>
+          <line>39</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="78" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
+          <line>49</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="81" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/processSources1.js</url>
           <line>28</line>
-          <option name="timeStamp" value="27" />
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="82" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/nodeChecker.js</url>
-          <line>20</line>
-          <option name="timeStamp" value="35" />
+          <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
+          <line>100</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="84" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/nodeChecker.js</url>
-          <line>17</line>
-          <option name="timeStamp" value="36" />
+          <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
+          <line>62</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="85" />
         </line-breakpoint>
-        <breakpoint enabled="true" type="javascript-exception">
-          <properties name="SyntaxError" />
-          <option name="timeStamp" value="3" />
-        </breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="dart-exception">
@@ -370,19 +673,28 @@
     </breakpoint-manager>
     <watches-manager>
       <configuration name="NodeJSConfigurationType">
-        <watch expression="x.size()" language="JavaScript" />
+        <watch expression="p2.parent.value.loc" language="JavaScript" />
+        <watch expression="p2.parent.value.loc.lines.get(0)" language="JavaScript" />
+      </configuration>
+      <configuration name="js.build_tools.npm">
+        <watch expression="n" language="TypeScript" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
       <expression>
-        <expression-string>x.size()</expression-string>
+        <expression-string>n</expression-string>
+        <language-id>TypeScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>fileInfo</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>r.paths()[0].value.program</expression-string>
+        <expression-string>n.value.superClass</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -392,7 +704,17 @@
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>r.paths()[0].node()</expression-string>
+        <expression-string>x2.paths()[0]</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>x2.first()</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>r.closestScope()</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -402,27 +724,12 @@
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>r.paths()[0].value.program.body[1]</expression-string>
+        <expression-string>ids.size()</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>r.paths()[0].value.program.body[1].specifiers[0]</expression-string>
-        <language-id>JavaScript</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>r.paths()[0].value.program.body[1].specifiers</expression-string>
-        <language-id>JavaScript</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>r.paths()[0].value.program.body[1].specifier</expression-string>
-        <language-id>JavaScript</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>r.paths()[0].value.program.body[].specifier</expression-string>
+        <expression-string>p2.parent.value.loc.lines.get(0)</expression-string>
         <language-id>JavaScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -443,13 +750,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/transform.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="810">
-          <caret line="45" selection-start-line="45" selection-end-line="45" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/genJest.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="558">
@@ -459,32 +759,23 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/nodeChecker.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="255">
           <caret line="17" column="64" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="64" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/code.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="5" column="21" selection-start-line="5" selection-start-column="21" selection-end-line="5" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/code.js" />
     <entry file="file://$PROJECT_DIR$/t.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="75">
           <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
+    <entry file="file://$PROJECT_DIR$/transforms/coreTestParse.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
+        <state relative-caret-position="60">
+          <caret line="4" selection-start-line="4" selection-end-line="4" />
         </state>
       </provider>
     </entry>
@@ -497,38 +788,202 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="6321" column="16" selection-start-line="6321" selection-start-column="16" selection-end-line="6321" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/testUtils.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="450">
           <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/Worker.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="585">
           <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/core.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="2205">
           <caret line="155" column="20" selection-start-line="155" selection-start-column="20" selection-end-line="155" selection-end-column="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/transforms/coreTestParse.js">
+    <entry file="file://$PROJECT_DIR$/node_modules/@babel/parser/lib/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" selection-start-column="4" selection-end-line="4" />
+        <state relative-caret-position="108001">
+          <caret line="6353" column="5" selection-start-line="6353" selection-start-column="5" selection-end-line="6353" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/ast-types/lib/types.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10744">
+          <caret line="632" column="2" selection-start-line="632" selection-start-column="2" selection-end-line="632" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transform.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="30" selection-end-line="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/derp.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" selection-start-line="3" selection-end-line="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../jscodeshift/node_modules/@babel/core/lib/transformation/normalize-file.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3536">
+          <caret line="208" column="4" selection-start-line="208" selection-start-column="4" selection-end-line="208" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/recast/lib/patcher.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="93">
+          <caret line="148" column="22" selection-start-line="148" selection-start-column="22" selection-end-line="148" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../jscodeshift/src/collections/Node.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="34" column="7" selection-start-line="34" selection-start-column="7" selection-end-line="34" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/share/yarn/lib/cli.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="481140">
+          <caret line="32076" column="10" selection-start-line="32076" selection-start-column="10" selection-end-line="32076" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/classToFn.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="13" selection-end-line="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/jscodeshift/src/collections/Node.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="33" column="7" selection-start-line="33" selection-start-column="2" selection-end-line="33" selection-end-column="7" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/files/classToFn1.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="20" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../jscodeshift/node_modules/@babel/parser/lib/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113778">
+          <caret line="6321" column="16" selection-start-line="6321" selection-start-column="16" selection-end-line="6321" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../recast/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/extractRegexps.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="15" column="3" selection-start-line="15" selection-start-column="3" selection-end-line="15" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/mutability.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="18" column="19" selection-start-line="18" selection-start-column="19" selection-end-line="18" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/templates.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="5" column="50" selection-start-line="5" selection-start-column="50" selection-end-line="5" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sources.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-139">
+          <caret column="32616" selection-start-column="32616" selection-end-column="32616" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/classStructure2.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="36">
+          <caret line="16" column="10" selection-start-line="16" selection-start-column="10" selection-end-line="16" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sources_1.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="1" selection-start-column="1" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/classStructure.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="36">
+          <caret line="16" column="12" selection-start-line="16" selection-start-column="12" selection-end-line="16" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/settings.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="15" column="8" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/processSources1.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="28" column="24" selection-start-line="28" selection-start-column="24" selection-end-line="28" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/ast-types/gen/namedTypes.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="99">
+          <caret line="148" column="14" selection-start-line="148" selection-start-column="14" selection-end-line="148" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="60" column="68" selection-start-line="60" selection-start-column="68" selection-end-line="60" selection-end-column="68" />
         </state>
       </provider>
     </entry>

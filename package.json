@@ -1,14 +1,32 @@
 {
+  "scripts": {
+    "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
+    "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
+    "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
+    "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
+    "classStructure1": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/Exceptions.ts",
+    "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src"
+  },
   "dependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
+    "@typescript-eslint/eslint-plugin": "^1.10.2",
+    "@typescript-eslint/parser": "^1.10.2",
+    "ast-types": "^0.13.1",
+    "camelcase": "^5.3.1",
     "jscodeshift": "^0.6.4",
-    "recast": "^0.18.1"
+    "pg": "^7.11.0",
+    "pg-hstore": "^2.3.3",
+    "recast": "^0.18.1",
+    "sequelize": "^5.8.9",
+    "typescript": "^3.5.2"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.17.2"
+    "eslint-plugin-import": "^2.17.2",
+    "jest": "^24.8.0",
+    "jest-cli": "^24.8.0"
   }
 }

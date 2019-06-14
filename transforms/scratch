@@ -1,0 +1,19 @@
+        /*api.report(typeof argPaths);
+        if(argPaths && argPaths.length >= 1) {
+            regexpArgPaths.push(argPaths[0]);
+        }*/
+      /* const args = argPaths.map(p => p.value);
+      const [ arg1 ] = args;
+      if (arg1.type === 'TemplateLiteral') {
+        arg1.quasis.forEach(q => {
+          if (q.type !== 'TemplateElement') {
+            throw new Error(`unexpected type ${q.type}`);
+          }
+
+        });
+      }
+      */
+
+      //arg1.expressions.forEach(exp => getFieldNames(exp).map(fname => `${fname}\t${exp[fname]}\n`).forEach(api.report));
+
+      //getFieldNames(arg1).map(a => `${a}\t${arg1[a]}\n`).forEach(api.report);

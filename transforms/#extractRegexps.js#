@@ -1,4 +1,4 @@
-import { getFieldNames, getFieldValue } from 'ast-types';
+import { getFieldNames, getFieldValue, eachField } from 'ast-types';
 import { handleTemplateLiteral } from '../src/templates';
 
 module.exports = function (fileInfo, api, options) {

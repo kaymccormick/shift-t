@@ -27,7 +27,7 @@ module.exports = (fileInfo, api, options) => {
       if (superDeclPath) {
         const superNode = superDeclPath.value;
       } else {
-          throw new Error('need class');
+          throw new Error(`need superclass for ${decl.id.name}`);
       }
     }
     j(classPath).find(j.MethodDefinition).forEach((methodPath) => {
@@ -42,24 +42,34 @@ module.exports = (fileInfo, api, options) => {
       const func = j.functionDeclaration(j.identifier(newName), methodNode.value.params, methodNode.value.body);
       j(methodNode.value.body).find(j.Super).forEach((superPath) => {
         const superNode = superPath.value;
-        const memberExp = superPath.parent.value;
-        assert.equal(memberExp.type, 'MemberExpression');
-        const { property } = memberExp;
+          const parentNode = superPath.parent.value;
+          if(parentNode.type === 'CallExpression') {
+          } else if(parentNode.type === 'MemberExpression') {
+
+          }
+
+
+        assert.equal(parentNode.type, 'MemberExpression');
+        const { property } = parentNode;
         assert.equal(property.type, 'Identifier');
         const id = property.name;
 
         const spec2 = `${superClassName}.${id}`;
-        const fname2 = camelcase(spec);
+        const fname2 = camelcase(spec2);
         let newName2 = map[spec2];
         if (!newName2) {
           map[spec2] = fname2;
           newName2 = fname2;
         }
-        report(newName2);
+          //const parentPath =
+                superPath.parent.parent.value.callee = b.identifier(newName2);
+//          report(parentPath.value.type);
+//        report(newName2);
       });
       newBody.push(func);
     });
   });
+    report(recast.print(newFile).code);
   return api.jscodeshift(recast.print(newFile).code);/* .findVariableDeclarators('foo').module  .renameTo('bar')`    .toSource(); */
 };
 // fs.writeFileSync('out.json', JSON.stringify(map), 'utf-8');
