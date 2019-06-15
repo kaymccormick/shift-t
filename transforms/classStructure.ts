@@ -1,47 +1,50 @@
-import { getFieldNames, getFieldValue, eachField } from 'ast-types';
+import {getFieldNames, getFieldValue, eachField} from 'ast-types';
+
 const recast = require('recast');
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
 
-module.exports = function(fileInfo, api, options) {
-    const sources = JSON.parse(fs.readFileSync('sources_1.json', { encoding: 'utf-8' }));
-    if(sources.file === undefined) {
+module.exports = function (fileInfo, api, options) {
+    let sources = JSON.parse(fs.readFileSync('sources_1.json', {encoding: 'utf-8'}));
+    if (sources.file === undefined) {
         sources.file = {};
+    }
+    if(sources.pid !== process.pid) {
+        sources = { module: {}, pid: process.pid }
     }
     const report = api.report;
     const j = api.jscodeshift;
-    const superClasses = [];
-    const leafClasses = [];
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
     const moduleName = fullpath.replace(/\.ts$/, '');
     report(moduleName);
-    const thisFile = { imported: {}, exported: {}, classes: {},
+    const thisModule = {
+        imported: {}, exported: {}, classes: {},
         defaultExport: undefined,
         module: moduleName,
     };
-    sources.file[moduleName] = thisFile;
+    sources.module[moduleName] = thisModule;
     let maxImport = -1;
     r.find(j.ImportDeclaration).forEach((p, i) => {
         maxImport = Math.max(maxImport, i);
         const n = p.value;
         const source = n.source.value;
-        if(/^\.\.?\//.test(source)) {
+        if (/^\.\.?\//.test(source)) {
             const dir = path.dirname(fullpath);
             const full = path.resolve(dir, source);
-            assert.equal(n.importKind, 'value');
+            assert.strictEqual(n.importKind, 'value');
             const x = [];
-            n.specifiers.forEach( kind => {
-                if(kind.type === 'ImportSpecifier') {
+            n.specifiers.forEach(kind => {
+                if (kind.type === 'ImportSpecifier') {
                     assert.equal(kind.imported.type, 'Identifier');
                     report(kind.imported.name);
-                    thisFile.imported[kind.imported.name] = [full];
-                } else if(kind.type === 'ImportDefaultSpecifier') {
+                    thisModule.imported[kind.imported.name] = [full];
+                } else if (kind.type === 'ImportDefaultSpecifier') {
                     const local = kind.local;
                     report(local.name);
                     //                  eachField(local, (n, v) => report(`${n}: ${v}`));
-                    thisFile.imported[local.name] = [full, 'default'];
+                    thisModule.imported[local.name] = [full, 'default'];
                 }
                 x.push(kind.type);
             });
@@ -49,14 +52,44 @@ module.exports = function(fileInfo, api, options) {
             report(source);
         }
     });
-    const newBody = [ ...r.paths()[0].value.program.body];
+    const newBody = [...r.paths()[0].value.program.body];
 
     const newFile = j.file(j.program(newBody));
     const newExports = [];
+    const named = r.find(j.ExportNamedDeclaration);
+    named.forEach((p, i) => {
+        const n = p.value;
+        // const x = [];
+        // eachField(n, (k1, v1) => x.push(`${k1} ${v1}`));
+        // report(x.join('\n'));
+        if (n.declaration) {
+            newBody.splice(i, 1, n.declaration);
+            if (n.declaration.type === 'ClassDeclaration') {
+                if (!n.declaration.id) {
+                    throw new Error(n.declaration.type);
+                }
+                thisModule.exported[n.declaration.id.name] = n.declaration.id.name;
+                report(n.declaration.id.name);
+            } else if (n.declaration.type === 'VariableDeclaration') {
+            } else { // functiondeclaration and tsfunctiondeclaration
+
+
+            }
+        }
+        n.specifiers.forEach(sp => {
+            const x = [];
+            eachField(sp, (k1, v1) => x.push(`${k1} ${v1}`));
+            //        report(x.join('\n'));
+            const local = sp.local.name;
+            const exported = sp.exported.name;
+            report(`e: ${i}:` + exported);
+            thisModule.exported[exported] = local;
+        });
+    });
     r.find(j.ExportDefaultDeclaration).forEach((p, i) => {
         const n = p.value;
         let name;
-        if(n.declaration.type === 'ClassDeclaration') {
+        if (n.declaration.type === 'ClassDeclaration') {
             name = n.declaration.id.name;
             //newBody.push(n.declaration);
             newBody.splice(i, 1, n.declaration);
@@ -65,26 +98,9 @@ module.exports = function(fileInfo, api, options) {
         } else {
             name = n.declaration.name;
         }
-        thisFile.defaultExport = name;
+        thisModule.defaultExport = name;
     });
-    r.find(j.ExportNamedDeclaration).forEach((p, i) => {
-        const n = p.value;
-        if(n.declaration && n.declaration.type === 'ClassDeclaration') {
-            if(!n.declaration.id) {
-                throw new Error(n.declaration.type);
-            }
-            thisFile.exported[n.declaration.id.name] = n.declaration.id.name;
-        }
-        n.specifiers.forEach(sp => {
-            const x= [];
-            eachField(sp, (k1, v1) => x.push(`${k1} ${v1}`));
-            //        report(x.join('\n'));
-            const local = sp.local.name;
-            const exported = sp.exported.name;
-            thisFile.exported[exported] = local;
-        });
-    });
-    const ss = thisFile.classes;
+    const ss = thisModule.classes;
     r.find(j.ClassDeclaration).forEach(p => {
         const n = p.value;
         const class_ = {};
@@ -109,8 +125,8 @@ module.exports = function(fileInfo, api, options) {
     });
     //r.paths()[0].program.body.splice(maxImport, 0, ...impors)
 
-newBody.push(...newExports);
-    fs.writeFileSync('sources_1.json', JSON.stringify(sources), 'utf-8');
+    newBody.push(...newExports);
+    fs.writeFileSync('sources_1.json', JSON.stringify(sources, null, 4), 'utf-8');
     return j(newFile).toSource();
     //return recast.print(newFile).code;
 }
