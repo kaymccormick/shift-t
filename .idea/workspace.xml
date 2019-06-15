@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="updates">
+      <change afterPath="$PROJECT_DIR$/src/transformUtils.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/processSources1.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/processSources1.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/processSources1.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/transforms/classStructure.ts" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/classStructure.ts" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,13 +16,27 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="740">
-              <caret line="127" column="70" selection-start-line="127" selection-start-column="70" selection-end-line="127" selection-end-column="70" />
+            <state relative-caret-position="155">
+              <caret line="97" column="16" lean-forward="true" selection-start-line="97" selection-start-column="16" selection-end-line="97" selection-end-column="16" />
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/transforms/classStructureShift.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="224">
+              <caret line="145" column="29" selection-start-line="145" selection-start-column="29" selection-end-line="145" selection-end-column="29" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -51,24 +62,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="225">
               <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/ast-types/gen/namedTypes.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2595">
-              <caret line="175" column="19" selection-start-line="175" selection-start-column="19" selection-end-line="175" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transforms/nodeParser.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="29" column="10" selection-start-line="29" selection-start-column="10" selection-end-line="29" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -103,8 +96,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="6" column="50" selection-start-line="6" selection-start-column="50" selection-end-line="6" selection-end-column="50" />
+            <state relative-caret-position="85">
+              <caret line="6" column="49" lean-forward="true" selection-start-line="6" selection-start-column="49" selection-end-line="6" selection-end-column="49" />
             </state>
           </provider>
         </entry>
@@ -161,10 +154,11 @@
         <option value="$PROJECT_DIR$/sources_1.json" />
         <option value="$PROJECT_DIR$/sources_2.json" />
         <option value="$PROJECT_DIR$/transforms/settings.js" />
-        <option value="$PROJECT_DIR$/package.json" />
-        <option value="$PROJECT_DIR$/transforms/classStructure.ts" />
         <option value="$PROJECT_DIR$/src/processSources1.ts" />
         <option value="$PROJECT_DIR$/src/processSources1.js" />
+        <option value="$PROJECT_DIR$/transforms/classStructure.ts" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/transforms/classStructureShift.ts" />
       </list>
     </option>
   </component>
@@ -243,7 +237,10 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="npm.classStructure1">
+  <component name="RunManager" selected="Node.js.class Shift">
+    <configuration name="class Shift" type="NodeJSConfigurationType" application-parameters="--run-in-band --parser ts --extension ts -t transforms/classStructureShift.ts ../docutils-t/src/Component.ts" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
     <configuration name="classToFn" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/classToFn.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
@@ -265,7 +262,7 @@
     <configuration name="jscodeshift t" type="NodeJSConfigurationType" singleton="false" application-parameters="-t t.js --no-babel -d $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/src/writers/HtmlBase.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
-    <configuration name="jscodeshift" type="NodeJSConfigurationType" application-parameters="--no-babel -d $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/src/nodes.js" nameIsGenerated="true" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
+    <configuration name="jscodeshift" type="NodeJSConfigurationType" application-parameters="-d -t transforms/classStructureShift.ts --parser ts ../docutils-t/src/Component.ts" nameIsGenerated="true" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="mutability Body (1)" type="NodeJSConfigurationType" application-parameters="--run-in--no-babel -band -d -t transforms/mutability.js docutils-js/src/parsers/rst/states/Body.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
@@ -341,8 +338,9 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Node.js.processSources1.js" />
       <item itemvalue="Node.js.jscodeshift" />
+      <item itemvalue="Node.js.processSources1.js" />
+      <item itemvalue="Node.js.class Shift" />
       <item itemvalue="Node.js.classToFn" />
       <item itemvalue="Node.js.extractRegexps" />
       <item itemvalue="Node.js.extractRegexps Body" />
@@ -397,7 +395,7 @@
       <workItem from="1560208415846" duration="1807000" />
       <workItem from="1560290534296" duration="161000" />
       <workItem from="1560305555736" duration="33094000" />
-      <workItem from="1560628807216" duration="338000" />
+      <workItem from="1560628807216" duration="1576000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <created>1560528847545</created>
@@ -417,7 +415,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="128449000" />
+    <option name="totallyTimeSpent" value="129687000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-4" y="0" width="1248" height="672" extended-state="6" />
@@ -430,7 +428,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4966942" visible="true" weight="0.2802198" />
-      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.8553719" weight="0.3654485" />
+      <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.8553719" weight="0.36446887" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -684,13 +682,19 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
-          <line>66</line>
+          <line>67</line>
           <option name="timeStamp" value="104" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transforms/classStructure.ts</url>
-          <line>129</line>
+          <line>130</line>
           <option name="timeStamp" value="105" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/transforms/classStructureShift.ts</url>
+          <line>10</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="107" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -1045,13 +1049,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="50" selection-start-line="6" selection-start-column="50" selection-end-line="6" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/processSources1.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
@@ -1083,10 +1080,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="6" column="49" lean-forward="true" selection-start-line="6" selection-start-column="49" selection-end-line="6" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/transforms/classStructure.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="740">
-          <caret line="127" column="70" selection-start-line="127" selection-start-column="70" selection-end-line="127" selection-end-column="70" />
+        <state relative-caret-position="155">
+          <caret line="97" column="16" lean-forward="true" selection-start-line="97" selection-start-column="16" selection-end-line="97" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/classStructureShift.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="145" column="29" selection-start-line="145" selection-start-column="29" selection-end-line="145" selection-end-column="29" />
         </state>
       </provider>
     </entry>
