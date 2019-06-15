@@ -4,7 +4,7 @@
     "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
     "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
     "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
-    "classStructure1": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/nodes.ts",
+    "classStructure1": "jscodeshift --run-in-band  --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/OptParse.ts",
     "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src"
   },
   "dependencies": {

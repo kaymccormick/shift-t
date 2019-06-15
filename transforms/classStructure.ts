@@ -16,13 +16,15 @@ module.exports = function(fileInfo, api, options) {
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
     const moduleName = fullpath.replace(/\.ts$/, '');
-
+    report(moduleName);
     const thisFile = { imported: {}, exported: {}, classes: {},
         defaultExport: undefined,
         module: moduleName,
     };
     sources.file[moduleName] = thisFile;
-    r.find(j.ImportDeclaration).forEach(p => {
+    let maxImport = -1;
+    r.find(j.ImportDeclaration).forEach((p, i) => {
+        maxImport = Math.max(maxImport, i);
         const n = p.value;
         const source = n.source.value;
         if(/^\.\.?\//.test(source)) {
@@ -47,18 +49,25 @@ module.exports = function(fileInfo, api, options) {
             report(source);
         }
     });
+    const newBody = [ ...r.paths()[0].value.program.body];
 
-    r.find(j.ExportDefaultDeclaration).forEach(p => {
+    const newFile = j.file(j.program(newBody));
+    const newExports = [];
+    r.find(j.ExportDefaultDeclaration).forEach((p, i) => {
         const n = p.value;
         let name;
         if(n.declaration.type === 'ClassDeclaration') {
             name = n.declaration.id.name;
+            //newBody.push(n.declaration);
+            newBody.splice(i, 1, n.declaration);
+            const export_ = j.exportNamedDeclaration(null, [j.exportSpecifier(j.identifier(name), j.identifier(name))]);
+            newExports.push(export_);
         } else {
             name = n.declaration.name;
         }
         thisFile.defaultExport = name;
     });
-    r.find(j.ExportNamedDeclaration).forEach(p => {
+    r.find(j.ExportNamedDeclaration).forEach((p, i) => {
         const n = p.value;
         if(n.declaration && n.declaration.type === 'ClassDeclaration') {
             if(!n.declaration.id) {
@@ -98,7 +107,10 @@ module.exports = function(fileInfo, api, options) {
         }
         class_.superSpec = spec;
     });
+    //r.paths()[0].program.body.splice(maxImport, 0, ...impors)
 
-
+newBody.push(...newExports);
     fs.writeFileSync('sources_1.json', JSON.stringify(sources), 'utf-8');
+    return j(newFile).toSource();
+    //return recast.print(newFile).code;
 }
