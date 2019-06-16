@@ -50,16 +50,6 @@ module.exports = function(fileInfo, api, options) {
     fs.createWriteStream('code.js').write(recast.print(f).code);
 
 
-    //console.log(recast.print(f).code);
-
-//    console.log(methods);
-   //         && classes.findIndex(x => p.superClass.name === x) !== -1).paths();
-    //    classes = paths.map((n) => n.value.id.name);
-
-    //const cl = x.find(j.ClassDeclaration, p => p.superClass && p.superClass.name === 'Element').paths().map((n) => n.value.id.name);
-
 return api.jscodeshift(fileInfo.source);/*
-    .findVariableDeclarators('foo').module
-  .renameTo('bar')
-    .toSource();*/
+
 }

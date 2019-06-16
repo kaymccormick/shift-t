@@ -4,6 +4,7 @@ const camelcase = require('camelcase');
 /**
  *
  * Part of an ill conceived attempt to convert methods to functions
+ *
  * @param fileInfo
  * @param api
  * @param options
