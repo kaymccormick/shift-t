@@ -4,7 +4,12 @@ const recast = require('recast');
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
-
+/**
+ * Extract class information from source including imports and exports.
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function (fileInfo, api, options) {
     let sources = JSON.parse(fs.readFileSync('sources_1.json', {encoding: 'utf-8'}));
     if (sources.file === undefined) {

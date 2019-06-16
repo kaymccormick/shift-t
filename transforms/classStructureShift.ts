@@ -11,6 +11,14 @@ const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
 
+/**
+ * Violate thwe rule pf doing more than one thing well by simultaneously
+ * transforming the structure of exports in the source code AND accumulate
+ * helpful data for later processing.
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function (fileInfo, api, options) {
     const report = api.report;
     let store = JSON.parse(fs.readFileSync('sources_1.json', {encoding: 'utf-8'}));

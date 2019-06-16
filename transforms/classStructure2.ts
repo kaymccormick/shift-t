@@ -4,7 +4,15 @@ const fs = require('fs');
 const assert = require('assert');
 import { Entry } from '../src/Entry';
 
+/**
+ * Some kind of 'second-pass' jscodeshift transform. Once the sources have been processed in a first
+ * pass via classStructure or classSturctureShift, then perform secondary processing.
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function(fileInfo, api, options) {
+
     const sources_1 = JSON.parse(fs.readFileSync('sources_1.json', { encoding: 'utf-8' }));
     const sources_2 = JSON.parse(fs.readFileSync('sources_2.json', { encoding: 'utf-8' }));
     const report = api.report;

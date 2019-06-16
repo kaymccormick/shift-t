@@ -1,7 +1,13 @@
 const recast = require('recast');
 const fs = require('fs');
 const camelcase = require('camelcase');
-
+/**
+ *
+ * Part of an ill conceived attempt to convert methods to functions
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function(fileInfo, api, options) {
     const map = JSON.parse(fs.readFileSync('map.json', { encoding: 'utf-8' }));
     const j = api.jscodeshift;
@@ -22,7 +28,7 @@ module.exports = function(fileInfo, api, options) {
     process.stdout.write(`${fileInfo.path}: ${p.size()}\n`);
 
     fs.writeFileSync('map.json', JSON.stringify(map), 'utf-8');
-    
+
     return api.jscodeshift(fileInfo.source);/*
     .findVariableDeclarators('foo').module
   .renameTo('bar')

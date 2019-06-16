@@ -5,7 +5,12 @@ const camelcase = require('camelcase');
 const { namedTypes, builders, getFieldNames } = require('ast-types');
 
 const b = builders;
-
+/**
+ * Part of an ill-conceived attempt to convert class methods to functions
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = (fileInfo, api, options) => {
   const { report } = api;
   const map = JSON.parse(fs.readFileSync('map.json', { encoding: 'utf-8' }));
