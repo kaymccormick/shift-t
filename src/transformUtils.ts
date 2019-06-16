@@ -1,4 +1,6 @@
-
+/**
+ * Collection of handy but oddly specific routines
+ */
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";

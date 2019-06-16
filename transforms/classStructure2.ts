@@ -2,7 +2,6 @@ const recast = require('recast');
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
-import { Entry } from '../src/Entry';
 
 /**
  * Some kind of 'second-pass' jscodeshift transform. Once the sources have been processed in a first

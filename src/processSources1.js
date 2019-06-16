@@ -2,8 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- 
- *
+ * Process data produced in phase 1.
  * @type {any}
  */
 const sources = JSON.parse(fs.readFileSync(path.join(__dirname, '../sources_1.json'), { encoding: 'utf-8' }));

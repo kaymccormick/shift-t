@@ -1,4 +1,4 @@
-import {ModuleClass} from "./moduleClass";
+import {ModuleClass} from "./ModuleClass";
 
 class Module {
     name: string;
