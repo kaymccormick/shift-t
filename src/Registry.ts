@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { CreateModuleFunction, createModule} from './Factory';
-import {Module} from "./Module";
+import {Module, ModulePojo} from "./Module";
 import { Map } from 'immutable';
 interface Registry {
     init(): void;
@@ -23,9 +23,11 @@ export class SimpleRegistry implements Registry {
     private data: SimpleRegistryData;
 
     public init() {
-        const data = JSON.parse(fs.readFileSync('registry.json', {encoding: 'utf-8'}));
+        const data: SimpleRegistryData = JSON.parse(fs.readFileSync('registry.json', {encoding: 'utf-8'}));
         this.data = data;
-        if (data.runID === undefined || data.runId !== this.runId) {
+        this.data.modules = Map(this.data.modules);
+        if (data.runId === undefined || data.runId !== this.runId) {
+        console.log('resetting data');
             this.initBareData();
         }
 
@@ -35,9 +37,9 @@ export class SimpleRegistry implements Registry {
         throw new Error("Method not implemented.");
     }
 
-    private modules: Map<string, Module> = Map<string, Module>();
+   // private modules: Map<string, Module> = Map<string, Module>();
 
-    constructor(args: SimpleRegistryArgs) {
+    public constructor(args: SimpleRegistryArgs) {
         this.runId = args.runId;
 
     }
@@ -61,7 +63,17 @@ export class SimpleRegistry implements Registry {
     }
 
     public save() {
-        console.log(this.data);
-        fs.writeFileSync('registry.json', JSON.stringify(this.data), 'utf-8');
+//        console.log(this.data);
+        //console.log(this.data.modules.toJSON());
+const modules = this.data.modules.map<ModulePojo>((v) => v.toPojo !== undefined ? v.toPojo(): v).toJS();
+        this.data.modules.forEach((v, k) => {
+            //console.log(v);
+            //console.log(v.toPojo())
+        });
+        //const modules = {}
+        //const modules = this.data.modules.map((v) => v.toPojo()).toJS();
+        const data = { runId: this.data.runId,
+        modules };
+        fs.writeFileSync('registry.json', JSON.stringify(data, null, 4), 'utf-8');
     }
 }

@@ -1,60 +1,76 @@
 import {ModuleClass} from "./ModuleClass";
+import {Map} from "immutable";
+import {Import, ImportPojo} from "./Import";
+
+export interface ModulePojo {
+    name: string;
+    imports: Map<string, ImportPojo>;
+}
 
 class Module {
-    name: string;
-    public classes: { [className: string]: ModuleClass };
-    public  exported: {};
-    public  imported: {};
-    public  defaultExport: undefined | string;
+    public name: string;
+    public imports: Map<string, Import> = Map({});
+    public classes: Map<string, ModuleClass> = Map({});
+    public exported: {};
+    public defaultExport: undefined | string;
 
-    constructor(name: string) {
+    public constructor(name: string) {
+        if (!name) {
+            throw new Error('must have a name');
+        }
         this.name = name;
-        this.imported = {};
         this.exported = {};
-        this.classes = {};
         this.defaultExport = undefined;
     }
 
-    getClassNames(): string[] {
-      return Object.keys(this.classes);
+    public setImports(imports): void {
+        this.imports = Map(imports);
     }
 
-    toPojo() {
+    public toPojo(): ModulePojo {
         const c = {};
         const e = {};
-        Object.keys(this.exported).forEach(k => {
-            e[k] = this.exported[k].toPojo();
-        });
-        Object.keys(this.classes).forEach(cn => {
-            const v = this.classes[cn];
-            c[cn] = v.toPojo();
-        });
+
+        // Object.keys(this.exported).forEach(k => {
+        //     e[k] = this.exported[k].toPojo();
+        // });
+        // Object.keys(this.classes).forEach(cn => {
+        //     const v = this.classes[cn];
+        //     c[cn] = v.toPojo();
+        // });
+        // const returnVal: ModulePojo =
+
         return {
-            imported: this.imported,
-            exported: e,
+            //imported: this.imported,
+            imports: this.imports.toJS(),
+            //exported: e,
             name: this.name,
             classes: c,
             defaultExport: this.defaultExport
         };
     }
 
-    getClass(name: any): ModuleClass {
-        if(Object.prototype.hasOwnProperty.call(this.classes, name)) {
+    public getClass(name: any): ModuleClass {
+        if (Object.prototype.hasOwnProperty.call(this.classes, name)) {
             return this.classes[name];
         }
         this.classes[name] = new ModuleClass(this);
         return this.classes[name];
     }
 
-    getImportedName(name: string) {
-        if(Object.prototype.hasOwnProperty.call(this.imported, name)) {
+    public getImportedName(name: string) {
+        if (Object.prototype.hasOwnProperty.call(this.imported, name)) {
             return this.imported[name];
         }
         throw new Error(`no such imported name ${name}`);
     }
-    toString(): string {
+    public addImport(name: string, module: string, defaultImport: boolean = false) {
+        this.imports = this.imports.set(name, new Import(name, module, defaultImport));
+    }
+    public toString(): string {
         return this.name;
     }
 
 }
-export { Module };
+
+export {Module};

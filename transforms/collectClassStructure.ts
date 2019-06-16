@@ -36,14 +36,16 @@ module.exports = function (fileInfo, api, options) {
     const module = registry.getModule(moduleName, true);
 
     let maxImport = -1;
-    handleImportDeclarations(api, collection, maxImport, relativeBase, module);
+    handleImportDeclarations(api.jscodeshift, collection, maxImport, relativeBase, module);
+
+    //module.setImported(imported);
     const newBody = [...collection.paths()[0].value.program.body];
 
     const newFile = j.file(j.program(newBody));
     const newExports = [];
 
-    processClassDeclarations(api, collection, module);
-    const { allSpecs } = processExportNamedDeclarations(api, collection, module);
+    processClassDeclarations(api.jscodeshift, collection, registry, module);
+    const { allSpecs } = processExportNamedDeclarations(api.jscodeshift, collection, module);
     if(allSpecs.length > 1) {
         report(allSpecs.length);
     }
@@ -53,7 +55,12 @@ module.exports = function (fileInfo, api, options) {
 
     //newBody.push(...newExports);
     //fs.writeFileSync('sources_1.json', JSON.stringify(store, null, 4), 'utf-8');
-    registry.save();
+    try {
+        registry.save();
+    } catch(error) {
+        console.log(error.message);
+        throw error;
+    }
     return j(newFile).toSource();
 };
 

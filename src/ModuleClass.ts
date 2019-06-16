@@ -1,15 +1,14 @@
 import {Module} from "./Module";
 
 class ModuleClass {
-name: string;
-module: Module;
-    constructor(module: Module) {
-        this.module = module;
+    public name: string;
+    constructor() {
     }
     toPojo() {
-        return { module: this.module.name }
+        return { }
     }
 }
 
+// @ts-ignore
 export { ModuleClass };
 

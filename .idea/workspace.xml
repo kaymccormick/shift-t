@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="enhance reusability">
+    <list default="true" id="aa8e5492-e5e1-4695-813b-bc2e41c2a10d" name="Default Changelist" comment="Awesome updates">
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/processSources1.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/processSources1.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/Module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ModuleClass.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/ModuleClass.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Registry.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/Registry.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/transformUtils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/transformUtils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transforms/collectClassStructure.ts" beforeDir="false" afterPath="$PROJECT_DIR$/transforms/collectClassStructure.ts" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -20,19 +23,31 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transforms/classToFn.js">
+        <entry file="file://$PROJECT_DIR$/src/Module.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="17" selection-start-line="19" selection-start-column="17" selection-end-line="19" selection-end-column="17" />
+            <state relative-caret-position="68">
+              <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+              <folding>
+                <element signature="e#0#42#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transforms/classToFn1.js">
+        <entry file="file://$PROJECT_DIR$/src/Import.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="24" selection-start-line="12" selection-start-column="24" selection-end-line="12" selection-end-column="24" />
+            <state relative-caret-position="34">
+              <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/types.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret column="17" selection-start-column="17" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -40,8 +55,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/transforms/collectClassStructure.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="55" column="13" selection-start-line="55" selection-start-column="13" selection-end-line="55" selection-end-column="13" />
+            <state relative-caret-position="102">
+              <caret line="47" column="39" selection-start-line="47" selection-start-column="39" selection-end-line="47" selection-end-column="39" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -49,32 +64,50 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Factory.ts">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/registry.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+            <state relative-caret-position="153">
+              <caret line="96" column="21" lean-forward="true" selection-start-line="96" selection-start-column="21" selection-end-line="96" selection-end-column="21" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Registry.ts">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ModuleClass.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="51">
+              <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="40" column="30" selection-start-line="40" selection-start-column="30" selection-end-line="40" selection-end-column="30" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/node_modules/@types/node/globals.d.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="83">
-              <caret line="48" column="38" selection-start-line="48" selection-start-column="38" selection-end-line="48" selection-end-column="38" />
+              <caret line="229" column="12" selection-start-line="229" selection-start-column="12" selection-end-line="229" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Registry.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="47">
+              <caret line="67" column="95" selection-start-line="67" selection-start-column="95" selection-end-line="67" selection-end-column="95" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/immutable/dist/immutable-nonambient.d.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1214">
-              <caret line="691" column="16" selection-start-line="691" selection-start-column="16" selection-end-line="691" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -88,32 +121,6 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/registry.json">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/package.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="5" column="49" selection-start-line="5" selection-start-column="49" selection-end-line="5" selection-end-column="49" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="517">
-              <caret line="65" column="9" selection-start-line="65" selection-start-column="9" selection-end-line="65" selection-end-column="9" />
-              <folding>
-                <element signature="e#12#41#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FindInProjectRecents">
@@ -121,7 +128,6 @@
       <find>methodDefinition</find>
       <find>print</find>
       <find>j.nodepath</find>
-      <find>console.log</find>
       <find>var</find>
       <find>++</find>
       <find>13</find>
@@ -135,6 +141,10 @@
       <find>\.file`</find>
       <find>.</find>
       <find>module</find>
+      <find>con</find>
+      <find>console.log</find>
+      <find>nide</find>
+      <find>nodepath</find>
     </findStrings>
     <replaceStrings>
       <replace>wal</replace>
@@ -165,7 +175,6 @@
         <option value="$PROJECT_DIR$/src/processSources1.ts" />
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/src/moduleClass.ts" />
-        <option value="$PROJECT_DIR$/src/Module.ts" />
         <option value="$PROJECT_DIR$/src/Exported.ts" />
         <option value="$PROJECT_DIR$/transforms/settings.js" />
         <option value="$PROJECT_DIR$/transforms/nodeParser.js" />
@@ -175,15 +184,18 @@
         <option value="$PROJECT_DIR$/transforms/classStructureShift.ts" />
         <option value="$PROJECT_DIR$/transforms/classStructure.ts" />
         <option value="$PROJECT_DIR$/src/processSources1.js" />
-        <option value="$PROJECT_DIR$/src/ModuleClass.ts" />
         <option value="$PROJECT_DIR$/transforms/classStructure2.ts" />
         <option value="$PROJECT_DIR$/src/templates.js" />
         <option value="$PROJECT_DIR$/transform.js" />
         <option value="$PROJECT_DIR$/transforms/classToFn1.js" />
-        <option value="$PROJECT_DIR$/src/transformUtils.ts" />
         <option value="$PROJECT_DIR$/src/Factory.ts" />
-        <option value="$PROJECT_DIR$/transforms/collectClassStructure.ts" />
         <option value="$PROJECT_DIR$/__tests__/Registry.test.js" />
+        <option value="$PROJECT_DIR$/src/ModuleClass.ts" />
+        <option value="$PROJECT_DIR$/src/transformUtils.ts" />
+        <option value="$PROJECT_DIR$/src/types.ts" />
+        <option value="$PROJECT_DIR$/transforms/collectClassStructure.ts" />
+        <option value="$PROJECT_DIR$/src/Import.ts" />
+        <option value="$PROJECT_DIR$/src/Module.ts" />
         <option value="$PROJECT_DIR$/src/Registry.ts" />
       </list>
     </option>
@@ -254,18 +266,22 @@
     <property name="editor.config.ad.shown" value="true" />
     <property name="full.screen.before.presentation.mode" value="false" />
     <property name="js.last.introduce.type" value="CONST" />
+    <property name="js.linters.configure.manually.selectedeslint" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/processSources1.js" />
     <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.standard" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.standard" value="project" />
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.standard" value="" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="nodejs.jest.jest_package" value="$PROJECT_DIR$/node_modules/jest" />
+    <property name="nodejs.jest.jest_package" value="" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="yarn" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="settings.javascript.linters.eslint" />
     <property name="ts.external.directory.path" value="$PROJECT_DIR$/node_modules/typescript/lib" />
   </component>
   <component name="RecentsManager">
@@ -273,6 +289,8 @@
       <recent name="$PROJECT_DIR$/transforms" />
     </key>
     <key name="es6.move.members.recent.items">
+      <recent name="$PROJECT_DIR$/src/Import.ts" />
+      <recent name="$PROJECT_DIR$/src/types.ts" />
       <recent name="$PROJECT_DIR$/src/transformUtils.ts" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
@@ -291,7 +309,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Jest.1">
+  <component name="RunManager" selected="npm.npm collectClassStructure">
     <configuration name="1" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
       <node-interpreter value="project" />
       <node-options value="" />
@@ -303,45 +321,6 @@
       <test-names>
         <test-name value="1" />
       </test-names>
-      <method v="2" />
-    </configuration>
-    <configuration name="class Shift" type="NodeJSConfigurationType" application-parameters="--run-in-band --parser ts -d --extensions ts -t transforms/classStructureShift.ts ../docutils-t/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="classToFn" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/classToFn.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="extractRegexps Body" type="NodeJSConfigurationType" application-parameters="--run-in--no-babel -band -d -t transforms/extractRegexps.js docutils-js/src/parsers/rst/states/Body.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="extractRegexps (1)" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/extractRegexps.js derp.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="extractRegexps no run in band" type="NodeJSConfigurationType" application-parameters="-d -t transforms/extractRegexps.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="extractRegexps" type="NodeJSConfigurationType" application-parameters="--run-in-band -d -t transforms/extractRegexps.js docutils-js/src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="genJest.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="genJest.js" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="jscodeshift t" type="NodeJSConfigurationType" singleton="false" application-parameters="-t t.js --no-babel -d $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/src/writers/HtmlBase.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="jscodeshift" type="NodeJSConfigurationType" application-parameters="-d -t transforms/classStructureShift.ts --parser ts ../docutils-t/src/Component.ts" nameIsGenerated="true" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="mutability Body (1)" type="NodeJSConfigurationType" application-parameters="--run-in--no-babel -band -d -t transforms/mutability.js docutils-js/src/parsers/rst/states/Body.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="nodeChecker (1)" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t nodeChecker.js $PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js/__tests__/document.test.js" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="nodeChecker" type="NodeJSConfigurationType" singleton="false" application-parameters="-d --run-in-band -t $PROJECT_DIR$/nodeChecker.js src" path-to-js-file="node_modules/.bin/jscodeshift" working-dir="$PROJECT_DIR$/../../docutils-dev/docutils-monorepo/docutils-js">
-      <method v="2" />
-    </configuration>
-    <configuration name="processSources1.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="src/processSources1.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="classStructure" type="js.build_tools.npm" nameIsGenerated="true">
@@ -425,19 +404,7 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Node.js.jscodeshift" />
-      <item itemvalue="Node.js.processSources1.js" />
-      <item itemvalue="Node.js.class Shift" />
-      <item itemvalue="Node.js.classToFn" />
-      <item itemvalue="Node.js.extractRegexps" />
-      <item itemvalue="Node.js.extractRegexps Body" />
-      <item itemvalue="Node.js.mutability Body (1)" />
-      <item itemvalue="Node.js.extractRegexps no run in band" />
-      <item itemvalue="Node.js.extractRegexps (1)" />
-      <item itemvalue="Node.js.genJest.js" />
-      <item itemvalue="Node.js.jscodeshift t" />
-      <item itemvalue="Node.js.nodeChecker" />
-      <item itemvalue="Node.js.nodeChecker (1)" />
+      <item itemvalue="Jest.1" />
       <item itemvalue="npm.collectClassStructure" />
       <item itemvalue="npm.npm extractRegexps" />
       <item itemvalue="npm.npm classToFn" />
@@ -446,12 +413,11 @@
       <item itemvalue="npm.classStructure2" />
       <item itemvalue="npm.settings" />
       <item itemvalue="npm.npm collectClassStructure" />
-      <item itemvalue="Jest.1" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Jest.1" />
         <item itemvalue="npm.npm collectClassStructure" />
+        <item itemvalue="Jest.1" />
         <item itemvalue="npm.settings" />
       </list>
     </recent_temporary>
@@ -488,7 +454,7 @@
       <workItem from="1560290534296" duration="161000" />
       <workItem from="1560305555736" duration="33094000" />
       <workItem from="1560628807216" duration="7211000" />
-      <workItem from="1560704206084" duration="9434000" />
+      <workItem from="1560704206084" duration="13461000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <created>1560528847545</created>
@@ -522,9 +488,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="1 - 2019.06.16 at 22h 17m 31s.xml">
-      <configuration name="1" configurationId="JavaScriptTestRunnerJest" />
-    </history-entry>
     <history-entry file="1 - 2019.06.16 at 22h 20m 08s.xml">
       <configuration name="1" configurationId="JavaScriptTestRunnerJest" />
     </history-entry>
@@ -552,13 +515,15 @@
     <history-entry file="1 - 2019.06.16 at 22h 32m 52s.xml">
       <configuration name="1" configurationId="JavaScriptTestRunnerJest" />
     </history-entry>
+    <history-entry file="1 - 2019.06.16 at 22h 32m 55s.xml">
+      <configuration name="1" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="144756000" />
+    <option name="totallyTimeSpent" value="148783000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="4" y="32" width="1232" height="636" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.29859388" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -566,7 +531,7 @@
       <window_info id="npm" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32936507" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4966942" visible="true" weight="0.39285713" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4966942" weight="0.39285713" />
       <window_info anchor="bottom" x="0" y="46" width="1241" height="547" id="Debug" order="3" sideWeight="0.8553719" weight="0.36309522" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -575,7 +540,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.2361111" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5033058" side_tool="true" weight="0.6320939" />
-      <window_info anchor="bottom" id="Messages" order="11" weight="0.30952382" />
+      <window_info active="true" anchor="bottom" id="Messages" order="11" visible="true" weight="0.30952382" />
       <window_info anchor="bottom" id="TypeScript" order="12" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -736,7 +701,9 @@
     <MESSAGE value="various fun" />
     <MESSAGE value="updates" />
     <MESSAGE value="enhance reusability" />
-    <option name="LAST_COMMIT_MESSAGE" value="enhance reusability" />
+    <MESSAGE value="various" />
+    <MESSAGE value="Awesome updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Awesome updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -822,34 +789,22 @@
           <option name="timeStamp" value="95" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/src/Registry.ts</url>
-          <line>64</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="107" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/transforms/collectClassStructure.ts</url>
-          <line>55</line>
+          <line>60</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="108" />
+          <option name="timeStamp" value="112" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/transforms/collectClassStructure.ts</url>
-          <line>35</line>
+          <url>file://$PROJECT_DIR$/src/Module.ts</url>
+          <line>38</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="109" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/src/Registry.ts</url>
-          <line>52</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="110" />
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/Registry.ts</url>
-          <line>48</line>
+          <line>27</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="111" />
+          <option name="timeStamp" value="114" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -867,83 +822,69 @@
         <watch expression="thisModule.imported" language="TypeScript" />
       </configuration>
       <configuration name="js.build_tools.npm">
-        <watch expression="this.data" language="TypeScript" />
+        <watch expression="registry.modules.get(registry.modules.keys()[0])" language="TypeScript" />
+        <watch expression="registry.data.modules.get(reg)" language="TypeScript" />
+        <watch expression="[...registry.data.modules.keys()]" language="TypeScript" />
+        <watch expression="registry.data" language="TypeScript" />
+        <watch expression="this.imports.map((k, v) =&gt; k.toPojo()).toJS()" language="TypeScript" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
       <expression>
-        <expression-string>this.data</expression-string>
+        <expression-string>this.imports.map((k, v) =&gt; k.toPojo()).toJS()</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>this.modules</expression-string>
+        <expression-string>this.imports.map((k, v) =&gt; k.toPojo())</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>JSON.stringify(this.data)</expression-string>
+        <expression-string>registry.data.modules.get(reg)</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>thisModule.imported</expression-string>
+        <expression-string>[...registry.data.modules.keys()]</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>thisModule</expression-string>
+        <expression-string>registry.data.modules.keys()</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>recast.print(r.paths()[0].value)</expression-string>
+        <expression-string>registry.data.modues.keys()</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>recast.print(r.paths()[0])</expression-string>
+        <expression-string>registry.data</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>r.paths()[0]</expression-string>
+        <expression-string>[...registry.modules.keys()]</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>moduleName</expression-string>
+        <expression-string>[r...egistry.modules.keys()]</expression-string>
+        <language-id>TypeScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>[registry.modules.keys()]</expression-string>
         <language-id>TypeScript</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../recast/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sources_2.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1071">
-          <caret line="63" column="25" selection-start-line="63" selection-start-column="25" selection-end-line="63" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/docutils-t/node_modules/jscodeshift/src/collections/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/docutils-t/node_modules/jscodeshift/src/collections/Node.js">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -1109,20 +1050,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Module.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="5" column="16" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ModuleClass.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="5" lean-forward="true" selection-start-line="7" selection-start-column="5" selection-end-line="7" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/templates.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
@@ -1178,16 +1105,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="517">
-          <caret line="65" column="9" selection-start-line="65" selection-start-column="9" selection-end-line="65" selection-end-column="9" />
-          <folding>
-            <element signature="e#12#41#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Registry.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
@@ -1216,23 +1133,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/registry.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/immutable/dist/immutable-nonambient.d.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1214">
           <caret line="691" column="16" selection-start-line="691" selection-start-column="16" selection-end-line="691" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/transforms/collectClassStructure.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="55" column="13" selection-start-line="55" selection-start-column="13" selection-end-line="55" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1243,13 +1147,75 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Registry.ts">
+    <entry file="file://$PROJECT_DIR$/src/ModuleClass.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/@types/node/globals.d.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="83">
-          <caret line="48" column="38" selection-start-line="48" selection-start-column="38" selection-end-line="48" selection-end-column="38" />
+          <caret line="229" column="12" selection-start-line="229" selection-start-column="12" selection-end-line="229" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/types.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="17" selection-start-column="17" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Import.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms/collectClassStructure.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="47" column="39" selection-start-line="47" selection-start-column="39" selection-end-line="47" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/transformUtils.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="40" column="30" selection-start-line="40" selection-start-column="30" selection-end-line="40" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Module.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Registry.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="47">
+          <caret line="67" column="95" selection-start-line="67" selection-start-column="95" selection-end-line="67" selection-end-column="95" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/registry.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="96" column="21" lean-forward="true" selection-start-line="96" selection-start-column="21" selection-end-line="96" selection-end-column="21" />
         </state>
       </provider>
     </entry>

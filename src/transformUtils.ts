@@ -5,10 +5,11 @@ import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";
 import {Exported} from "./Exported";
+import {Registry} from "./Registry";
 
 export function handleImportDeclarations(namedTypes, collection, maxImport, relativeBase, thisModule: Module): void {
-    const imported = {};
-    collection.find(namedTypes.ImportDeclaration).forEach((p, i) => {
+    const c = collection.find(namedTypes.ImportDeclaration);
+    c.forEach((p, i) => {
         maxImport = Math.max(maxImport, i);
         const n = p.value;
         const source = n.source.value;
@@ -18,17 +19,19 @@ export function handleImportDeclarations(namedTypes, collection, maxImport, rela
             n.specifiers.forEach(kind => {
                 if (kind.type === 'ImportSpecifier') {
                     assert.strictEqual(kind.imported.type, 'Identifier');
-                    imported[kind.imported.name] = [full, false];
+                    thisModule.addImport(kind.imported.name, full);
+                    //imported[kind.imported.name] = [full, false];
                 } else if (kind.type === 'ImportDefaultSpecifier') {
                     const local = kind.local;
-                    imported[local.name] = [full, true];
+                    thisModule.addImport(local.name, full, true);
+                    //imported[local.name] = [full, true];
                 }
             });
         } else {
             //report(source);
         }
     });
-    return imported;
+    //return imported;
 }
 
 interface ExportNamedDeclarationsResult {
@@ -101,7 +104,7 @@ export function shiftExports(namedTypes, builders, collection, newExports, thisM
     });
 }
 
-export function processClassDeclarations(namedTypes, collection, thisModule: Module) {
+export function processClassDeclarations(namedTypes, collection, registry: Registry, thisModule: Module) {
 
     collection.find(namedTypes.ClassDeclaration).forEach(p => {
         const n = p.value;
