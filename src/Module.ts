@@ -21,13 +21,17 @@ class Module {
 
     toPojo() {
         const c = {};
+        const e = {};
+        Object.keys(this.exported).forEach(k => {
+            e[k] = this.exported[k].toPojo();
+        });
         Object.keys(this.classes).forEach(cn => {
             const v = this.classes[cn];
             c[cn] = v.toPojo();
         });
         return {
             imported: this.imported,
-            exported: this.exported,
+            exported: e,
             name: this.name,
             classes: c,
             defaultExport: this.defaultExport
@@ -41,5 +45,16 @@ class Module {
         this.classes[name] = new ModuleClass(this);
         return this.classes[name];
     }
+
+    getImportedName(name: string) {
+        if(Object.prototype.hasOwnProperty.call(this.imported, name)) {
+            return this.imported[name];
+        }
+        throw new Error(`no such imported name ${name}`);
+    }
+    toString(): string {
+        return this.name;
+    }
+
 }
 export { Module };

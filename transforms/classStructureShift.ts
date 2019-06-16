@@ -12,6 +12,7 @@ const fs = require('fs');
 const assert = require('assert');
 
 module.exports = function (fileInfo, api, options) {
+    const report = api.report;
     let store = JSON.parse(fs.readFileSync('sources_1.json', {encoding: 'utf-8'}));
     if (store.module === undefined) {
         store.module = {};
@@ -25,6 +26,8 @@ module.exports = function (fileInfo, api, options) {
     const _f = path.resolve(fileInfo.path);
     const relativeBase = path.dirname(_f);
     const moduleName = _f.replace(/\.ts$/, '');
+
+    // our biz obj
     const module = new Module(moduleName);
 
     let maxImport = -1;
@@ -35,8 +38,11 @@ module.exports = function (fileInfo, api, options) {
     const newExports = [];
 
     processClassDeclarations(api, collection, module);
-    processExportNamedDeclarations(api, collection, newBody, module);
-    processExportDefaultDeclaration(api, collection, newBody, newExports, module);
+    const { allSpecs } = processExportNamedDeclarations(api, collection, newBody, module);
+    if(allSpecs.length > 1) {
+        report(allSpecs.length);
+    }
+    processExportDefaultDeclaration(api, api, collection, newBody, newExports, module);
 
     store.module[moduleName] = module.toPojo();
 

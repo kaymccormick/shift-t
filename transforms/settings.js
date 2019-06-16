@@ -11,8 +11,8 @@ module.exports = (fileInfo, api, options) => {
     const {report} = api;
     const j = api.jscodeshift;
     const r = j(fileInfo.source);
-    
-    r.find(j.ClassDeclaration, (n) => n.superClass.type === 'Identifier' && ).forEach(n => {
+
+    r.find(j.ClassDeclaration, (n) => n.superClass.type === 'Identifier').forEach(n => {
         console.log(n.superClass);
     })
     r.find(j.ClassProperty).paths().forEach(p => {

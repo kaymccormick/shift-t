@@ -2,11 +2,10 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";
+import {Exported} from "./Exported";
 
-export function handleImportDeclarations(api, collection, maxImport, relativeBase, thisModule: Module) {
-    const j = api.jscodeshift;
-    const report = api.report;
-    collection.find(j.ImportDeclaration).forEach((p, i) => {
+export function handleImportDeclarations(namedTypes, collection, maxImport, relativeBase, thisModule: Module): void {
+    collection.find(namedTypes.ImportDeclaration).forEach((p, i) => {
         maxImport = Math.max(maxImport, i);
         const n = p.value;
         const source = n.source.value;
@@ -25,51 +24,59 @@ export function handleImportDeclarations(api, collection, maxImport, relativeBas
                 x.push(kind.type);
             });
         } else {
-            report(source);
+            //report(source);
         }
     });
 }
 
-export function processExportNamedDeclarations(api, collection, newBody, thisModule) {
-    const j = api.jscodeshift;
-    const report = api.report;
-    const named = collection.find(j.ExportNamedDeclaration);
+interface ExportNamedDeclarationsResult {
+    allSpecs: {}[][];
+}
+
+export function processExportNamedDeclarations(namedTypes, collection, newBody, thisModule): ExportNamedDeclarationsResult {
+    const named = collection.find(namedTypes.ExportNamedDeclaration);
+    const allSpecs = [];
     named.forEach((p, i) => {
         const n = p.value;
+        if(n.source) {
+            throw new Error('unable to handle export from source');
+        }
         if (n.declaration) {
-            assert.strictEqual(n.specifiers.length, 1);
+            if(n.specifiers.length > 0) {
+                throw new Error('woah');
+            }
             newBody.splice(i, 1, n.declaration);
             if (n.declaration.type === 'ClassDeclaration') {
                 if (!n.declaration.id) {
                     throw new Error(n.declaration.type);
                 }
-                thisModule.exported[n.declaration.id.name] = n.declaration.id.name;
-                report(n.declaration.id.name);
+                thisModule.exported[n.declaration.id.name] = new Exported(n.declaration.id.name);
+                //;report(n.declaration.id.name);
             } else if (n.declaration.type === 'VariableDeclaration') {
             } else { // functiondeclaration and tsfunctiondeclaration
-
-
             }
+        } else {
+            allSpecs.push(n.specifiers);
+            n.specifiers.forEach(sp => {
+                const local = sp.local.name;
+                const exported = sp.exported.name
+                thisModule.exported[exported] = new Exported(local, p);
+            });
         }
-        n.specifiers.forEach(sp => {
-            const local = sp.local.name;
-            const exported = sp.exported.name;
-            report(`e: ${i}:` + exported);
-            thisModule.exported[exported] = local;
-        });
     });
+    return { allSpecs }
 }
 
-export function processExportDefaultDeclaration(api, collection, newBody, newExports, thisModule) {
-    const j = api.jscodeshift;
-    collection.find(j.ExportDefaultDeclaration).forEach((p, i) => {
+export function processExportDefaultDeclaration(namedTypes, builders, collection, newBody, newExports, thisModule) {
+
+    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
         const n = p.value;
         let name;
         if (n.declaration.type === 'ClassDeclaration') {
             name = n.declaration.id.name;
             //newBody.push(n.declaration);
             newBody.splice(i, 1, n.declaration);
-            const export_ = j.exportNamedDeclaration(null, [j.exportSpecifier(j.identifier(name), j.identifier(name))]);
+            const export_ = builders.exportNamedDeclaration(null, [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
             newExports.push(export_);
         } else {
             name = n.declaration.name;
@@ -78,9 +85,9 @@ export function processExportDefaultDeclaration(api, collection, newBody, newExp
     });
 }
 
-export function processClassDeclarations(api, collection, thisModule: Module) {
-    const j = api.jscodeshift;
-    collection.find(j.ClassDeclaration).forEach(p => {
+export function processClassDeclarations(namedTypes, collection, thisModule: Module) {
+
+    collection.find(namedTypes.ClassDeclaration).forEach(p => {
         const n = p.value;
         const classIdName = n.id.name;
         const aClass = thisModule.getClass(classIdName);

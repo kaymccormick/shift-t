@@ -1,6 +1,12 @@
-import { getFieldNames, getFieldValue } from 'ast-types';
+import { getFieldNames, getFieldValue, eachField } from 'ast-types';
 import { handleTemplateLiteral } from '../src/templates';
 
+/**
+ * AN attempt to extract regular rxpressions from source code, but proves very complex
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function (fileInfo, api, options) {
   const j = api.jscodeshift;
   const r = j(fileInfo.source);

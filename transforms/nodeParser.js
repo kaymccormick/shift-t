@@ -1,6 +1,12 @@
 const recast = require('recast');
 const fs = require('fs');
-
+/**
+ *
+ * Something related to procesing the class structure of the node hierarchy
+ * @param fileInfo
+ * @param api
+ * @param options
+ */
 module.exports = function(fileInfo, api, options) {
     const j = api.jscodeshift;
     const superClasses = [];
@@ -28,9 +34,7 @@ module.exports = function(fileInfo, api, options) {
     const classDecl = j.classDeclaration(j.identifier('Translator'), transBody, j.identifier('GenericNodeVisitor'));
     file2.program.body.push(classDecl);
     const f = file2;
-    //j.program([j.importDeclaration([j.importNamespaceSpecifier(j.identifier('BaseWriter'))],
-    //    j.literal('../Writer'), ]));
-    //console.log(Object.keys(api).filter(x => 1 || x.toLowerCase().indexOf('recast')!== -1));
+
     const methods = [];
     leafClasses.forEach(class_ => {
         const params = [j.identifier('node')];
@@ -50,16 +54,5 @@ module.exports = function(fileInfo, api, options) {
     fs.createWriteStream('code.js').write(recast.print(f).code);
 
 
-    //console.log(recast.print(f).code);
-
-//    console.log(methods);
-   //         && classes.findIndex(x => p.superClass.name === x) !== -1).paths();
-    //    classes = paths.map((n) => n.value.id.name);
-
-    //const cl = x.find(j.ClassDeclaration, p => p.superClass && p.superClass.name === 'Element').paths().map((n) => n.value.id.name);
-
-return api.jscodeshift(fileInfo.source);/*
-    .findVariableDeclarators('foo').module
-  .renameTo('bar')
-    .toSource();*/
+return api.jscodeshift(fileInfo.source);
 }
