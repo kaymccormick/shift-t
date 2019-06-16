@@ -4,6 +4,7 @@
     "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
     "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
     "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
+    "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
     "classStructure1": "jscodeshift --run-in-band  --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/Component.ts",
     "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src"
   },
@@ -16,6 +17,7 @@
     "@typescript-eslint/parser": "^1.10.2",
     "ast-types": "^0.13.1",
     "camelcase": "^5.3.1",
+    "immutable": "^4.0.0-rc.12",
     "jscodeshift": "^0.6.4",
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.3",

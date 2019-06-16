@@ -7,6 +7,7 @@ import {Module} from "./Module";
 import {Exported} from "./Exported";
 
 export function handleImportDeclarations(namedTypes, collection, maxImport, relativeBase, thisModule: Module): void {
+    const imported = {};
     collection.find(namedTypes.ImportDeclaration).forEach((p, i) => {
         maxImport = Math.max(maxImport, i);
         const n = p.value;
@@ -14,28 +15,27 @@ export function handleImportDeclarations(namedTypes, collection, maxImport, rela
         if (/^\.\.?\//.test(source)) {
             const full = path.resolve(relativeBase, source);
             assert.strictEqual(n.importKind, 'value');
-            const x = [];
             n.specifiers.forEach(kind => {
                 if (kind.type === 'ImportSpecifier') {
                     assert.strictEqual(kind.imported.type, 'Identifier');
-                    thisModule.imported[kind.imported.name] = [full];
+                    imported[kind.imported.name] = [full, false];
                 } else if (kind.type === 'ImportDefaultSpecifier') {
                     const local = kind.local;
-                    thisModule.imported[local.name] = [full, 'default'];
+                    imported[local.name] = [full, true];
                 }
-                x.push(kind.type);
             });
         } else {
             //report(source);
         }
     });
+    return imported;
 }
 
 interface ExportNamedDeclarationsResult {
     allSpecs: {}[][];
 }
 
-export function processExportNamedDeclarations(namedTypes, collection, newBody, thisModule): ExportNamedDeclarationsResult {
+export function processExportNamedDeclarations(namedTypes, collection, thisModule): ExportNamedDeclarationsResult {
     const named = collection.find(namedTypes.ExportNamedDeclaration);
     const allSpecs = [];
     named.forEach((p, i) => {
@@ -47,7 +47,6 @@ export function processExportNamedDeclarations(namedTypes, collection, newBody, 
             if(n.specifiers.length > 0) {
                 throw new Error('woah');
             }
-            newBody.splice(i, 1, n.declaration);
             if (n.declaration.type === 'ClassDeclaration') {
                 if (!n.declaration.id) {
                     throw new Error(n.declaration.type);
@@ -69,15 +68,30 @@ export function processExportNamedDeclarations(namedTypes, collection, newBody, 
     return { allSpecs }
 }
 
-export function processExportDefaultDeclaration(namedTypes, builders, collection, newBody, newExports, thisModule) {
+export function processExportDefaultDeclaration(namedTypes, builders, collection, newExports, thisModule) {
 
     collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
         const n = p.value;
         let name;
         if (n.declaration.type === 'ClassDeclaration') {
             name = n.declaration.id.name;
-            //newBody.push(n.declaration);
-            newBody.splice(i, 1, n.declaration);
+            const export_ = builders.exportNamedDeclaration(null, [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
+            newExports.push(export_);
+        } else {
+            name = n.declaration.name;
+        }
+        thisModule.defaultExport = name;
+    });
+}
+
+
+export function shiftExports(namedTypes, builders, collection, newExports, thisModule) {
+
+    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
+        const n = p.value;
+        let name;
+        if (n.declaration.type === 'ClassDeclaration') {
+            name = n.declaration.id.name;
             const export_ = builders.exportNamedDeclaration(null, [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
             newExports.push(export_);
         } else {

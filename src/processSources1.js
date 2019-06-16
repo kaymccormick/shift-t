@@ -50,7 +50,7 @@ Object.keys(sources.module).forEach(moduleName => {
     Object.keys(v.classes).forEach(name => {
         const c = v.classes[name];
         const outClass = {}
-//        outFile[name] = outClass;
+        //        outFile[name] = outClass;
         f.class[name] = outClass;
         if(c.superSpec) {
             let result;
