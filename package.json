@@ -6,17 +6,20 @@
     "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
     "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
     "classStructure1": "jscodeshift --run-in-band  --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/Component.ts",
-    "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src"
+    "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src",
+    "compile": "tsc -p ."
   },
   "dependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
     "@babel/node": "^7.4.5",
     "@babel/preset-env": "^7.4.4",
+    "@types/jscodeshift": "^0.6.0",
     "@typescript-eslint/eslint-plugin": "^1.10.2",
     "@typescript-eslint/parser": "^1.10.2",
     "ast-types": "^0.13.1",
     "camelcase": "^5.3.1",
+    "gojs": "^2.0.12",
     "immutable": "^4.0.0-rc.12",
     "jscodeshift": "^0.6.4",
     "pg": "^7.11.0",

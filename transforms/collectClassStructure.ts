@@ -6,11 +6,12 @@ import {
     processExportNamedDeclarations
 } from "../src/transformUtils";
 import { SimpleRegistry } from '../src/Registry';
-const { builders, parse, print  } = require('recast');
-const path = require('path');
-const fs = require('fs');
-const assert = require('assert');
-
+import {namedTypes} from "ast-types/gen/namedTypes";
+import { parse, print } from 'recast';
+import { builders} from 'ast-types';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as assert from 'assert';
 /**
  * Violate the rule pf doing more than one thing well by simultaneously
  * transforming the structure of exports in the source code AND accumulate
@@ -19,6 +20,7 @@ const assert = require('assert');
  * @param api
  * @param options
  */
+// @ts-ignore
 module.exports = function (fileInfo, api, options) {
     const report = api.report;
     const runId = process.pid;
@@ -36,25 +38,18 @@ module.exports = function (fileInfo, api, options) {
     const module = registry.getModule(moduleName, true);
 
     let maxImport = -1;
-    handleImportDeclarations(api.jscodeshift, collection, maxImport, relativeBase, module);
+    handleImportDeclarations(collection, maxImport, relativeBase, module);
 
     //module.setImported(imported);
     const newBody = [...collection.paths()[0].value.program.body];
 
     const newFile = j.file(j.program(newBody));
-    const newExports = [];
+    const newExports: namedTypes.Node[] = [];
 
-    processClassDeclarations(api.jscodeshift, collection, registry, module);
-    const { allSpecs } = processExportNamedDeclarations(api.jscodeshift, collection, module);
-    if(allSpecs.length > 1) {
-        report(allSpecs.length);
-    }
-    processExportDefaultDeclaration(api, api, collection, newBody, newExports, module);
-
-    //store.module[moduleName] = module.toPojo();
-
-    //newBody.push(...newExports);
-    //fs.writeFileSync('sources_1.json', JSON.stringify(store, null, 4), 'utf-8');
+    processClassDeclarations(collection, registry, module);
+    processExportNamedDeclarations(collection, module);
+    processExportDefaultDeclaration(builders,
+        collection, newExports, module);
     try {
         registry.save();
     } catch(error) {

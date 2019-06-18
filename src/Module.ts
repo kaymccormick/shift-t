@@ -1,76 +1,93 @@
 import {ModuleClass} from "./ModuleClass";
-import {Map} from "immutable";
-import {Import, ImportPojo} from "./Import";
+import {Map} from 'immutable';
+import {ExportPojo, ModuleClassPojo, ModulePojo} from "./types";
+import {Export} from "./Export";
 
-export interface ModulePojo {
-    name: string;
-    imports: Map<string, ImportPojo>;
+interface ExportArgs {
+    localName: string;
+    exportName: string;
+
 }
 
 class Module {
     public name: string;
-    public imports: Map<string, Import> = Map({});
-    public classes: Map<string, ModuleClass> = Map({});
-    public exported: {};
-    public defaultExport: undefined | string;
+    public classes: Map<string, ModuleClass> = Map<string, ModuleClass>();
+    public exports: Map<string, Export> = Map<string, Export>();
+    public  imported: {};
+    public  defaultExport: undefined | string;
 
     public constructor(name: string) {
-        if (!name) {
-            throw new Error('must have a name');
-        }
         this.name = name;
-        this.exported = {};
+        this.imported = {};
         this.defaultExport = undefined;
     }
 
-    public setImports(imports): void {
-        this.imports = Map(imports);
+    public addExport(args: ExportArgs) {
+        this.exports = this.exports.set(args.localName, new Export(args.exportName));
+    }
+
+    public getClassNames(): string[] {
+        return Object.keys(this.classes);
     }
 
     public toPojo(): ModulePojo {
-        const c = {};
-        const e = {};
-
+        // const c = {};
+        // const e = {};
         // Object.keys(this.exported).forEach(k => {
         //     e[k] = this.exported[k].toPojo();
         // });
         // Object.keys(this.classes).forEach(cn => {
         //     const v = this.classes[cn];
-        //     c[cn] = v.toPojo();
+        //     if(v.toPojo) {
+        //         c[cn] = v.toPojo();
+        //     } else {
+        //         throw new Error('NoPojo');
+        //     }
         // });
-        // const returnVal: ModulePojo =
-
-        return {
-            //imported: this.imported,
-            imports: this.imports.toJS(),
-            //exported: e,
+        // return {
+        //     imported: this.imported,
+        //     exported: e,
+        //     name: this.name,
+        //     classes: c,
+        //     defaultExport: this.defaultExport
+        // };
+        const m: ModulePojo = {
             name: this.name,
-            classes: c,
-            defaultExport: this.defaultExport
+            exports: this.exports.map((c: Export): ExportPojo => c.toPojo()),
+            classes: this.classes.map((c: ModuleClass): ModuleClassPojo => c.toPojo()),
+
         };
+        return m;
     }
 
-    public getClass(name: any): ModuleClass {
-        if (Object.prototype.hasOwnProperty.call(this.classes, name)) {
-            return this.classes[name];
+    public getClass(name: any, createClass: boolean = false): ModuleClass {
+        if(this.classes.has(name)) {
+            const newVar = this.classes.get(name);
+            if(newVar === undefined) {
+                throw new Error('undefined class');
+            }
+            return newVar;
+        } else if(createClass) {
+            const c = new ModuleClass(name);
+            this.classes.set(name, c);
+            return c;
+        } else {
+            throw new Error('no such class');
         }
-        this.classes[name] = new ModuleClass(this);
-        return this.classes[name];
     }
 
-    public getImportedName(name: string) {
-        if (Object.prototype.hasOwnProperty.call(this.imported, name)) {
-            return this.imported[name];
-        }
-        throw new Error(`no such imported name ${name}`);
-    }
-    public addImport(name: string, module: string, defaultImport: boolean = false) {
-        this.imports = this.imports.set(name, new Import(name, module, defaultImport));
-    }
     public toString(): string {
         return this.name;
     }
 
-}
+    public addImport(name: string, full: string, isDefault?: boolean): void {
 
-export {Module};
+    }
+
+    public static fromPojo(v: ModulePojo) {
+        const module1 = new Module(v.name);
+        module1.exports = Map<string, ExportPojo>(v.exports).map((v: ExportPojo): Export => Export.fromPojo(v));
+        return module1;
+    }
+}
+export { Module };

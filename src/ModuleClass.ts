@@ -1,11 +1,14 @@
-import {Module} from "./Module";
+import {ModuleClassPojo} from "./types";
 
 class ModuleClass {
-    public name: string;
-    constructor() {
+    public readonly name: string;
+    public constructor(name: string) {
+        this.name = name;
     }
-    toPojo() {
-        return { }
+    public toPojo(): ModuleClassPojo {
+        return {
+            name: this.name,
+        }
     }
 }
 
