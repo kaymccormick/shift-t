@@ -2,6 +2,7 @@ import {ModuleClass} from "./ModuleClass";
 import {Map} from 'immutable';
 import {ExportPojo, ModuleClassPojo, ModulePojo} from "./types";
 import {Export} from "./Export";
+import {Interface} from "./Interface";
 
 interface ExportArgs {
     localName: string;
@@ -15,6 +16,7 @@ class Module {
     public exports: Map<string, Export> = Map<string, Export>();
     public  imported: {};
     public  defaultExport: undefined | string;
+    private interfaces: Map<string, Interface> = Map<string, Interface>();
 
     public constructor(name: string) {
         this.name = name;
@@ -88,6 +90,10 @@ class Module {
         const module1 = new Module(v.name);
         module1.exports = Map<string, ExportPojo>(v.exports).map((v: ExportPojo): Export => Export.fromPojo(v));
         return module1;
+    }
+
+    public addInterface(name: string) {
+        this.interfaces = this.interfaces.set(name, new Interface(name));
     }
 }
 export { Module };

@@ -4,13 +4,11 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";
-import {Export} from "./Export";
 import {Registry} from "./Registry";
-import {PatternKind, StatementKind} from "ast-types/gen/kinds";
-import {Declaration} from "@babel/types";
+import {IdentifierKind, PatternKind, StatementKind} from "ast-types/gen/kinds";
 import {namedTypes} from "ast-types/gen/namedTypes";
+import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
-const MethodDefinition = namedTypes.MethodDefinition;
 import { Collection } from "jscodeshift/src/Collection";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
@@ -144,6 +142,16 @@ export function shiftExports(namedTypes, builders, collection, newExports, thisM
 
 export function processClassDeclarations(collection: Collection<namedTypes.Node>, registry: Registry, thisModule: Module) {
 
+    collection.find(namedTypes.InterfaceDeclaration).forEach((p: NodePath): void => {
+        const iface = p.value as namedTypes.InterfaceDeclaration;
+        iface.body.properties.forEach((v: namedTypes.ObjectTypeProperty|namedTypes.ObjectTypeSpreadProperty): void => {
+            if(v.type === 'ObjectTypeProperty') {
+                console.log(v);
+            }
+        })
+        thisModule.addInterface(iface.id.name);
+    })
+
     collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath) => {
         const n = p.value;
         const classIdName = n.id.name;
@@ -159,12 +167,11 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
                 const pname = super_.property.name;
                 spec = [oname, pname];
             } else if (super_.type === 'Identifier') {
-                spec = super_.name;
+                spec = [super_.name];
                 id = spec;
             }
 
         }
-        // @ts-ignore
         theClass.superSpec = spec;
 
         n.body.body.forEach((childNode: namedTypes.Declaration) => {

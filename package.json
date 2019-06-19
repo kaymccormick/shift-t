@@ -1,5 +1,6 @@
 {
   "scripts": {
+	  "process": "ts-node bin/process.ts",
     "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
     "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
     "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
@@ -27,6 +28,7 @@
     "recast": "^0.18.1",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.8.9",
+    "ts-node": "^8.3.0",
     "typeorm": "^0.2.18",
     "typescript": "^3.5.2"
   },

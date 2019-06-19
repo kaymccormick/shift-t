@@ -3,11 +3,15 @@ import { CreateModuleFunction, createModule} from './Factory';
 import {Module} from "./Module";
 import { Map } from 'immutable';
 import {ModulePojo} from "./types";
+
+type ModuleMap = Map<string, Module>;
+
 export interface Registry {
     init(): void;
     registerModule(module: Module): void;
     registerClass(classKind: string): void;
     getModule(name: string, create?: boolean): Module;
+    modules: ModuleMap;
 }
 
 interface SimpleRegistryArgs {
@@ -23,10 +27,17 @@ interface SimpleRegistryPojo {
 interface SimpleRegistryData {
     runId?: number;
     modules: Map<string, Module>;
-}
+    }
 
 class SimpleRegistryDataImpl implements SimpleRegistryData {
-    public modules: Map<string, Module> = Map<string, Module>();
+    public get modules(): Map<string, Module> {
+        return this._modules;
+    }
+
+    public set modules(value: Map<string, Module>) {
+        this._modules = value;
+    }
+    private _modules: Map<string, Module> = Map<string, Module>();
     public runId?: number;
 
     public constructor(runId: number) {
@@ -36,8 +47,12 @@ class SimpleRegistryDataImpl implements SimpleRegistryData {
 
 export class SimpleRegistry implements Registry {
     private runId?: number;
-    private data: SimpleRegistryData = new SimpleRegistryDataImpl(0);
+    private dataImpl = new SimpleRegistryDataImpl(0);
+    private data: SimpleRegistryData = this.dataImpl;
     private load: boolean = false;
+
+    public get modules(): ModuleMap { return this.data.modules; }
+    public set modules(newVal: ModuleMap) { this.data.modules = newVal; }
 
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     public init(): void {
