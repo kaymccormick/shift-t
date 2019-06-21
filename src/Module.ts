@@ -1,10 +1,11 @@
 import {ModuleClass} from "./ModuleClass";
 import {Map} from 'immutable';
-import {ExportPojo, ModuleClassPojo, ModulePojo, ReferencePojo} from "./types";
+import {ExportPojo, ImportPojo, ModuleClassPojo, ModulePojo, ReferencePojo} from "./types";
 import {Export} from "./Export";
 import {Interface} from "./Interface";
 import {namedTypes} from 'ast-types';
 import {Reference} from "./Reference";
+import {Import} from "./Import";
 
 interface ExportArgs {
     localName: string;
@@ -20,14 +21,13 @@ class Module {
     public name: string;
     public classes: Map<string, ModuleClass> = Map<string, ModuleClass>();
     public exports: Map<string, Export> = Map<string, Export>();
-    public  imported: {};
+    public  imports: Map<string, Import> = Map<string, Import>();
     public  defaultExport: undefined | string;
-    private interfaces: Map<string, Interface> = Map<string, Interface>();
-    private references: Map<string, Reference> = Map<string, Reference>();
+    public  interfaces: Map<string, Interface> = Map<string, Interface>();
+    public references: Map<string, Reference> = Map<string, Reference>();
 
     public constructor(name: string) {
         this.name = name;
-        this.imported = {};
         this.defaultExport = undefined;
     }
 
@@ -40,29 +40,10 @@ class Module {
     }
 
     public toPojo(): ModulePojo {
-        // const c = {};
-        // const e = {};
-        // Object.keys(this.exported).forEach(k => {
-        //     e[k] = this.exported[k].toPojo();
-        // });
-        // Object.keys(this.classes).forEach(cn => {
-        //     const v = this.classes[cn];
-        //     if(v.toPojo) {
-        //         c[cn] = v.toPojo();
-        //     } else {
-        //         throw new Error('NoPojo');
-        //     }
-        // });
-        // return {
-        //     imported: this.imported,
-        //     exported: e,
-        //     name: this.name,
-        //     classes: c,
-        //     defaultExport: this.defaultExport
-        // };
         const m: ModulePojo = {
             name: this.name,
             exports: this.exports.map((c: Export): ExportPojo => c.toPojo()),
+            imports: this.imports.map((c: Import): ImportPojo => c.toPojo()),
             classes: this.classes.map((c: ModuleClass): ModuleClassPojo => c.toPojo()),
             references: this.references.map((c: Reference): ReferencePojo => c.toPojo()),
         };
@@ -78,7 +59,7 @@ class Module {
             return newVar;
         } else if(createClass) {
             const c = new ModuleClass(name);
-            this.classes.set(name, c);
+            this.classes = this.classes.set(name, c);
             return c;
         } else {
             throw new Error('no such class');
@@ -89,13 +70,18 @@ class Module {
         return this.name;
     }
 
-    public addImport(name: string, full: string, isDefault?: boolean): void {
-
+    public addImport(name: string, full: string, isDefault?: boolean): Import {
+        const import1 = new Import(name, full, isDefault || false);
+        this.imports = this.imports.set(name, import1);
+        return import1;
     }
 
     public static fromPojo(v: ModulePojo) {
         const module1 = new Module(v.name);
         module1.exports = Map<string, ExportPojo>(v.exports).map((v: ExportPojo): Export => Export.fromPojo(v));
+        module1.classes = Map<string, ModuleClassPojo>(v.classes).map((v: ModuleClassPojo): ModuleClass => ModuleClass.fromPojo(v));
+        module1.imports  =Map<string, ImportPojo>(v.imports).map((v: ImportPojo): Import => Import.fromPojo(v));
+        module1.references =Map<string, ReferencePojo>(v.exports).map((v: ReferencePojo): Reference=> Reference.fromPojo(v));
         return module1;
     }
 
@@ -108,8 +94,8 @@ class Module {
 
     }
 
-    public getReference1(super_: namedTypes.Node) {//namedTypes.Identifier | namedTypes.FunctionExpression | namedTypes.ThisExpression | namedTypes.ArrayExpression | namedTypes.ObjectExpression | namedTypes.Literal | namedTypes.SequenceExpression | namedTypes.UnaryExpression | namedTypes.BinaryExpression | namedTypes.AssignmentExpression | namedTypes.MemberExpression | namedTypes.UpdateExpression | namedTypes.LogicalExpression | namedTypes.ConditionalExpression | namedTypes.NewExpression | namedTypes.CallExpression | namedTypes.ArrowFunctionExpression | namedTypes.YieldExpression | namedTypes.GeneratorExpression | namedTypes.ComprehensionExpression | namedTypes.ClassExpression | namedTypes.TaggedTemplateExpression | namedTypes.TemplateLiteral | namedTypes.AwaitExpression | namedTypes.JSXIdentifier | namedTypes.JSXExpressionContainer | namedTypes.JSXMemberExpression | namedTypes.JSXElement | namedTypes.JSXFragment | namedTypes.JSXText | namedTypes.JSXEmptyExpression | namedTypes.JSXSpreadChild | namedTypes.TypeCastExpression | namedTypes.DoExpression | namedTypes.Super | namedTypes.BindExpression | namedTypes.MetaProperty | namedTypes.ParenthesizedExpression | namedTypes.DirectiveLiteral | namedTypes.StringLiteral | namedTypes.NumericLiteral | namedTypes.BigIntLiteral | namedTypes.NullLiteral | namedTypes.BooleanLiteral | namedTypes.RegExpLiteral | namedTypes.PrivateName | namedTypes.Import | namedTypes.TSAsExpression | namedTypes.TSNonNullExpression | namedTypes.TSTypeParameter | namedTypes.TSTypeAssertion | namedTypes.OptionalMemberExpression | namedTypes.OptionalCallExpression | | AssignmentExpression | BinaryExpression | CallExpression | ConditionalExpression | FunctionExpression | Identifier | StringLiteral | NumericLiteral | NullLiteral | BooleanLiteral | RegExpLiteral | LogicalExpression | MemberExpression | NewExpression | ObjectExpression | SequenceExpression | ParenthesizedExpression | ThisExpression | UnaryExpression | UpdateExpression | ArrowFunctionExpression | ClassExpression | MetaProperty | Super | TaggedTemplateExpression | TemplateLiteral | YieldExpression | TypeCastExpression | JSXElement | JSXFragment | AwaitExpression | BindExpression | OptionalMemberExpression | PipelinePrimaryTopicReference | OptionalCallExpression | Import | DoExpression | BigIntLiteral | TSAsExpression | TSTypeAssertion | TSNonNullExpression) {
-        const ref = new Reference(this);
+    public getReference1(super_: namedTypes.Node): Reference {//namedTypes.Identifier | namedTypes.FunctionExpression | namedTypes.ThisExpression | namedTypes.ArrayExpression | namedTypes.ObjectExpression | namedTypes.Literal | namedTypes.SequenceExpression | namedTypes.UnaryExpression | namedTypes.BinaryExpression | namedTypes.AssignmentExpression | namedTypes.MemberExpression | namedTypes.UpdateExpression | namedTypes.LogicalExpression | namedTypes.ConditionalExpression | namedTypes.NewExpression | namedTypes.CallExpression | namedTypes.ArrowFunctionExpression | namedTypes.YieldExpression | namedTypes.GeneratorExpression | namedTypes.ComprehensionExpression | namedTypes.ClassExpression | namedTypes.TaggedTemplateExpression | namedTypes.TemplateLiteral | namedTypes.AwaitExpression | namedTypes.JSXIdentifier | namedTypes.JSXExpressionContainer | namedTypes.JSXMemberExpression | namedTypes.JSXElement | namedTypes.JSXFragment | namedTypes.JSXText | namedTypes.JSXEmptyExpression | namedTypes.JSXSpreadChild | namedTypes.TypeCastExpression | namedTypes.DoExpression | namedTypes.Super | namedTypes.BindExpression | namedTypes.MetaProperty | namedTypes.ParenthesizedExpression | namedTypes.DirectiveLiteral | namedTypes.StringLiteral | namedTypes.NumericLiteral | namedTypes.BigIntLiteral | namedTypes.NullLiteral | namedTypes.BooleanLiteral | namedTypes.RegExpLiteral | namedTypes.PrivateName | namedTypes.Import | namedTypes.TSAsExpression | namedTypes.TSNonNullExpression | namedTypes.TSTypeParameter | namedTypes.TSTypeAssertion | namedTypes.OptionalMemberExpression | namedTypes.OptionalCallExpression | | AssignmentExpression | BinaryExpression | CallExpression | ConditionalExpression | FunctionExpression | Identifier | StringLiteral | NumericLiteral | NullLiteral | BooleanLiteral | RegExpLiteral | LogicalExpression | MemberExpression | NewExpression | ObjectExpression | SequenceExpression | ParenthesizedExpression | ThisExpression | UnaryExpression | UpdateExpression | ArrowFunctionExpression | ClassExpression | MetaProperty | Super | TaggedTemplateExpression | TemplateLiteral | YieldExpression | TypeCastExpression | JSXElement | JSXFragment | AwaitExpression | BindExpression | OptionalMemberExpression | PipelinePrimaryTopicReference | OptionalCallExpression | Import | DoExpression | BigIntLiteral | TSAsExpression | TSTypeAssertion | TSNonNullExpression) {
+        const ref = new Reference();
         switch(super_.type) {
             case "Identifier":
                 const name = (super_ as namedTypes.Identifier).name;
@@ -125,13 +111,21 @@ class Module {
                     throw new Error(expressionKind.type);
                 }
                 ref.name = objectExp;
+                let propertyExp: string|undefined = undefined;
+                const exp2 = (super_ as namedTypes.MemberExpression).property;
+                if(exp2.type === "Identifier") {
+                    propertyExp = exp2.name;
+                }
+                if(propertyExp !== undefined) {
+                    ref.property = propertyExp;
+                }
                 break;
             default:
                 throw new Error(super_.type);
         }
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.references = this.references.set(ref.name!, ref);
-        return 'x';
+        return ref;
     }
 }
 export { Module };

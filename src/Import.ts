@@ -1,10 +1,4 @@
-import {PojoBuilder} from "./types";
-
-export interface ImportPojo {
-    name: string;
-    sourceModule: string;
-    isDefaultImport: boolean;
-}
+import {ImportPojo, PojoBuilder} from "./types";
 
 export class Import implements PojoBuilder<ImportPojo> {
     public name: string;
@@ -19,5 +13,10 @@ export class Import implements PojoBuilder<ImportPojo> {
 
     public toPojo(): ImportPojo {
         return this;
+    }
+
+    public static fromPojo(v: ImportPojo): Import {
+        return new Import(v.name, v.sourceModule, v.isDefaultImport);
+
     }
 }

@@ -12,19 +12,39 @@ export interface PojoBuilder<T> {
 }
 export interface ModuleClassPojo {
     name: string;
-    superSpec?: string[];
+    superSpec?: (string|string[]);
+    methods: Map<string, MethodPojo>;
+}
+
+export interface TypePojo {
+    nodeType: string;
+
+}
+
+export interface ParameterPojo {
+    name: string;
+    type: TypePojo;
 }
 export interface ExportPojo {
     name: string;
 }
 export interface ReferencePojo {
     name: string;
+    property?: string;
 
 }
+
+export interface ImportPojo {
+    name: string;
+    sourceModule: string;
+    isDefaultImport: boolean;
+}
+
 export interface ModulePojo {
     name: string;
     classes: Map<string, ModuleClassPojo>;
     exports: Map<string, ExportPojo>;
+    imports: Map<string, ImportPojo>;
     references: Map<string, ReferencePojo>;
 }
 
@@ -38,4 +58,8 @@ export interface Registry {
     getModule(name: string, create?: boolean): Module;
 
     modules: ModuleMap;
+}
+
+export interface MethodPojo {
+    name: string;
 }

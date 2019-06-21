@@ -4,13 +4,20 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";
-import {IdentifierKind, PatternKind, StatementKind} from "ast-types/gen/kinds";
+import {
+    IdentifierKind,
+    PatternKind,
+    StatementKind,
+    TSTypeAnnotationKind, TSTypeKind,
+    TypeAnnotationKind
+} from "ast-types/gen/kinds";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
 import { Collection } from "jscodeshift/src/Collection";
-import {SuperClassSpecification, SuperClassSpecifier} from "./ModuleClass";
+import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "./ModuleClass";
 import {Registry} from "./types";
+import {Reference} from "./Reference";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
     c.forEach((p, i) => {
@@ -140,6 +147,94 @@ export function shiftExports(namedTypes, builders, collection, newExports, thisM
         thisModule.defaultExport = name;
     });
 }
+//namedTypes.TSExpressionWithTypeArguments | namedTypes.TSTypeReference | namedTypes.TSAnyKeyword | namedTypes.TSBigIntKeyword | namedTypes.TSBooleanKeyword | namedTypes.TSNeverKeyword | namedTypes.TSNullKeyword | namedTypes.TSNumberKeyword | namedTypes.TSObjectKeyword | namedTypes.TSStringKeyword | namedTypes.TSSymbolKeyword | namedTypes.TSUndefinedKeyword | namedTypes.TSUnknownKeyword | namedTypes.TSVoidKeyword | namedTypes.TSThisType | namedTypes.TSArrayType | namedTypes.TSLiteralType | namedTypes.TSUnionType | namedTypes.TSIntersectionType | namedTypes.TSConditionalType | namedTypes.TSInferType | namedTypes.TSParenthesizedType | namedTypes.TSFunctionType | namedTypes.TSConstructorType | namedTypes.TSMappedType | namedTypes.TSTupleType | namedTypes.TSRestType | namedTypes.TSOptionalType | namedTypes.TSIndexedAccessType | namedTypes.TSTypeOperator | namedTypes.TSTypeQuery | namedTypes.TSImportType | namedTypes.TSTypeLiteral;
+//namedTypes.TypeAnnotation | namedTypes.TSTypeAnnotation | namedTypes.TSTypePredicate;
+
+function typeDescription(aType: K.TypeAnnotationKind | K.TSTypeAnnotationKind | K.TSTypeKind ): AType  {
+// type TSTypeKind = namedTypes.TSExpressionWithTypeArguments | namedTypes.TSTypeReference | namedTypes.TSAnyKeyword | namedTypes.TSBigIntKeyword | namedTypes.TSBooleanKeyword | namedTypes.TSNeverKeyword | namedTypes.TSNullKeyword | namedTypes.TSNumberKeyword | namedTypes.TSObjectKeyword | namedTypes.TSStringKeyword | namedTypes.TSSymbolKeyword | namedTypes.TSUndefinedKeyword | namedTypes.TSUnknownKeyword | namedTypes.TSVoidKeyword | namedTypes.TSThisType | namedTypes.TSArrayType | namedTypes.TSLiteralType | namedTypes.TSUnionType | namedTypes.TSIntersectionType | namedTypes.TSConditionalType | namedTypes.TSInferType | namedTypes.TSParenthesizedType | namedTypes.TSFunctionType | namedTypes.TSConstructorType | namedTypes.TSMappedType | namedTypes.TSTupleType | namedTypes.TSRestType | namedTypes.TSOptionalType | namedTypes.TSIndexedAccessType | namedTypes.TSTypeOperator | namedTypes.TSTypeQuery | namedTypes.TSImportType | namedTypes.TSTypeLiteral;
+    if(aType.type === "TypeAnnotation") {
+        throw new Error('hi');
+    } else if(aType.type === "TSTypePredicate") {
+        return 'predicaste';
+    } else if (aType.type === "TSTypeAnnotation") {
+        const ann = aType.typeAnnotation; // K.TSTypeKind | K.TSTypeAnnotationKind;
+        return 'annotation ' + typeDescription(ann);
+    } else if(aType.type === 'TSTypeReference') {
+        const typeName = aType.typeName;
+        if (typeName.type === 'Identifier') {
+            return 'reference ' + typeName.name;
+        } else {
+            throw new Error(typeName.type);
+        }/*
+    } else  if (aType.type === "TSTypeReference") {
+        if (aType.typeName.type === 'Identifier') {
+            return aType.typeName.name || 'x';
+        } else {
+            throw new Error(aType.typeName.type);
+        }
+        //console.log('zz ' + aType.typeName.type);
+  */  } else if (aType.type === 'TSAnyKeyword') {
+        return 'any';
+    } else if (aType.type === 'TSArrayType') {
+        return typeDescription(aType.elementType) + '[]';
+
+    } else if (aType.type === 'TSTypeLiteral') {
+        return aType.members.map(member => member.type).join(' ');
+    } else if (aType.type === 'TSNumberKeyword') {
+        return 'number';
+    } else if (aType.type === 'TSStringKeyword') {
+        return 'string';
+    } else if (aType.type === 'TSBooleanKeyword') {
+        return 'boolean';
+    } else if (aType.type === 'TSUnionType') {
+        return 'union';
+    } else if (aType.type === 'TSParenthesizedType') {
+        return 'parenthesized';
+    } else if (aType.type === 'TSFunctionType') {
+        return 'function'
+    } else {
+        throw new Error(aType.type);
+    }
+}
+
+
+function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Declaration) {
+    const methodDef = childNode as namedTypes.ClassMethod;
+    const kind = methodDef.kind;
+    const key = methodDef.key;
+    const value = undefined;//methodDef.body;
+    //throw new Error(kind);
+    if (kind === "method") {
+        let methodName = '';
+        if (key.type === "Identifier") {
+            methodName = key.name;
+        } else {
+            throw new Error(key.type);
+        }
+        const method = moduleClass.getMethod(methodName, true);
+        assert.ok(methodName);
+        const params = methodDef.params;
+        console.log(methodName + ' ( ' + params.map((pk: PatternKind, i) => {
+            let typeDesc = '';
+            let name = '';
+            if (pk.type === 'Identifier') {
+                if (pk.typeAnnotation) {
+                    typeDesc = typeDescription(pk.typeAnnotation);
+                    name = pk.name;
+                }
+            } else if (pk.type === 'AssignmentPattern') {
+                name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
+            } else if (pk.type === 'RestElement') {
+            } else {
+                throw new Error(pk.type);
+            }
+            method.addParam(name, typeDesc);
+            return `${name}: ${typeDesc}`;
+
+        }).join(', ') + ')');
+
+    }
+}
 
 export function processClassDeclarations(collection: Collection<namedTypes.Node>, registry: Registry, thisModule: Module) {
 
@@ -153,48 +248,29 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         thisModule.addInterface(iface.id.name);
     })
 
-    // export type ExpressionKind = namedTypes.Identifier | namedTypes.FunctionExpression | namedTypes.ThisExpression | namedTypes.ArrayExpression | namedTypes.ObjectExpression | namedTypes.Literal | namedTypes.SequenceExpression | namedTypes.UnaryExpression | namedTypes.BinaryExpression | namedTypes.AssignmentExpression | namedTypes.MemberExpression | namedTypes.UpdateExpression | namedTypes.LogicalExpression | namedTypes.ConditionalExpression | namedTypes.NewExpression | namedTypes.CallExpression | namedTypes.ArrowFunctionExpression | namedTypes.YieldExpression | namedTypes.GeneratorExpression | namedTypes.ComprehensionExpression | namedTypes.ClassExpression | namedTypes.TaggedTemplateExpression | namedTypes.TemplateLiteral | namedTypes.AwaitExpression | namedTypes.JSXIdentifier | namedTypes.JSXExpressionContainer | namedTypes.JSXMemberExpression | namedTypes.JSXElement | namedTypes.JSXFragment | namedTypes.JSXText | namedTypes.JSXEmptyExpression | namedTypes.JSXSpreadChild | namedTypes.TypeCastExpression | namedTypes.DoExpression | namedTypes.Super | namedTypes.BindExpression | namedTypes.MetaProperty | namedTypes.ParenthesizedExpression | namedTypes.DirectiveLiteral | namedTypes.StringLiteral | namedTypes.NumericLiteral | namedTypes.BigIntLiteral | namedTypes.NullLiteral | namedTypes.BooleanLiteral | namedTypes.RegExpLiteral | namedTypes.PrivateName | namedTypes.Import | namedTypes.TSAsExpression | namedTypes.TSNonNullExpression | namedTypes.TSTypeParameter | namedTypes.TSTypeAssertion | namedTypes.OptionalMemberExpression | namedTypes.OptionalCallExpression;
+
 
     collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath) => {
-        const n = p.value;
-        const classIdName = n.id.name;
+        const classDecl = p.value;
+        const classIdName = classDecl.id.name;
         const theClass = thisModule.getClass(classIdName, true);
         assert.ok(theClass !== undefined);
-        const super_ = n.superClass;
+        const super_ = classDecl.superClass;
         let spec;
         let id;
         if (super_) {
-            let superSpec: SuperClassSpecification|undefined;
+            let superSpec: Reference|undefined;
             superSpec = thisModule.getReference1(super_);
-            if (super_.type === 'MemberExpression') {
-                const oname = super_.object.name;
-                id = oname;
-                const pname = super_.property.name;
-                //superSpec = thisModule.getReference(super_.type, oname, pname);
-                //new SuperClassSpecifier(oname, pname);
-                spec = [oname, pname];
-            } else if (super_.type === 'Identifier') {
-                spec = [super_.name];
-                id = spec;
-            }
+            theClass.superSpec = superSpec;
 
+            thisModule.classes = thisModule.classes.set(theClass.name, theClass);
+            registry.modules = registry.modules.set(thisModule.name, thisModule);
         }
-        //theClass.setSuperSpec(...spec);
 
-        n.body.body.forEach((childNode: namedTypes.Declaration) => {
-            if(childNode.type === 'MethodDefinition') {
-                const methodDef = childNode as namedTypes.MethodDefinition;
-                const kind = methodDef.kind;
-                const key = methodDef.key;
-                const value = methodDef.value;
-                if(kind === "method") {
-                    const methodName = value.id && value.id.name;
-                    assert.ok(methodName);
-                    const params = value.params;
-                    params.forEach((pk: PatternKind) => {
-                        console.log(pk.type);
-                    })
-                }
+        classDecl.body.body.forEach((childNode: namedTypes.Declaration) => {
+            //console.log(childNode.type);
+            if(childNode.type === 'ClassMethod') {
+                processClassMethod(theClass, childNode);
 
             }
         })
