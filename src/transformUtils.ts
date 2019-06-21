@@ -4,12 +4,13 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "./Module";
-import {Registry} from "./Registry";
 import {IdentifierKind, PatternKind, StatementKind} from "ast-types/gen/kinds";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
 import { Collection } from "jscodeshift/src/Collection";
+import {SuperClassSpecification, SuperClassSpecifier} from "./ModuleClass";
+import {Registry} from "./types";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
     c.forEach((p, i) => {
@@ -152,6 +153,8 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         thisModule.addInterface(iface.id.name);
     })
 
+    // export type ExpressionKind = namedTypes.Identifier | namedTypes.FunctionExpression | namedTypes.ThisExpression | namedTypes.ArrayExpression | namedTypes.ObjectExpression | namedTypes.Literal | namedTypes.SequenceExpression | namedTypes.UnaryExpression | namedTypes.BinaryExpression | namedTypes.AssignmentExpression | namedTypes.MemberExpression | namedTypes.UpdateExpression | namedTypes.LogicalExpression | namedTypes.ConditionalExpression | namedTypes.NewExpression | namedTypes.CallExpression | namedTypes.ArrowFunctionExpression | namedTypes.YieldExpression | namedTypes.GeneratorExpression | namedTypes.ComprehensionExpression | namedTypes.ClassExpression | namedTypes.TaggedTemplateExpression | namedTypes.TemplateLiteral | namedTypes.AwaitExpression | namedTypes.JSXIdentifier | namedTypes.JSXExpressionContainer | namedTypes.JSXMemberExpression | namedTypes.JSXElement | namedTypes.JSXFragment | namedTypes.JSXText | namedTypes.JSXEmptyExpression | namedTypes.JSXSpreadChild | namedTypes.TypeCastExpression | namedTypes.DoExpression | namedTypes.Super | namedTypes.BindExpression | namedTypes.MetaProperty | namedTypes.ParenthesizedExpression | namedTypes.DirectiveLiteral | namedTypes.StringLiteral | namedTypes.NumericLiteral | namedTypes.BigIntLiteral | namedTypes.NullLiteral | namedTypes.BooleanLiteral | namedTypes.RegExpLiteral | namedTypes.PrivateName | namedTypes.Import | namedTypes.TSAsExpression | namedTypes.TSNonNullExpression | namedTypes.TSTypeParameter | namedTypes.TSTypeAssertion | namedTypes.OptionalMemberExpression | namedTypes.OptionalCallExpression;
+
     collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath) => {
         const n = p.value;
         const classIdName = n.id.name;
@@ -161,10 +164,14 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         let spec;
         let id;
         if (super_) {
+            let superSpec: SuperClassSpecification|undefined;
+            superSpec = thisModule.getReference1(super_);
             if (super_.type === 'MemberExpression') {
                 const oname = super_.object.name;
                 id = oname;
                 const pname = super_.property.name;
+                //superSpec = thisModule.getReference(super_.type, oname, pname);
+                //new SuperClassSpecifier(oname, pname);
                 spec = [oname, pname];
             } else if (super_.type === 'Identifier') {
                 spec = [super_.name];
@@ -172,7 +179,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
             }
 
         }
-        theClass.superSpec = spec;
+        //theClass.setSuperSpec(...spec);
 
         n.body.body.forEach((childNode: namedTypes.Declaration) => {
             if(childNode.type === 'MethodDefinition') {

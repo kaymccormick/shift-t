@@ -1,6 +1,9 @@
-import { Map } from 'immutable';
+import {Map} from 'immutable';
+import {Module} from "./Module";
+import {ModuleMap} from "./Registry";
 
-interface GetRegistryInvokationArgs {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export  interface GetRegistryInvocationArgs {
 
 }
 
@@ -14,8 +17,25 @@ export interface ModuleClassPojo {
 export interface ExportPojo {
     name: string;
 }
+export interface ReferencePojo {
+    name: string;
+
+}
 export interface ModulePojo {
     name: string;
     classes: Map<string, ModuleClassPojo>;
     exports: Map<string, ExportPojo>;
+    references: Map<string, ReferencePojo>;
+}
+
+export interface Registry {
+    init(): void;
+
+    registerModule(module: Module): void;
+
+    registerClass(classKind: string): void;
+
+    getModule(name: string, create?: boolean): Module;
+
+    modules: ModuleMap;
 }

@@ -1,18 +1,10 @@
 import * as fs from 'fs';
-import { CreateModuleFunction, createModule} from './Factory';
+import {createModule} from './Factory';
 import {Module} from "./Module";
-import { Map } from 'immutable';
-import {ModulePojo} from "./types";
+import {Map} from 'immutable';
+import {ModulePojo, Registry} from "./types";
 
-type ModuleMap = Map<string, Module>;
-
-export interface Registry {
-    init(): void;
-    registerModule(module: Module): void;
-    registerClass(classKind: string): void;
-    getModule(name: string, create?: boolean): Module;
-    modules: ModuleMap;
-}
+export type ModuleMap = Map<string, Module>;
 
 interface SimpleRegistryArgs {
     runId?: number;

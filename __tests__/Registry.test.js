@@ -1,4 +1,5 @@
-import { Registry, SimpleRegistry } from '../src/Registry';
+import { SimpleRegistry } from '../src/Registry';
+import {Registry} from "../src/types";
 
 test('1', () => {
     const r = new SimpleRegistry({runId: 0});

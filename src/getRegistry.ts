@@ -1,6 +1,6 @@
-import { Registry, SimpleRegistry } from './Registry;';
-import { getGetRegistryInvocationArgs } from './types';
+import { SimpleRegistry } from './Registry';
+import {Registry, GetRegistryInvocationArgs} from './types';
 
-export function getRegistry(args: GetRegistryInvocationaRgs): Registry {
-return new SimpleRegistry({}) as Registry;
+export function getRegistry(args: GetRegistryInvocationArgs): Registry {
+    return new SimpleRegistry({}) as Registry;
 }

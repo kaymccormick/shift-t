@@ -1,12 +1,18 @@
 import {ModuleClass} from "./ModuleClass";
 import {Map} from 'immutable';
-import {ExportPojo, ModuleClassPojo, ModulePojo} from "./types";
+import {ExportPojo, ModuleClassPojo, ModulePojo, ReferencePojo} from "./types";
 import {Export} from "./Export";
 import {Interface} from "./Interface";
+import {namedTypes} from 'ast-types';
+import {Reference} from "./Reference";
 
 interface ExportArgs {
     localName: string;
     exportName: string;
+
+}
+
+class VariableReference extends Reference {
 
 }
 
@@ -17,6 +23,7 @@ class Module {
     public  imported: {};
     public  defaultExport: undefined | string;
     private interfaces: Map<string, Interface> = Map<string, Interface>();
+    private references: Map<string, Reference> = Map<string, Reference>();
 
     public constructor(name: string) {
         this.name = name;
@@ -57,7 +64,7 @@ class Module {
             name: this.name,
             exports: this.exports.map((c: Export): ExportPojo => c.toPojo()),
             classes: this.classes.map((c: ModuleClass): ModuleClassPojo => c.toPojo()),
-
+            references: this.references.map((c: Reference): ReferencePojo => c.toPojo()),
         };
         return m;
     }
@@ -94,6 +101,37 @@ class Module {
 
     public addInterface(name: string) {
         this.interfaces = this.interfaces.set(name, new Interface(name));
+    }
+
+    public getReference(kind: "MemberExpression", objectname: any, Propertyname: string): void {
+
+
+    }
+
+    public getReference1(super_: namedTypes.Node) {//namedTypes.Identifier | namedTypes.FunctionExpression | namedTypes.ThisExpression | namedTypes.ArrayExpression | namedTypes.ObjectExpression | namedTypes.Literal | namedTypes.SequenceExpression | namedTypes.UnaryExpression | namedTypes.BinaryExpression | namedTypes.AssignmentExpression | namedTypes.MemberExpression | namedTypes.UpdateExpression | namedTypes.LogicalExpression | namedTypes.ConditionalExpression | namedTypes.NewExpression | namedTypes.CallExpression | namedTypes.ArrowFunctionExpression | namedTypes.YieldExpression | namedTypes.GeneratorExpression | namedTypes.ComprehensionExpression | namedTypes.ClassExpression | namedTypes.TaggedTemplateExpression | namedTypes.TemplateLiteral | namedTypes.AwaitExpression | namedTypes.JSXIdentifier | namedTypes.JSXExpressionContainer | namedTypes.JSXMemberExpression | namedTypes.JSXElement | namedTypes.JSXFragment | namedTypes.JSXText | namedTypes.JSXEmptyExpression | namedTypes.JSXSpreadChild | namedTypes.TypeCastExpression | namedTypes.DoExpression | namedTypes.Super | namedTypes.BindExpression | namedTypes.MetaProperty | namedTypes.ParenthesizedExpression | namedTypes.DirectiveLiteral | namedTypes.StringLiteral | namedTypes.NumericLiteral | namedTypes.BigIntLiteral | namedTypes.NullLiteral | namedTypes.BooleanLiteral | namedTypes.RegExpLiteral | namedTypes.PrivateName | namedTypes.Import | namedTypes.TSAsExpression | namedTypes.TSNonNullExpression | namedTypes.TSTypeParameter | namedTypes.TSTypeAssertion | namedTypes.OptionalMemberExpression | namedTypes.OptionalCallExpression | | AssignmentExpression | BinaryExpression | CallExpression | ConditionalExpression | FunctionExpression | Identifier | StringLiteral | NumericLiteral | NullLiteral | BooleanLiteral | RegExpLiteral | LogicalExpression | MemberExpression | NewExpression | ObjectExpression | SequenceExpression | ParenthesizedExpression | ThisExpression | UnaryExpression | UpdateExpression | ArrowFunctionExpression | ClassExpression | MetaProperty | Super | TaggedTemplateExpression | TemplateLiteral | YieldExpression | TypeCastExpression | JSXElement | JSXFragment | AwaitExpression | BindExpression | OptionalMemberExpression | PipelinePrimaryTopicReference | OptionalCallExpression | Import | DoExpression | BigIntLiteral | TSAsExpression | TSTypeAssertion | TSNonNullExpression) {
+        const ref = new Reference(this);
+        switch(super_.type) {
+            case "Identifier":
+                const name = (super_ as namedTypes.Identifier).name;
+                ref.name = name;
+                break;
+            case "MemberExpression":
+                const expressionKind = (super_ as namedTypes.MemberExpression).object;
+                let objectExp: string;
+                if (expressionKind.type === "Identifier") {
+                    objectExp = expressionKind.name;
+                } else {
+
+                    throw new Error(expressionKind.type);
+                }
+                ref.name = objectExp;
+                break;
+            default:
+                throw new Error(super_.type);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.references = this.references.set(ref.name!, ref);
+        return 'x';
     }
 }
 export { Module };
