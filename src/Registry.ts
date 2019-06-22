@@ -19,7 +19,7 @@ interface SimpleRegistryPojo {
 interface SimpleRegistryData {
     runId?: number;
     modules: Map<string, Module>;
-    }
+}
 
 class SimpleRegistryDataImpl implements SimpleRegistryData {
     public get modules(): Map<string, Module> {
@@ -46,15 +46,20 @@ export class SimpleRegistry implements Registry {
     public get modules(): ModuleMap { return this.data.modules; }
     public set modules(newVal: ModuleMap) { this.data.modules = newVal; }
 
+    public loadData( value: SimpleRegistryPojo): void {
+        this.data = {
+       		 runId: value.runId,
+ 		 modules: Map<string, ModulePojo>(value.modules)
+		 	  .map((v) => Module.fromPojo(v)),
+        };
+    }
+
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     public init(): void {
         const data: SimpleRegistryPojo = JSON.parse(fs.readFileSync('registry.json', {encoding: 'utf-8'}));
-        const modules2 = Map<string, ModulePojo>(data.modules);
-        this.data = { runId: data.runId,
-        modules: modules2.map((v: ModulePojo): Module => Module.fromPojo(v)),
-        };
-
-        if (!this.load && (data.runId === undefined || data.runId !== this.runId)) {
+        this.loadData(data);
+        if (!this.load && (data.runId === undefined
+	|| data.runId !== this.runId)) {
             console.log('resetting data');
             this.initBareData();
         }
@@ -103,14 +108,14 @@ export class SimpleRegistry implements Registry {
             }
             return v.toPojo();
         }).toJS();
-        this.data.modules.forEach((v, k) => {
-            //console.log(v);
-            //console.log(v.toPojo())
-        });
-        //const modules = {}
-        //const modules = this.data.modules.map((v) => v.toPojo()).toJS();
         const data = { runId: this.data.runId,
             modules };
-        fs.writeFileSync('registry.json', JSON.stringify(data, null, 4), 'utf-8');
+	    let x;
+	    try {
+	    const x = JSON.stringify(data, null, 4);
+            fs.writeFileSync('registry.json', x, 'utf-8');
+        } catch(error) {
+            console.log(error);
+        }
     }
 }

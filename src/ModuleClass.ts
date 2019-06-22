@@ -18,7 +18,7 @@ export class SuperClassSpecifier implements SuperClassSpecification {
 class ModuleClass {
     public readonly name: string;
     public superSpec?: Reference;
-    private methods: Map<string, Method> = Map<string, Method>();;
+    public methods: Map<string, Method> = Map<string, Method>();;
     public constructor(name: string, superSpec?: Reference) {
         this.name = name;
         this.superSpec = superSpec;

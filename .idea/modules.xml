@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/shift.iml" filepath="$PROJECT_DIR$/.idea/shift.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/shift-t.iml" filepath="$PROJECT_DIR$/.idea/shift-t.iml" />
     </modules>
   </component>
 </project>

@@ -8,3 +8,10 @@ test('1', () => {
     expect(r.getModule('test')).toStrictEqual(module);
     r.save();
 });
+
+test('2', () => {
+    const r = new SimpleRegistry({load: true});
+    r.init();
+    expect(r).toMatchSnapshot();
+})
+

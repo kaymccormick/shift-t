@@ -1,4 +1,4 @@
-import {Map} from 'immutable';
+import {List, Map} from 'immutable';
 import {Module} from "./Module";
 import {ModuleMap} from "./Registry";
 
@@ -18,12 +18,13 @@ export interface ModuleClassPojo {
 
 export interface TypePojo {
     nodeType: string;
+    tree: {};
 
 }
 
 export interface ParameterPojo {
     name: string;
-    type: TypePojo;
+    type?: TypePojo;
 }
 export interface ExportPojo {
     name: string;
@@ -48,8 +49,12 @@ export interface ModulePojo {
     references: Map<string, ReferencePojo>;
 }
 
-export interface Registry {
+export interface Initializable {
     init(): void;
+}
+
+export interface Registry extends Initializable {
+    modules: ModuleMap;
 
     registerModule(module: Module): void;
 
@@ -57,9 +62,10 @@ export interface Registry {
 
     getModule(name: string, create?: boolean): Module;
 
-    modules: ModuleMap;
+    save(): void;
 }
 
 export interface MethodPojo {
     name: string;
+    parameters: List<ParameterPojo>;
 }

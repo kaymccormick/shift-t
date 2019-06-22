@@ -18,6 +18,8 @@ import { Collection } from "jscodeshift/src/Collection";
 import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "./ModuleClass";
 import {Registry} from "./types";
 import {Reference} from "./Reference";
+import {Type} from "./Type";
+import {copyTree} from "./utils";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
     c.forEach((p, i) => {
@@ -147,57 +149,10 @@ export function shiftExports(namedTypes, builders, collection, newExports, thisM
         thisModule.defaultExport = name;
     });
 }
-//namedTypes.TSExpressionWithTypeArguments | namedTypes.TSTypeReference | namedTypes.TSAnyKeyword | namedTypes.TSBigIntKeyword | namedTypes.TSBooleanKeyword | namedTypes.TSNeverKeyword | namedTypes.TSNullKeyword | namedTypes.TSNumberKeyword | namedTypes.TSObjectKeyword | namedTypes.TSStringKeyword | namedTypes.TSSymbolKeyword | namedTypes.TSUndefinedKeyword | namedTypes.TSUnknownKeyword | namedTypes.TSVoidKeyword | namedTypes.TSThisType | namedTypes.TSArrayType | namedTypes.TSLiteralType | namedTypes.TSUnionType | namedTypes.TSIntersectionType | namedTypes.TSConditionalType | namedTypes.TSInferType | namedTypes.TSParenthesizedType | namedTypes.TSFunctionType | namedTypes.TSConstructorType | namedTypes.TSMappedType | namedTypes.TSTupleType | namedTypes.TSRestType | namedTypes.TSOptionalType | namedTypes.TSIndexedAccessType | namedTypes.TSTypeOperator | namedTypes.TSTypeQuery | namedTypes.TSImportType | namedTypes.TSTypeLiteral;
-//namedTypes.TypeAnnotation | namedTypes.TSTypeAnnotation | namedTypes.TSTypePredicate;
 
-function typeDescription(aType: K.TypeAnnotationKind | K.TSTypeAnnotationKind | K.TSTypeKind ): AType  {
-// type TSTypeKind = namedTypes.TSExpressionWithTypeArguments | namedTypes.TSTypeReference | namedTypes.TSAnyKeyword | namedTypes.TSBigIntKeyword | namedTypes.TSBooleanKeyword | namedTypes.TSNeverKeyword | namedTypes.TSNullKeyword | namedTypes.TSNumberKeyword | namedTypes.TSObjectKeyword | namedTypes.TSStringKeyword | namedTypes.TSSymbolKeyword | namedTypes.TSUndefinedKeyword | namedTypes.TSUnknownKeyword | namedTypes.TSVoidKeyword | namedTypes.TSThisType | namedTypes.TSArrayType | namedTypes.TSLiteralType | namedTypes.TSUnionType | namedTypes.TSIntersectionType | namedTypes.TSConditionalType | namedTypes.TSInferType | namedTypes.TSParenthesizedType | namedTypes.TSFunctionType | namedTypes.TSConstructorType | namedTypes.TSMappedType | namedTypes.TSTupleType | namedTypes.TSRestType | namedTypes.TSOptionalType | namedTypes.TSIndexedAccessType | namedTypes.TSTypeOperator | namedTypes.TSTypeQuery | namedTypes.TSImportType | namedTypes.TSTypeLiteral;
-    if(aType.type === "TypeAnnotation") {
-        throw new Error('hi');
-    } else if(aType.type === "TSTypePredicate") {
-        return 'predicaste';
-    } else if (aType.type === "TSTypeAnnotation") {
-        const ann = aType.typeAnnotation; // K.TSTypeKind | K.TSTypeAnnotationKind;
-        return 'annotation ' + typeDescription(ann);
-    } else if(aType.type === 'TSTypeReference') {
-        const typeName = aType.typeName;
-        if (typeName.type === 'Identifier') {
-            return 'reference ' + typeName.name;
-        } else {
-            throw new Error(typeName.type);
-        }/*
-    } else  if (aType.type === "TSTypeReference") {
-        if (aType.typeName.type === 'Identifier') {
-            return aType.typeName.name || 'x';
-        } else {
-            throw new Error(aType.typeName.type);
-        }
-        //console.log('zz ' + aType.typeName.type);
-  */  } else if (aType.type === 'TSAnyKeyword') {
-        return 'any';
-    } else if (aType.type === 'TSArrayType') {
-        return typeDescription(aType.elementType) + '[]';
-
-    } else if (aType.type === 'TSTypeLiteral') {
-        return aType.members.map(member => member.type).join(' ');
-    } else if (aType.type === 'TSNumberKeyword') {
-        return 'number';
-    } else if (aType.type === 'TSStringKeyword') {
-        return 'string';
-    } else if (aType.type === 'TSBooleanKeyword') {
-        return 'boolean';
-    } else if (aType.type === 'TSUnionType') {
-        return 'union';
-    } else if (aType.type === 'TSParenthesizedType') {
-        return 'parenthesized';
-    } else if (aType.type === 'TSFunctionType') {
-        return 'function'
-    } else {
-        throw new Error(aType.type);
-    }
+function processClassMethod2(moduleClass: ModuleClass, childNode: namedTypes.Declaration): void{
+    return;
 }
-
-
 function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Declaration) {
     const methodDef = childNode as namedTypes.ClassMethod;
     const kind = methodDef.kind;
@@ -214,24 +169,29 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
         const method = moduleClass.getMethod(methodName, true);
         assert.ok(methodName);
         const params = methodDef.params;
-        console.log(methodName + ' ( ' + params.map((pk: PatternKind, i) => {
-            let typeDesc = '';
-            let name = '';
-            if (pk.type === 'Identifier') {
-                if (pk.typeAnnotation) {
-                    typeDesc = typeDescription(pk.typeAnnotation);
+        params.forEach(
+            (pk: PatternKind, i) => {
+                let typeDesc = '';
+                let name = '';
+                let type_: Type|undefined = undefined;
+                if (pk.type === 'Identifier')  {
                     name = pk.name;
-                }
-            } else if (pk.type === 'AssignmentPattern') {
-                name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
-            } else if (pk.type === 'RestElement') {
-            } else {
-                throw new Error(pk.type);
-            }
-            method.addParam(name, typeDesc);
-            return `${name}: ${typeDesc}`;
+                    if (pk.typeAnnotation) {
 
-        }).join(', ') + ')');
+type_ = new Type(pk.typeAnnotation.type, pk.typeAnnotation);
+                        const tree = copyTree(pk.typeAnnotation);
+			type_.tree = tree;
+                        //console.log(tree.toJSON());
+                    }
+                } else if (pk.type === 'AssignmentPattern') {
+                    name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
+                } else if (pk.type === 'RestElement') {
+                } else {
+                    throw new Error(pk.type);
+                }
+                method.addParam(name, type_);
+                moduleClass.methods = moduleClass.methods.set(name, method);
+            });
 
     }
 }
@@ -242,7 +202,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         const iface = p.value as namedTypes.InterfaceDeclaration;
         iface.body.properties.forEach((v: namedTypes.ObjectTypeProperty|namedTypes.ObjectTypeSpreadProperty): void => {
             if(v.type === 'ObjectTypeProperty') {
-                console.log(v);
+//                console.log(v);
             }
         })
         thisModule.addInterface(iface.id.name);
@@ -264,6 +224,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
             theClass.superSpec = superSpec;
 
             thisModule.classes = thisModule.classes.set(theClass.name, theClass);
+	    /* outside access to this module?! */
             registry.modules = registry.modules.set(thisModule.name, thisModule);
         }
 

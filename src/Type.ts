@@ -2,15 +2,21 @@ import {PojoBuilder, TypePojo} from "./types";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {builders} from "ast-types";
 
-export class Type  implements  PojoBuilder<TypePojo>{
-    private node: namedTypes.Node;
+export class Type implements PojoBuilder<TypePojo>{
+    public node: namedTypes.Node;
+    public desc: string;
+    public tree?: {};
     public constructor(nodeType: string, node: namedTypes.Node) {
         this.nodeType = nodeType;
         this.node = node;
+	if(node) {
+		 this.desc = this._checkNodeType(node);
+		 }
+	//console.log(this.desc);
     }
-    private nodeType: string;
-    protected _checkNodeType(node: namedTypes.Node): string {
-        const nodeType = node.type;
+    public nodeType: string;
+    protected _checkNodeType(node: namedTypes.Node): string { 
+       const nodeType = node.type;
         if(nodeType === "TypeAnnotation") {
             throw new Error('hi');
         } else if(nodeType === "TSTypePredicate") {
@@ -39,7 +45,7 @@ export class Type  implements  PojoBuilder<TypePojo>{
             return this._checkNodeType(node.elementType) + '[]';
 
         } else if (nodeType === 'TSTypeLiteral') {
-            return node.members.map(member => member.type).join(' ');
+            return (node as namedTypes.TSTypeLiteral).members.map(member => member.type).join(' ');
         } else if (nodeType === 'TSNumberKeyword') {
             return 'number';
         } else if (nodeType === 'TSStringKeyword') {
@@ -58,11 +64,21 @@ export class Type  implements  PojoBuilder<TypePojo>{
     }
 
     public toPojo(): TypePojo {
-        return { nodeType: this.nodeType };
+        return { nodeType: this.nodeType,
+	tree: this.tree,
+	};
     }
 
     public static fromPojo(type: TypePojo): Type {
-        return new Type(type.nodeType, builders[type.nodeType]());
+        const nodeType1 = type.nodeType.substring(0, 1).toLowerCase() + type.nodeType.substring(1);;
+        const builder = builders[nodeType1];
+        let v;
+        if(builder) {
+            v = builder();
+        }
+        const newType = new Type(type.nodeType, v);
+	newType.tree = type.tree;
+	return newType;
     }
 }
 
