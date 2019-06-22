@@ -178,8 +178,8 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
                     name = pk.name;
                     if (pk.typeAnnotation) {
 
-type_ = new Type(pk.typeAnnotation.type, pk.typeAnnotation);
-                        const tree = copyTree(pk.typeAnnotation);
+type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
+                        const tree = copyTree(pk.typeAnnotation.typeAnnotation);
 			type_.tree = tree;
                         //console.log(tree.toJSON());
                     }

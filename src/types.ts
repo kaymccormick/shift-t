@@ -12,7 +12,7 @@ export interface PojoBuilder<T> {
 }
 export interface ModuleClassPojo {
     name: string;
-    superSpec?: (string|string[]);
+    superSpec?: ReferencePojo;
     methods: Map<string, MethodPojo>;
 }
 

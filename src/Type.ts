@@ -4,19 +4,19 @@ import {builders} from "ast-types";
 
 export class Type implements PojoBuilder<TypePojo>{
     public node: namedTypes.Node;
-    public desc: string;
+    public desc?: string;
     public tree?: {};
     public constructor(nodeType: string, node: namedTypes.Node) {
         this.nodeType = nodeType;
         this.node = node;
-	if(node) {
+        if(node) {
 		 this.desc = this._checkNodeType(node);
 		 }
-	//console.log(this.desc);
+        //console.log(this.desc);
     }
     public nodeType: string;
-    protected _checkNodeType(node: namedTypes.Node): string { 
-       const nodeType = node.type;
+    protected _checkNodeType(node: namedTypes.Node): string {
+        const nodeType = node.type;
         if(nodeType === "TypeAnnotation") {
             throw new Error('hi');
         } else if(nodeType === "TSTypePredicate") {
@@ -65,8 +65,8 @@ export class Type implements PojoBuilder<TypePojo>{
 
     public toPojo(): TypePojo {
         return { nodeType: this.nodeType,
-	tree: this.tree,
-	};
+            tree: this.tree || {},
+        };
     }
 
     public static fromPojo(type: TypePojo): Type {
@@ -77,8 +77,8 @@ export class Type implements PojoBuilder<TypePojo>{
             v = builder();
         }
         const newType = new Type(type.nodeType, v);
-	newType.tree = type.tree;
-	return newType;
+        newType.tree = type.tree;
+        return newType;
     }
 }
 

@@ -28,18 +28,18 @@ class ModuleClass {
             methods: this.methods.map((v: Method): MethodPojo => v.toPojo()),
         };
         if(this.superSpec !== undefined) {
-            r.superSpec = this.superSpec.name;
+            r.superSpec = this.superSpec.toPojo();
         }
         return r;
     }
 
     public static fromPojo(v: ModuleClassPojo): ModuleClass|never {
-        if(!Array.isArray(v.superSpec)) {
-            const moduleClass = new ModuleClass(v.name, new Reference(v.superSpec));
-            moduleClass.methods = Map<string, MethodPojo>(v.methods).map((v: MethodPojo): Method => Method.fromPojo(v));
-            return moduleClass;
+        let moduleClass = new ModuleClass(v.name);
+        if(v.superSpec !== undefined) {
+            moduleClass.superSpec = Reference.fromPojo(v.superSpec);
         }
-        throw new Error('');
+        moduleClass.methods = Map<string, MethodPojo>(v.methods).map((v: MethodPojo): Method => Method.fromPojo(v));
+        return moduleClass;
     }
 
     public getMethod(methodName: string, create: boolean = false): Method {

@@ -81,7 +81,7 @@ class Module {
         module1.exports = Map<string, ExportPojo>(v.exports).map((v: ExportPojo): Export => Export.fromPojo(v));
         module1.classes = Map<string, ModuleClassPojo>(v.classes).map((v: ModuleClassPojo): ModuleClass => ModuleClass.fromPojo(v));
         module1.imports  =Map<string, ImportPojo>(v.imports).map((v: ImportPojo): Import => Import.fromPojo(v));
-        module1.references =Map<string, ReferencePojo>(v.exports).map((v: ReferencePojo): Reference=> Reference.fromPojo(v));
+        module1.references =Map<string, ReferencePojo>(v.references).map((v: ReferencePojo): Reference=> Reference.fromPojo(v));
         return module1;
     }
 
