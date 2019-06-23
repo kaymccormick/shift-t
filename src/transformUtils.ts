@@ -3,7 +3,7 @@
  */
 import * as path from 'path';
 import * as assert from 'assert';
-import {Module} from "classModel/lib/Module";
+import {Module} from "classModel";
 import {
     IdentifierKind,
     PatternKind,
@@ -15,10 +15,10 @@ import {namedTypes} from "ast-types/gen/namedTypes";
 import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
 import { Collection } from "jscodeshift/src/Collection";
-import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "classModel/lib/ModuleClass";
-import {Registry} from "classModel/lib/types";
-import {Reference} from "classModel/lib/Reference";
-import {Type} from "classModel/lib/Type";
+import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "classModel/lib/src/ModuleClass";
+import {Registry} from "classModel";
+import {Reference} from "classModel";
+import {Type} from "classModel";
 import {copyTree} from "./utils";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);

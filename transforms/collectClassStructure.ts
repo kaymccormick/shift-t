@@ -11,7 +11,7 @@ import { builders} from 'ast-types';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as assert from 'assert';
-import {SimpleRegistry} from "classModel/lib/SimpleRegistry";
+import {SimpleRegistry} from "classModel";
 /**
  * Violate the rule pf doing more than one thing well by simultaneously
  * transforming the structure of exports in the source code AND accumulate
@@ -24,7 +24,10 @@ import {SimpleRegistry} from "classModel/lib/SimpleRegistry";
 module.exports = function (fileInfo, api, options) {
     const report = api.report;
     const runId = process.pid;
-    const registry = new SimpleRegistry({ runId });
+    const registry = new SimpleRegistry({ runId,
+        
+        getJsonString: () => fs.readFileSync('registry.json', { encoding: 'utf-8' }),
+    });
     registry.init();
 
     const j = api.jscodeshift;
