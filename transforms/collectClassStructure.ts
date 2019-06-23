@@ -1,4 +1,4 @@
-import {Module} from "../src/Module";
+import {Module} from "classModel/lib/Module";
 import {
     handleImportDeclarations,
     processClassDeclarations,
