@@ -1,4 +1,4 @@
-import {Module} from "classModel/lib/Module";
+import {Module} from "classModel";
 import {
     handleImportDeclarations,
     processClassDeclarations,
@@ -24,16 +24,18 @@ import {SimpleRegistry} from "classModel";
 module.exports = function (fileInfo, api, options) {
     const report = api.report;
     const runId = process.pid;
+    const persistence = {};
     const registry = new SimpleRegistry({ runId,
-        
+        persistence,
         getJsonString: () => fs.readFileSync('registry.json', { encoding: 'utf-8' }),
     });
     registry.init();
 
     const j = api.jscodeshift;
+    /* parse source */
     const collection = j(fileInfo.source);
 
-    //console.log(fileInfo.path);
+    /* fiddle with path to get module name */
     const _f = path.resolve(fileInfo.path);
     const relativeBase = path.dirname(_f);
     const moduleName = _f.replace(/\.ts$/, '');
@@ -45,7 +47,6 @@ module.exports = function (fileInfo, api, options) {
     let maxImport = -1;
     handleImportDeclarations(collection, maxImport, relativeBase, module);
 
-    //module.setImported(imported);
     const newBody = [...collection.paths()[0].value.program.body];
 
     const newFile = j.file(j.program(newBody));

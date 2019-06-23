@@ -2,6 +2,7 @@
   <dictionary name="jade">
     <words>
       <w>pojo</w>
+      <w>typeorm</w>
     </words>
   </dictionary>
 </component>
