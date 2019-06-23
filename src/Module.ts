@@ -9,8 +9,8 @@ import {Import} from "./Import";
 
 interface ExportArgs {
     localName: string;
-    exportName: string;
-
+    exportName: string|undefined;
+    isDefaultExport?: boolean;
 }
 
 class VariableReference extends Reference {
@@ -18,21 +18,22 @@ class VariableReference extends Reference {
 }
 
 class Module {
+    public key: string;
     public name: string;
     public classes: Map<string, ModuleClass> = Map<string, ModuleClass>();
     public exports: Map<string, Export> = Map<string, Export>();
-    public  imports: Map<string, Import> = Map<string, Import>();
-    public  defaultExport: undefined | string;
-    public  interfaces: Map<string, Interface> = Map<string, Interface>();
+    public imports: Map<string, Import> = Map<string, Import>();
+    public defaultExport: undefined | string = undefined;
+    public interfaces: Map<string, Interface> = Map<string, Interface>();
     public references: Map<string, Reference> = Map<string, Reference>();
 
-    public constructor(name: string) {
+    public constructor(key: string, name: string) {
+        this.key = key;
         this.name = name;
-        this.defaultExport = undefined;
     }
 
     public addExport(args: ExportArgs) {
-        this.exports = this.exports.set(args.localName, new Export(args.exportName));
+        this.exports = this.exports.set(args.localName, new Export(args.localName, args.exportName, args.isDefaultExport));
     }
 
     public getClassNames(): string[] {
@@ -42,6 +43,7 @@ class Module {
     public toPojo(): ModulePojo {
         const m: ModulePojo = {
             name: this.name,
+	    key: this.key,
             exports: this.exports.map((c: Export): ExportPojo => c.toPojo()),
             imports: this.imports.map((c: Import): ImportPojo => c.toPojo()),
             classes: this.classes.map((c: ModuleClass): ModuleClassPojo => c.toPojo()),
@@ -50,7 +52,7 @@ class Module {
         return m;
     }
 
-    public getClass(name: any, createClass: boolean = false): ModuleClass {
+    public getClass(name: string, createClass: boolean = false): ModuleClass {
         if(this.classes.has(name)) {
             const newVar = this.classes.get(name);
             if(newVar === undefined) {
@@ -58,7 +60,7 @@ class Module {
             }
             return newVar;
         } else if(createClass) {
-            const c = new ModuleClass(name);
+            const c = new ModuleClass(name, this.key);
             this.classes = this.classes.set(name, c);
             return c;
         } else {
@@ -70,14 +72,14 @@ class Module {
         return this.name;
     }
 
-    public addImport(name: string, full: string, isDefault?: boolean): Import {
-        const import1 = new Import(name, full, isDefault || false);
+    public addImport(name: string, full: string, isDefault?: boolean, isNamespaceImport?: boolean): Import {
+        const import1 = new Import(name, full, isDefault || false, isNamespaceImport ||false);
         this.imports = this.imports.set(name, import1);
         return import1;
     }
 
     public static fromPojo(v: ModulePojo) {
-        const module1 = new Module(v.name);
+        const module1 = new Module(v.key, v.name);
         module1.exports = Map<string, ExportPojo>(v.exports).map((v: ExportPojo): Export => Export.fromPojo(v));
         module1.classes = Map<string, ModuleClassPojo>(v.classes).map((v: ModuleClassPojo): ModuleClass => ModuleClass.fromPojo(v));
         module1.imports  =Map<string, ImportPojo>(v.imports).map((v: ImportPojo): Import => Import.fromPojo(v));

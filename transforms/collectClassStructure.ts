@@ -5,13 +5,13 @@ import {
     processExportDefaultDeclaration,
     processExportNamedDeclarations
 } from "../src/transformUtils";
-import { SimpleRegistry } from '../src/Registry';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import { parse, print } from 'recast';
 import { builders} from 'ast-types';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as assert from 'assert';
+import {SimpleRegistry} from "classModel/lib/SimpleRegistry";
 /**
  * Violate the rule pf doing more than one thing well by simultaneously
  * transforming the structure of exports in the source code AND accumulate
@@ -30,12 +30,14 @@ module.exports = function (fileInfo, api, options) {
     const j = api.jscodeshift;
     const collection = j(fileInfo.source);
 
+    //console.log(fileInfo.path);
     const _f = path.resolve(fileInfo.path);
     const relativeBase = path.dirname(_f);
     const moduleName = _f.replace(/\.ts$/, '');
 
     // our biz obj
-    const module = registry.getModule(moduleName, true);
+    const moduleKey = registry.getModuleKey(moduleName);
+    const module = registry.getModule(moduleKey, moduleName, true);
 
     let maxImport = -1;
     handleImportDeclarations(collection, maxImport, relativeBase, module);

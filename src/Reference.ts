@@ -1,5 +1,6 @@
 import {Module} from "./Module";
 import {PojoBuilder, ReferencePojo} from "./types";
+import {ModuleClass} from "./ModuleClass";
 
 interface MapKey {
     readonly key: string;
@@ -9,6 +10,7 @@ export class Reference implements PojoBuilder<ReferencePojo>, MapKey {
     public module?: Module;
     public name?: string;
     public property?: string;
+    public moduleClass?: ModuleClass;
     public get key(): string {
         if(this.name === undefined) {
             throw new Error('');
@@ -32,6 +34,8 @@ export class Reference implements PojoBuilder<ReferencePojo>, MapKey {
     }
 
     public static fromPojo(v: ReferencePojo): Reference {
-        return new Reference(v.name);
+        const reference = new Reference(v.name);
+        reference.property = v.property;
+        return reference;
     }
 }

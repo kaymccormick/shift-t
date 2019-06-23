@@ -9,22 +9,25 @@ export interface SuperClassSpecification {
 }
 
 export class SuperClassSpecifier implements SuperClassSpecification {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public     constructor(objectName: string, propertyName: string) {
-
     }
 
 
 }
 class ModuleClass {
     public readonly name: string;
+    public moduleKey?: string;
     public superSpec?: Reference;
-    public methods: Map<string, Method> = Map<string, Method>();;
-    public constructor(name: string, superSpec?: Reference) {
+    public methods: Map<string, Method> = Map<string, Method>();
+    public constructor(name: string, moduleKey?: string, superSpec?: Reference) {
         this.name = name;
         this.superSpec = superSpec;
+        this.moduleKey = moduleKey;
     }
     public toPojo(): ModuleClassPojo {
         const r: ModuleClassPojo = { name: this.name,
+            moduleKey: this.moduleKey,
             methods: this.methods.map((v: Method): MethodPojo => v.toPojo()),
         };
         if(this.superSpec !== undefined) {
@@ -34,7 +37,7 @@ class ModuleClass {
     }
 
     public static fromPojo(v: ModuleClassPojo): ModuleClass|never {
-        let moduleClass = new ModuleClass(v.name);
+        let moduleClass = new ModuleClass(v.name, v.moduleKey);
         if(v.superSpec !== undefined) {
             moduleClass.superSpec = Reference.fromPojo(v.superSpec);
         }

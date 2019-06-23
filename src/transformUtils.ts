@@ -3,7 +3,7 @@
  */
 import * as path from 'path';
 import * as assert from 'assert';
-import {Module} from "./Module";
+import {Module} from "classModel/lib/Module";
 import {
     IdentifierKind,
     PatternKind,
@@ -16,9 +16,9 @@ import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
 import { Collection } from "jscodeshift/src/Collection";
 import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "./ModuleClass";
-import {Registry} from "./types";
-import {Reference} from "./Reference";
-import {Type} from "./Type";
+import {Registry} from "classModel/lib/types";
+import {Reference} from "classModel/lib/Reference";
+import {Type} from "classmodel/lib/Type";
 import {copyTree} from "./utils";
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
@@ -28,31 +28,38 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
         assert.strictEqual(n.importKind, 'value');
         assert.strictEqual(n.source.type, 'StringLiteral');
         const source = n.source.value;
-        if(source == null) {
+        if (source == null) {
             throw new Error('source undefined or null');
         }
-        if (/^\.\.?\//.test(source.toString())) {
-            const importModule = path.resolve(relativeBase, source.toString());
-            if(n.specifiers !== undefined) {
-                n.specifiers.forEach(kind => {
-                    if (kind.type === 'ImportSpecifier') {
-                        assert.strictEqual(kind.imported.type, 'Identifier');
-                        thisModule.addImport(kind.imported.name, importModule);
-                        //imported[kind.imported.name] = [full, false];
-                    } else if (kind.type === 'ImportDefaultSpecifier') {
-                        const local = kind.local;
-                        if(!local) {
-                            throw new Error('kind..local is null');
-                        }
-
-                        thisModule.addImport(local.name, importModule, true);
-                        //imported[local.name] = [full, true];
-                    }
-                });
-            }
-        } else {
-            //report(source);
+        // make sure is relative
+        if (!/^\.\.?\//.test(source.toString())) {
+            return;
         }
+        const importModule = path.resolve(relativeBase, source.toString());
+        if (n.specifiers !== undefined) {
+            n.specifiers.forEach(kind => {
+                //console.log(kind);
+                if (kind.type === 'ImportSpecifier') {
+                    assert.strictEqual(kind.imported.type, 'Identifier');
+                    thisModule.addImport(kind.imported.name, importModule, undefined, undefined);
+                    //imported[kind.imported.name] = [full, false];
+                } else if (kind.type === 'ImportDefaultSpecifier') {
+                    const local = kind.local;
+                    if (!local) {
+                        throw new Error('kind..local is null');
+                    }
+
+                    //console.log(`adding default import ${local.name}`);
+                    thisModule.addImport(local.name, importModule, true, false);
+                    //imported[local.name] = [full, true];
+                } else if (kind.type === 'ImportNamespaceSpecifier') {
+                    if (kind.local) {
+                        thisModule.addImport(kind.local.name, importModule, false, true);
+                    }
+                }
+            });
+        }
+
     });
     //return imported;
 }
@@ -113,7 +120,7 @@ export function processExportNamedDeclarations(collection: Collection<namedTypes
 }
 
 // @ts-ignore
-export function processExportDefaultDeclaration(builders, collection, newExports, thisModule): void {
+export function processExportDefaultDeclaration(builders, collection, newExports, thisModule: Module): void {
 
     // @ts-ignore
     collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
@@ -124,8 +131,10 @@ export function processExportDefaultDeclaration(builders, collection, newExports
             const export_ = builders.exportNamedDeclaration(null,
                 [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
             newExports.push(export_);
+            thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
         } else {
             name = n.declaration.name;
+            thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
         }
         thisModule.defaultExport = name;
     });
@@ -178,9 +187,9 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
                     name = pk.name;
                     if (pk.typeAnnotation) {
 
-type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
+                        type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
                         const tree = copyTree(pk.typeAnnotation.typeAnnotation);
-			type_.tree = tree;
+                        type_.tree = tree;
                         //console.log(tree.toJSON());
                     }
                 } else if (pk.type === 'AssignmentPattern') {
@@ -202,7 +211,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         const iface = p.value as namedTypes.InterfaceDeclaration;
         iface.body.properties.forEach((v: namedTypes.ObjectTypeProperty|namedTypes.ObjectTypeSpreadProperty): void => {
             if(v.type === 'ObjectTypeProperty') {
-//                console.log(v);
+                //                console.log(v);
             }
         })
         thisModule.addInterface(iface.id.name);

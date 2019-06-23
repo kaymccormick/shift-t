@@ -1,14 +1,11 @@
 {
   "scripts": {
-	  "process": "ts-node bin/process.ts",
+    "process": "ts-node bin/process.ts",
     "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
-    "classToFn": "jscodeshift --no-babel -d -t transforms/classToFn.js files/classToFn1.js",
-    "settings": "jscodeshift --run-in-band  -d --parser=ts --no-babel -t transforms/settings.js ../docutils-t/src/**/*.ts",
-    "classStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src",
     "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
+    "collectClassStructureFake": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts fake-src",
+    "collectClassStructure3": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src/StateMachine.ts ../docutils-t/src/StateMachineWS.ts",
     "collectClassStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts src transforms",
-    "classStructure1": "jscodeshift --run-in-band  --extensions ts --parser=ts -t transforms/classStructure.ts ../docutils-t/src/Component.ts",
-    "classStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/classStructure2.ts ../docutils-t/src",
     "compile": "tsc -p ."
   },
   "dependencies": {
@@ -31,7 +28,8 @@
     "sequelize": "^5.8.9",
     "ts-node": "^8.3.0",
     "typeorm": "^0.2.18",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.2",
+    "upath": "^1.1.2"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
