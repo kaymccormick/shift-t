@@ -50,6 +50,6 @@ module.exports = function(fileInfo, api, options) {
     fs.createWriteStream('code.js').write(recast.print(f).code);
 
 
-return api.jscodeshift(fileInfo.source);/*
+    return c.toSource();
 
 }

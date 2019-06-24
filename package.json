@@ -4,6 +4,7 @@
     "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
     "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
     "orm": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts ../classModel/src",
+    "orm2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts fake-src2",
     "collectClassStructureFake": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts fake-src",
     "collectClassStructure3": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src/StateMachine.ts ../docutils-t/src/StateMachineWS.ts",
     "collectClassStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts src transforms",
