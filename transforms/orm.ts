@@ -58,7 +58,8 @@ module.exports = function (fileInfo, api, options) {
         }
     });
 
-    c.find(j.ClassProperty).nodes().forEach((n: namedTypes.ClassProperty) => {
+    c.find(j.ClassProperty, (n) => !n.decorators || n.decorators.findIndex(x => x.expression.type === 'CallExpression' && x.expression.callee.type === 'Identifier' && x.expression.callee.name === map1.get('Column')) === -1)
+.nodes().forEach((n: namedTypes.ClassProperty) => {
     console.log(`type is ${n.type}`);
         if(n.decorators) {
             n.decorators.push(j.decorator(j.callExpression(j.identifier(map1.get('Column')), [])));
