@@ -6,6 +6,7 @@ import {NodePath} from "ast-types/lib/node-path";
 import {SpecifierKind} from "ast-types/gen/kinds";
 import { fromNodes } from 'jscodeshift/src/Collection';
 
+
 // @ts-ignore
 module.exports = function (fileInfo, api, options) {
     const report = api.report;
@@ -13,7 +14,8 @@ module.exports = function (fileInfo, api, options) {
     const j = api.jscodeshift;
     let c;
     if(options['parse-with'] === 'recast') {
-       ast = parse(fileInfo.source);
+       ast = parse(fileInfo.source, {
+  parser: require("recast/parsers/typescript")});
        c = j(ast);
     } else {
       c = j(fileInfo.source);
@@ -45,9 +47,10 @@ module.exports = function (fileInfo, api, options) {
     map1 = map1.merge(map2);
 
     c.find(j.ClassDeclaration, (n) => {
+    console.log(`type ${n.type}`);
     return !n.decorators || n.decorators.findIndex(x => x.expression.type === 'CallExpression' && x.expression.callee.type === 'Identifier' && x.expression.callee.name === map1.get('Entity')) === -1;
-    }).forEach((n: namedTypes.ClassDeclaration) => {
-    console.log(n.type);
+    }).nodes().forEach((n: namedTypes.ClassDeclaration) => {
+    console.log(`type ${n.type}`);
         if(n.decorators) {
             n.decorators.push(j.decorator(j.callExpression(j.identifier(map1.get('Entity')), [])));
         } else {
@@ -56,7 +59,7 @@ module.exports = function (fileInfo, api, options) {
     });
 
     c.find(j.ClassProperty).nodes().forEach((n: namedTypes.ClassProperty) => {
-    console.log(n.type);
+    console.log(`type is ${n.type}`);
         if(n.decorators) {
             n.decorators.push(j.decorator(j.callExpression(j.identifier(map1.get('Column')), [])));
         } else {
