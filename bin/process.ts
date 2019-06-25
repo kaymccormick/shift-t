@@ -1,13 +1,12 @@
-import {Registry} from "classModel/lib/types";
-import {ModuleClass} from "classModel/lib/ModuleClass";
 import {Map} from 'immutable';
-import {SimpleRegistry} from "classModel/lib/SimpleRegistry";
-import {process} from "classModel/lib/RegistryUtils";
+import {Registry, SimpleRegistry} from "classModel/lib/src";
+import {ModuleClass} from "classModel/lib/src/ModuleClass";
+import {process} from "classModel/lib/src/RegistryUtils";
+import {createRegistry} from "../src/Factory";
 
 let classMap: Map<string, ModuleClass> = Map();
 
-const registry = new SimpleRegistry({ load: true}) as Registry;
-registry.init();
+const registry =createRegistry();
 
 /*registry.modules.forEach((module) => {
     module.classes.forEach(moduleClass => {
@@ -31,9 +30,9 @@ if(sm) {
     }
 }
 //process.exit(0);
-registry.modules.forEach((module) => {
+registry.modules.forEach((module: Module) => {
     console.log(`module ${module.name}`);
-    module.imports.forEach(import1 => {
+    module.imports.forEach((import1: Import) => {
         console.log(`  import ${import1.name}`);
     })
     const f = (moduleClass: ModuleClass, i: number = 0): void => {

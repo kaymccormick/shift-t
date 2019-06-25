@@ -2,10 +2,11 @@
  * Collection of handy but oddly specific routines
  */
 import * as path from 'path';
-import * as assert from 'assert';
+import assert from 'assert';
 import {Module} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
+import { getFieldNames, getFieldValues } from "ast-types";
 import { Collection } from "jscodeshift/src/Collection";
 import {ModuleClass} from "classModel/lib/src/ModuleClass";
 import {Registry} from "classModel";
@@ -19,17 +20,24 @@ import {PatternKind} from "ast-types/gen/kinds";
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
-export function handleImportDeclarations1( collection: Collection<namedTypes.Node>,
+export function handleImportDeclarations1(
+    collection: Collection<namedTypes.Node>,
     relativeBase: string,
     importContext: ImportContext,
     callback: HandleImportSpecifier,
+
 ): void {
     collection.find(namedTypes.ImportDeclaration,
-        (n: namedTypes.ImportDeclaration): boolean => n.importKind === 'value'
-            && n.source && n.source.type === 'StringLiteral'
-            && n.source.value != null && /^\.\.?\//.test(n.source.value.toString()))
+        (n: namedTypes.ImportDeclaration): boolean => {
+	    const r: boolean = /*n.importKind === 'value'
+            && */n.source && n.source.type === 'StringLiteral'
+            && n.source.value != null && /^\.\.?\//.test(n.source.value);
+            //	    console.log(r);
+	    return r;
+	    })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .nodes().map((importDecl: namedTypes.ImportDeclaration): any => {
+            //console.log('1');
 	    const importModule = importDecl.source.value != null &&
             path.resolve(relativeBase, importDecl.source.value.toString()) || '';
             visit(importDecl, {
@@ -104,7 +112,8 @@ export function processExportNamedDeclarations(collection: Collection<namedTypes
     named.forEach((p: NodePath<namedTypes.Node>): void => {
         const n = p.value;
         if(n.source) {
-            throw new Error('unable to handle export from source');
+            return;
+            //throw new Error('unable to handle export from source');
         }
         if (n.declaration) {
             if(n.specifiers && n.specifiers.length > 0) {
