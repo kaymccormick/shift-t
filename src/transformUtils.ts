@@ -12,9 +12,10 @@ import {Registry} from "classModel";
 import {Reference} from "classModel";
 import {Type} from "classModel";
 import {copyTree} from "./utils";
-import { ImportContext,ModuleSpecifier } from './types';
+import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 
 import { visit } from "ast-types";
+import {PatternKind} from "ast-types/gen/kinds";
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
@@ -24,17 +25,18 @@ export function handleImportDeclarations1( collection: Collection<namedTypes.Nod
     callback: HandleImportSpecifier,
 ): void {
     collection.find(namedTypes.ImportDeclaration,
-        (n: namedTypes.ImportDeclaration): void => n.importKind === 'value'
+        (n: namedTypes.ImportDeclaration): boolean => n.importKind === 'value'
             && n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value.toString()))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .nodes().map((importDecl: namedTypes.ImportDeclaration): any => {
-	    const importModule = path.resolve(relativeBase, importDecl.source.value.toString());
+	    const importModule = importDecl.source.value != null &&
+            path.resolve(relativeBase, importDecl.source.value.toString()) || '';
             visit(importDecl, {
                 visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                     const node = path.node;
                     assert.strictEqual(node.imported.type, 'Identifier');
-		    callback(null, node.imported.name, importModule, false, false);
+		    callback(importContext, node.imported.name, importModule, false, false);
 		    return false;
                 },
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars

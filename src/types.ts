@@ -5,5 +5,5 @@ export interface ImportContext {
 }
 
 export interface HandleImportSpecifier {
-  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean) => void;
+  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean): void;
 }

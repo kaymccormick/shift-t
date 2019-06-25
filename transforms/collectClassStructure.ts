@@ -44,14 +44,15 @@ module.exports = function (fileInfo: FileInfo, api: API, options: Options): stri
     const module = registry.getModule(moduleKey, moduleName, true);
 
     let maxImport = -1;
-    const context: Import = {
+    const context: ImportContext = {
         module: getModuleSpecifier(fileInfo.path),
     };
     handleImportDeclarations(collection, maxImport, relativeBase, module);
+    console.log(`context is ${context});
     handleImportDeclarations1(collection, relativeBase, context,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
     					  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean): void => {
-            console.log(`localname is ${localName}`);
+            console.log(`localname is ${localName}, ${importContext}`);
         });
 
     const newBody = [...collection.paths()[0].value.program.body];
@@ -66,7 +67,7 @@ module.exports = function (fileInfo: FileInfo, api: API, options: Options): stri
     try {
         registry.save();
     } catch(error) {
-        console.log(error.message);
+//        console.log(error.message);
     }
     return j(newFile).toSource();
 };
