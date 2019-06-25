@@ -7,7 +7,7 @@ import {Module} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getFieldNames, getFieldValues } from "ast-types";
+import { getFieldNames, getFieldValue } from "ast-types";
 import { Collection } from "jscodeshift/src/Collection";
 import {ModuleClass} from "classModel/lib/src/ModuleClass";
 import {Registry} from "classModel";
@@ -45,7 +45,7 @@ export function handleImportDeclarations1(
                 visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                     const node = path.node;
                     assert.strictEqual(node.imported.type, 'Identifier');
-		    callback(importContext, node.imported.name, importModule, false, false);
+		    callback(importContext, importModule, node.local!.name, node.imported.name, false, false);
 		    return false;
                 },
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,7 +77,7 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
                 //console.log(kind);
                 if (kind.type === 'ImportSpecifier') {
                     assert.strictEqual(kind.imported.type, 'Identifier');
-                    thisModule.addImport(kind.imported.name, importModule, undefined, undefined);
+                    //km1 thisModule.addImport(kind.imported.name, importModule, undefined, undefined);
                     //imported[kind.imported.name] = [full, false];
                 } else if (kind.type === 'ImportDefaultSpecifier') {
                     const local = kind.local;
@@ -86,11 +86,11 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
                     }
 
                     //console.log(`adding default import ${local.name}`);
-                    thisModule.addImport(local.name, importModule, true, false);
+                    //km1 thisModule.addImport(local.name, importModule, true, false);
                     //imported[local.name] = [full, true];
                 } else if (kind.type === 'ImportNamespaceSpecifier') {
                     if (kind.local) {
-                        thisModule.addImport(kind.local.name, importModule, false, true);
+                        //km1 thisModule.addImport(kind.local.name, importModule, false, true);
                     }
                 }
             });
