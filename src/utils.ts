@@ -16,8 +16,8 @@ export function copyTree(node: namedTypes.Node): Map<string, ValueKind> {
         } else if(value && value.type) {
             throw new Error(value.type);
         } else {{
-                out = out.set(name, value);
-            }
+            out = out.set(name, value);
+        }
         }
     });
     return out;

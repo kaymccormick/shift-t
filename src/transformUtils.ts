@@ -4,26 +4,51 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import {Module} from "classModel";
-import {
-    IdentifierKind,
-    PatternKind,
-    StatementKind,
-    TSTypeAnnotationKind, TSTypeKind,
-    TypeAnnotationKind
-} from "ast-types/gen/kinds";
 import {namedTypes} from "ast-types/gen/namedTypes";
-import * as K from "ast-types/gen/kinds";
 import {NodePath} from "ast-types/lib/node-path";
 import { Collection } from "jscodeshift/src/Collection";
-import {ModuleClass, SuperClassSpecification, SuperClassSpecifier} from "classModel/lib/src/ModuleClass";
+import {ModuleClass} from "classModel/lib/src/ModuleClass";
 import {Registry} from "classModel";
 import {Reference} from "classModel";
 import {Type} from "classModel";
 import {copyTree} from "./utils";
+import { ImportContext,ModuleSpecifier } from './types';
+
+import { visit } from "ast-types";
+export function getModuleSpecifier(path: string): ModuleSpecifier  {
+    return path;
+}
+export function handleImportDeclarations1( collection: Collection<namedTypes.Node>,
+    relativeBase: string,
+    importContext: ImportContext,
+    callback: HandleImportSpecifier,
+): void {
+    collection.find(namedTypes.ImportDeclaration,
+        (n: namedTypes.ImportDeclaration): void => n.importKind === 'value'
+            && n.source && n.source.type === 'StringLiteral'
+            && n.source.value != null && /^\.\.?\//.test(n.source.value.toString()))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .nodes().map((importDecl: namedTypes.ImportDeclaration): any => {
+	    const importModule = path.resolve(relativeBase, importDecl.source.value.toString());
+            visit(importDecl, {
+                visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
+                    const node = path.node;
+                    assert.strictEqual(node.imported.type, 'Identifier');
+		    callback(null, node.imported.name, importModule, false, false);
+		    return false;
+                },
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
+                    return false;
+                }
+            });
+        });
+    //return imported;
+}
+
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
     const c = collection.find(namedTypes.ImportDeclaration);
-    c.forEach((p, i) => {
-        maxImport = Math.max(maxImport, i);
+    c.forEach((p): void => {
         const n = p.value;
         assert.strictEqual(n.importKind, 'value');
         assert.strictEqual(n.source.type, 'StringLiteral');
@@ -37,7 +62,7 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
         }
         const importModule = path.resolve(relativeBase, source.toString());
         if (n.specifiers !== undefined) {
-            n.specifiers.forEach(kind => {
+            n.specifiers.forEach((kind): void => {
                 //console.log(kind);
                 if (kind.type === 'ImportSpecifier') {
                     assert.strictEqual(kind.imported.type, 'Identifier');
@@ -74,7 +99,7 @@ export function processExportNamedDeclarations(collection: Collection<namedTypes
     ExportNamedDeclarationsResult {
     const named = collection.find(namedTypes.ExportNamedDeclaration);
     const allSpecs = [];
-    named.forEach((p: NodePath<namedTypes.Node>, i: number) => {
+    named.forEach((p: NodePath<namedTypes.Node>): void => {
         const n = p.value;
         if(n.source) {
             throw new Error('unable to handle export from source');
@@ -98,7 +123,7 @@ export function processExportNamedDeclarations(collection: Collection<namedTypes
         } else {
             if(n.specifiers) {
                 allSpecs.push(n.specifiers);
-                n.specifiers.forEach((sp1: namedTypes.Specifier) => {
+                n.specifiers.forEach((sp1: namedTypes.Specifier): void => {
                     if(sp1.type !== 'ExportSpecifier') {
                         throw new Error('expecting ExportSpecifier');
                     }
@@ -123,7 +148,7 @@ export function processExportNamedDeclarations(collection: Collection<namedTypes
 export function processExportDefaultDeclaration(builders, collection, newExports, thisModule: Module): void {
 
     // @ts-ignore
-    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
+    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p): void => {
         const n = p.value;
         let name;
         if (n.declaration.type === 'ClassDeclaration') {
@@ -142,10 +167,10 @@ export function processExportDefaultDeclaration(builders, collection, newExports
 
 
 // @ts-ignore
-export function shiftExports(namedTypes, builders, collection, newExports, thisModule) {
+export function shiftExports(namedTypes, builders, collection, newExports, thisModule): void {
 
     // @ts-ignore
-    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p, i) => {
+    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p): void => {
         const n = p.value;
         let name;
         if (n.declaration.type === 'ClassDeclaration') {
@@ -159,15 +184,10 @@ export function shiftExports(namedTypes, builders, collection, newExports, thisM
     });
 }
 
-function processClassMethod2(moduleClass: ModuleClass, childNode: namedTypes.Declaration): void{
-    return;
-}
-function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Declaration) {
+function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Declaration): void {
     const methodDef = childNode as namedTypes.ClassMethod;
     const kind = methodDef.kind;
     const key = methodDef.key;
-    const value = undefined;//methodDef.body;
-    //throw new Error(kind);
     if (kind === "method") {
         let methodName = '';
         if (key.type === "Identifier") {
@@ -179,8 +199,7 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
         assert.ok(methodName);
         const params = methodDef.params;
         params.forEach(
-            (pk: PatternKind, i) => {
-                let typeDesc = '';
+            (pk: PatternKind): void => {
                 let name = '';
                 let type_: Type|undefined = undefined;
                 if (pk.type === 'Identifier')  {
@@ -205,7 +224,7 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
     }
 }
 
-export function processClassDeclarations(collection: Collection<namedTypes.Node>, registry: Registry, thisModule: Module) {
+export function processClassDeclarations(collection: Collection<namedTypes.Node>, registry: Registry, thisModule: Module): void {
 
     collection.find(namedTypes.InterfaceDeclaration).forEach((p: NodePath): void => {
         const iface = p.value as namedTypes.InterfaceDeclaration;
@@ -219,14 +238,12 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
 
 
 
-    collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath) => {
+    collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath): void => {
         const classDecl = p.value;
         const classIdName = classDecl.id.name;
         const theClass = thisModule.getClass(classIdName, true);
         assert.ok(theClass !== undefined);
         const super_ = classDecl.superClass;
-        let spec;
-        let id;
         if (super_) {
             let superSpec: Reference|undefined;
             superSpec = thisModule.getReference1(super_);
@@ -237,7 +254,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
             registry.modules = registry.modules.set(thisModule.name, thisModule);
         }
 
-        classDecl.body.body.forEach((childNode: namedTypes.Declaration) => {
+        classDecl.body.body.forEach((childNode: namedTypes.Declaration): void => {
             //console.log(childNode.type);
             if(childNode.type === 'ClassMethod') {
                 processClassMethod(theClass, childNode);
