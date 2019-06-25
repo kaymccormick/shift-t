@@ -1,17 +1,17 @@
-import {Module} from "classModel";
 import {
-    handleImportDeclarations,
+    handleImportDeclarations, handleImportDeclarations1,
     processClassDeclarations,
     processExportDefaultDeclaration,
-    processExportNamedDeclarations
+    processExportNamedDeclarations,
+    getModuleSpecifier,
 } from "../src/transformUtils";
 import {namedTypes} from "ast-types/gen/namedTypes";
-import { parse, print } from 'recast';
 import { builders} from 'ast-types';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as assert from 'assert';
 import {SimpleRegistry} from "classModel";
+import { ImportContext } from './types';
+import {API, FileInfo,Options} from "jscodeshift/src/core";
 /**
  * Violate the rule pf doing more than one thing well by simultaneously
  * transforming the structure of exports in the source code AND accumulate
@@ -20,14 +20,13 @@ import {SimpleRegistry} from "classModel";
  * @param api
  * @param options
  */
-// @ts-ignore
-module.exports = function (fileInfo, api, options) {
-    const report = api.report;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+module.exports = function (fileInfo: FileInfo, api: API, options: Options): string {
     const runId = process.pid;
     const persistence = {};
     const registry = new SimpleRegistry({ runId,
         persistence,
-        getJsonString: () => fs.readFileSync('registry.json', { encoding: 'utf-8' }),
+        getJsonString: (): string => fs.readFileSync('registry.json', { encoding: 'utf-8' }),
     });
     registry.init();
 
@@ -45,7 +44,15 @@ module.exports = function (fileInfo, api, options) {
     const module = registry.getModule(moduleKey, moduleName, true);
 
     let maxImport = -1;
+    const context: Import = {
+        module: getModuleSpecifier(fileInfo.path),
+    };
     handleImportDeclarations(collection, maxImport, relativeBase, module);
+    handleImportDeclarations1(collection, relativeBase, context,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    					  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean): void => {
+            console.log(`localname is ${localName}`);
+        });
 
     const newBody = [...collection.paths()[0].value.program.body];
 
@@ -60,7 +67,6 @@ module.exports = function (fileInfo, api, options) {
         registry.save();
     } catch(error) {
         console.log(error.message);
-        throw error;
     }
     return j(newFile).toSource();
 };
