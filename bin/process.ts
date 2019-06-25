@@ -2,7 +2,7 @@ import {Map} from 'immutable';
 import {Module, Registry, Import, Export} from "classModel/lib/src";
 import {ModuleClass} from "classModel/lib/src/ModuleClass";
 import {processRegistry} from "classModel/lib/src/RegistryUtils";
-import {createRegistry} from "../src/Factory";
+import {createRegistry} from "../src/InMemory/Factory";
 
 let classMap: Map<string, ModuleClass> = Map();
 

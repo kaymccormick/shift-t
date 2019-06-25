@@ -36,12 +36,12 @@ module.exports = function (fileInfo: FileInfo, api: API, options: Options): stri
     const xx: List<SpecifierKind>[] =
       m.nodes().map((n): List<SpecifierKind> => List<SpecifierKind>(n.specifiers || []));
     if(xx.length) {
-    const zz = xx.reduce((a, c) => a.merge(c));
-    console.dir(zz.toJS());
+        const zz = xx.reduce((a, c) => a.merge(c));
+        console.dir(zz.toJS());
     }
     let map1: Map<string, string> = Map<string, string>();
 
-/*     let map1: Map<string, string> = Map<string, string>(
+    /*     let map1: Map<string, string> = Map<string, string>(
     	  List.of<SpecifierKind>(...m.nodes()
              .flatMap<SpecifierKind>((n: namedTypes.ImportDeclaration): SpecifierKind[] =>
                 n.specifiers || [] ))

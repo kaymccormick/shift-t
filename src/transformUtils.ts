@@ -2,7 +2,7 @@
  * Collection of handy but oddly specific routines
  */
 import * as path from 'path';
-import assert from 'assert';
+import {strictEqual,ok} from 'assert';
 import {Module} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
@@ -44,7 +44,7 @@ export function handleImportDeclarations1(
             visit(importDecl, {
                 visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                     const node = path.node;
-                    assert.strictEqual(node.imported.type, 'Identifier');
+                    strictEqual(node.imported.type, 'Identifier');
 		    callback(importContext, importModule, node.local!.name, node.imported.name, false, false);
 		    return false;
                 },
@@ -61,8 +61,8 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
     const c = collection.find(namedTypes.ImportDeclaration);
     c.forEach((p): void => {
         const n = p.value;
-        assert.strictEqual(n.importKind, 'value');
-        assert.strictEqual(n.source.type, 'StringLiteral');
+        strictEqual(n.importKind, 'value');
+        strictEqual(n.source.type, 'StringLiteral');
         const source = n.source.value;
         if (source == null) {
             throw new Error('source undefined or null');
@@ -76,7 +76,7 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
             n.specifiers.forEach((kind): void => {
                 //console.log(kind);
                 if (kind.type === 'ImportSpecifier') {
-                    assert.strictEqual(kind.imported.type, 'Identifier');
+                    strictEqual(kind.imported.type, 'Identifier');
                     //km1 thisModule.addImport(kind.imported.name, importModule, undefined, undefined);
                     //imported[kind.imported.name] = [full, false];
                 } else if (kind.type === 'ImportDefaultSpecifier') {
@@ -208,7 +208,7 @@ function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Decl
             throw new Error(key.type);
         }
         const method = moduleClass.getMethod(methodName, true);
-        assert.ok(methodName);
+        ok(methodName);
         const params = methodDef.params;
         params.forEach(
             (pk: PatternKind): void => {
@@ -254,7 +254,7 @@ export function processClassDeclarations(collection: Collection<namedTypes.Node>
         const classDecl = p.value;
         const classIdName = classDecl.id.name;
         const theClass = thisModule.getClass(classIdName, true);
-        assert.ok(theClass !== undefined);
+        ok(theClass !== undefined);
         const super_ = classDecl.superClass;
         if (super_) {
             let superSpec: Reference|undefined;

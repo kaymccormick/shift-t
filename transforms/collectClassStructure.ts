@@ -10,7 +10,7 @@ import { builders} from 'ast-types';
 import * as path from 'path';
 import { ImportContext } from '../src/types';
 import {API, FileInfo,Options} from "jscodeshift/src/core";
-import {createRegistry} from "../src/Factory";
+import {createRegistry} from "../src/TypeOrm/Factory";
 import core from "jscodeshift";
 import {Module, Registry} from "classModel/lib/src";
 
