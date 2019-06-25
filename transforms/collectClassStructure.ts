@@ -74,7 +74,7 @@ module.exports = function (fileInfo: FileInfo, api: API, options: Options): stri
     };
     handleImportDeclarations1(collection, moduleName, context,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    					  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean): void => handleImportSpecifier(null, importContext, localname, importName, isDefault, isNamespace));
+    					  (importContext: ImportContext, localName: string, importName: string, isDefault?: boolean, isNamespace?: boolean): void => handleImportSpecifier(null, importContext, localName, importName, isDefault, isNamespace));
 
     const newBody = [...collection.paths()[0].value.program.body];
 

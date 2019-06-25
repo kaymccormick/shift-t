@@ -6,6 +6,7 @@ import assert from 'assert';
 import {Module} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValues } from "ast-types";
 import { Collection } from "jscodeshift/src/Collection";
 import {ModuleClass} from "classModel/lib/src/ModuleClass";

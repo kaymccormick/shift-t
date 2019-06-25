@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValue, eachField, namedTypes } from 'ast-types';
 import { Map } from 'immutable';
 
@@ -5,7 +6,7 @@ type ValueKind = namedTypes.Node | namedTypes.Node[] | string | Map<string, {}>;
 
 export function copyTree(node: namedTypes.Node): Map<string, ValueKind> {
     let out: Map<string, ValueKind> = Map<string, ValueKind>();
-    eachField(node, (name, value) => {
+    eachField(node, (name, value): void => {
         if (Array.isArray(value)) {
             if(typeof value[0]  === 'string') {//instanceof namedTypes.Node) {
                 throw new Error('');
