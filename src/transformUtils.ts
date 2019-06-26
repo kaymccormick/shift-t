@@ -32,7 +32,7 @@ export function handleImportDeclarations1(
     Promises.all(...
     collection.find(namedTypes.ImportDeclaration,
         (n: namedTypes.ImportDeclaration): boolean => {
-	console.log(n);
+            console.log(n);
 	    const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
@@ -42,7 +42,7 @@ export function handleImportDeclarations1(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // @ts-ignore
         .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
-	console.log('here');
+            console.log('here');
 	    const importModule = importDecl.source.value != null &&
             path.resolve(relativeBase, importDecl.source.value.toString()) || '';
 	    const promises: Promise<void>[] = [];

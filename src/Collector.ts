@@ -29,20 +29,20 @@ export function processSourceModule(connection: Connection, project: EntityCore.
     const moduleRepo = connection.getRepository(EntityCore.Module);
 
     const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
-    if(name === undefined) {
-    throw new Error('name undefined');
-    }
-      return moduleRepo.find({project, name}).then(modules => {
-      if(!modules.length) {
-        return moduleRepo.save(new EntityCore.Module(name, project, [], [], []));
-       } else {
-       return modules[0];
-       }
-       });
-       };
+        if(name === undefined) {
+            throw new Error('name undefined');
+        }
+        return moduleRepo.find({project, name}).then(modules => {
+            if(!modules.length) {
+                return moduleRepo.save(new EntityCore.Module(name, project, [], [], []));
+            } else {
+                return modules[0];
+            }
+        });
+    };
 
- const handleModule = (module: EntityCore.Module): Promise<void> => {
-const moduleName = module.name;
+    const handleModule = (module: EntityCore.Module): Promise<void> => {
+        const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
         };
@@ -80,7 +80,7 @@ const moduleName = module.name;
                 exportedName?: string,
                 isDefault?: boolean,
                 isNamespace?: boolean): Promise<void> => {
-		console.log('here');
+                console.log('here');
                 return handleImportSpecifier(
                     module,
                     importContext,
@@ -98,8 +98,8 @@ const moduleName = module.name;
             processExportDefaultDeclaration(builders,
                 collection, newExports, module);
 */
-};
-      return getOrCreateModule(moduleName).then(handleModule).catch(error => {
+    };
+    return getOrCreateModule(moduleName).then(handleModule).catch(error => {
         console.log(error);
     });
 }
