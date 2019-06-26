@@ -28,6 +28,8 @@ export function handleImportDeclarations1(
     callback: HandleImportSpecifier,
 
 ): void {
+    // @ts-ignore
+    // @ts-ignore
     collection.find(namedTypes.ImportDeclaration,
         (n: namedTypes.ImportDeclaration): boolean => {
 	    const r: boolean = /*n.importKind === 'value'
@@ -37,6 +39,7 @@ export function handleImportDeclarations1(
 	    return r;
 	    })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // @ts-ignore
         .nodes().map((importDecl: namedTypes.ImportDeclaration): any => {
             //console.log('1');
 	    const importModule = importDecl.source.value != null &&
