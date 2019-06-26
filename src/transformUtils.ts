@@ -27,11 +27,12 @@ export function handleImportDeclarations1(
     importContext: ImportContext,
     callback: HandleImportSpecifier,
 
-): void {
+): Promise<void> {
     // @ts-ignore
-    // @ts-ignore
+    Promises.all(...
     collection.find(namedTypes.ImportDeclaration,
         (n: namedTypes.ImportDeclaration): boolean => {
+	console.log(n);
 	    const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
@@ -40,15 +41,18 @@ export function handleImportDeclarations1(
 	    })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // @ts-ignore
-        .nodes().map((importDecl: namedTypes.ImportDeclaration): any => {
-            //console.log('1');
+        .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
+	console.log('here');
 	    const importModule = importDecl.source.value != null &&
             path.resolve(relativeBase, importDecl.source.value.toString()) || '';
+	    const promises: Promise<void>[] = [];
             visit(importDecl, {
                 visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                     const node = path.node;
                     strictEqual(node.imported.type, 'Identifier');
-		    callback(importContext, importModule, node.local!.name, node.imported.name, false, false);
+		    promises.push(callback(importContext, importModule, node.local!.name, node.imported.name, false, false).catch((error: Error): void => {
+		    console.log(error);
+		    }));
 		    return false;
                 },
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -56,8 +60,8 @@ export function handleImportDeclarations1(
                     return false;
                 }
             });
-        });
-    //return imported;
+	    return Promises.all(...promises);
+        }));
 }
 
 export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {

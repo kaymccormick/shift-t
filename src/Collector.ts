@@ -1,5 +1,5 @@
 import core from "jscodeshift";
-import {createRegistry} from "./TypeOrm/Factory";
+import {createRegistry,createConnection} from "./TypeOrm/Factory";
 import {ImportContext} from "./types";
 import {
     getModuleSpecifier,
@@ -9,10 +9,12 @@ import {
     processExportNamedDeclarations
 } from "./transformUtils";
 import {Module} from "../../classModel/lib/src";
-import {namedTypes} from "ast-types/gen/namedTypes";
+import {EntityCore} from "classModel";
+import {File,Node} from "ast-types/gen/nodes";
 import {builders} from "ast-types";
 import * as path from "path";
 import j from 'jscodeshift';
+import { Connection } from "typeorm";
 
 function getModuleName(path1: string): string {
     const _f = path.resolve(path1);
@@ -21,66 +23,83 @@ function getModuleName(path1: string): string {
     return moduleName;
 }
 
-export function processSourceModule(path1: string, file: namedTypes.File): Promise<void> {
+export function processSourceModule(connection: Connection, project: EntityCore.Project, path1: string, file: File): Promise<void> {
     console.log(path1);
-    return createRegistry().then(registry => {
-        if (registry === undefined) {
-            throw new Error('');
-        }
+    const moduleName = getModuleName(path1);
+    const moduleRepo = connection.getRepository(EntityCore.Module);
 
-        const moduleName = getModuleName(path1);
-        return registry.getModule('', moduleName, true).then(module => {
-            if(module === undefined) {
-                throw new Error('fail');
-            }
-            const context: ImportContext = {
-                module: getModuleSpecifier(path1),
-            };
+    const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
+    if(name === undefined) {
+    throw new Error('name undefined');
+    }
+      return moduleRepo.find({project, name}).then(modules => {
+      if(!modules.length) {
+        return moduleRepo.save(new EntityCore.Module(name, project, [], [], []));
+       } else {
+       return modules[0];
+       }
+       });
+       };
+
+ const handleModule = (module: EntityCore.Module): Promise<void> => {
+const moduleName = module.name;
+        const context: ImportContext = {
+            module: getModuleSpecifier(path1),
+        };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
-            const handleImportSpecifier =
+        const handleImportSpecifier =
                 (argument: any,
-                 importContext: ImportContext,
-                 importModuleName: string,
-                 localName?: string,
-                 exportedName?: string,
-                 isDefault?: boolean,
-                 isNamespace?: boolean): void => {
-                    const module = argument as Module;
+                    importContext: ImportContext,
+                    importModuleName: string,
+                    localName?: string,
+                    exportedName?: string,
+                    isDefault?: boolean,
+                    isNamespace?: boolean): Promise<void> => {
+                    const importRepo = connection.getRepository(EntityCore.Module);
+                    const module = argument as EntityCore.Module;
+		    console.log(`creating ${localName}`);
                     if (localName === undefined) {
                         throw new Error('');
                     }
-                    module.addImport(importModuleName, localName, exportedName, isDefault, isNamespace);
+		    
+		    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
+		    return importRepo.save(import_).then(() => undefined).catch(error => {
+		    console.log(error);
+		    });
                 };
 
-            const collection = j(file);
-            handleImportDeclarations1(
-                collection,
-                moduleName,
-                context,
-                (importContext: ImportContext,
-                 importName: string,
-                 localName: string,
-                 exportedName?: string,
-                 isDefault?: boolean,
-                 isNamespace?: boolean): void => {
-                    return handleImportSpecifier(
-                        module,
-                        importContext,
-                        importName,
-                        localName,
-                        exportedName,
-                        isDefault,
-                        isNamespace);
-                });
+        // @ts-ignore
+        const collection = j(file);
+        return handleImportDeclarations1(
+            collection,
+            moduleName,
+            context,
+            (importContext: ImportContext,
+                importName: string,
+                localName: string,
+                exportedName?: string,
+                isDefault?: boolean,
+                isNamespace?: boolean): Promise<void> => {
+		console.log('here');
+                return handleImportSpecifier(
+                    module,
+                    importContext,
+                    importName,
+                    localName,
+                    exportedName,
+                    isDefault,
+                    isNamespace);
+            });
 
-            const newExports: namedTypes.Node[] = [];
-
+        /*
+        const newExports: Node[] = [];
             processClassDeclarations(collection, registry, module);
             processExportNamedDeclarations(collection, module);
             processExportDefaultDeclaration(builders,
                 collection, newExports, module);
-        });
-    }).catch(error => {
+*/
+};
+      return getOrCreateModule(moduleName).then(handleModule).catch(error => {
         console.log(error);
     });
 }
