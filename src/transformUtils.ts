@@ -76,6 +76,7 @@ export function handleImportDeclarations( collection: Collection<namedTypes.Node
         }
         const importModule = path.resolve(relativeBase, source.toString());
         if (n.specifiers !== undefined) {
+            // @ts-ignore
             n.specifiers.forEach((kind): void => {
                 //console.log(kind);
                 if (kind.type === 'ImportSpecifier') {

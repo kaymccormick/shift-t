@@ -30,6 +30,9 @@ export function processSourceModule(path1: string, file: namedTypes.File): Promi
 
         const moduleName = getModuleName(path1);
         return registry.getModule('', moduleName, true).then(module => {
+            if(module === undefined) {
+                throw new Error('fail');
+            }
             const context: ImportContext = {
                 module: getModuleSpecifier(path1),
             };
