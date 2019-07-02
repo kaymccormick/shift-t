@@ -1,12 +1,10 @@
-import core from "jscodeshift";
-import {createConnection} from "./TypeOrm/Factory";
 import {ImportContext,ModuleSpecifier} from "./types";
 import {TransformUtils} from "./transformUtils";
 import {Module} from "../../classModel/lib/src";
 import {EntityCore} from "classModel";
-import {File,Node} from "ast-types/gen/nodes";
-import {builders} from "ast-types";
-import * as path from "path";
+import {File} from "ast-types/gen/nodes";
+/*import {builders} from "ast-types";*/
+import path from "path";
 import j from 'jscodeshift';
 import { Connection } from "typeorm";
 
@@ -28,26 +26,28 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         if(!name) {
             throw new Error('name undefined');
         }
-        // @ts-ignore
-        return moduleRepo.find({project, name}).then(modules => {
+        return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
             if(!modules.length) {
-	    console.log(`saving new module with ${name}`);
-                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [])).catch(error => {
+                console.log(`saving new module with ${name}`);
+                return moduleRepo.save(new EntityCore.Module(name, project, [], [], []))/*.catch((error: Error): void => {
+                    console.log(error.message);
                     console.log('unable to create module');
-                });
+                })*/;
             } else {
-                return modules[0];
+                return Promise.resolve(modules[0]);
             }
         });
     };
 
-    const handleModule = (module: EntityCore.Module): Promise<void> => {
+    const handleModule = (
+        module: EntityCore.Module
+    ): Promise<void>    => {
         const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
         };
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
         const handleImportSpecifier =
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
                 (argument: any,
                     importContext: ImportContext,
                     importModuleName: string,
@@ -58,13 +58,13 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     const importRepo = connection.getRepository(EntityCore.Import);
                     const module = argument as EntityCore.Module;
                     if (localName === undefined) {
-                        throw new Error('');
+                        throw new Error('no localName');
                     }
 
-		    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
-		    return importRepo.save(import_).then(() => undefined).catch(error => {
-		    console.log(`unable to create Import: ${error}`);
-		    });
+                    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
+                    return importRepo.save(import_).then((): undefined => undefined).catch((error: Error): void => {
+                        console.log(`unable to create Import: ${error.message}`);
+                    });
                 };
 
         // @ts-ignore
@@ -91,7 +91,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName,
                     isDefault,
                     isNamespace);
-            }), TransformUtils.processClassDeclarations(connection, module, collection)]).then(() => {});
+            }), TransformUtils.processClassDeclarations(connection, module, collection)]).then((): undefined|void => undefined);
 
         /*
         const newExports: Node[] = [];
@@ -101,8 +101,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                 collection, newExports, module);
 */
     };
-    return getOrCreateModule(moduleName).then(handleModule).catch(error => {
-    		    console.log(`here1 ${error}`);
-		    console.log(error);
+    return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
+        console.log(error.message);
     });
 }

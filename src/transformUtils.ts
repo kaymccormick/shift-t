@@ -40,10 +40,11 @@ export class TransformUtils {
 	    } else {
 	    return classes[0];
 	    }
-	    }).then(class_ => {
-	    console.log(class_);
+	    })/*.then(class_ => {
+            //here is the class?
+
+	    })*/;
 	    });
-	    })
 	    /*
             const super_ = classDecl.superClass;
             if (super_) {

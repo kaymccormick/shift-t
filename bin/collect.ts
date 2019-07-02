@@ -35,7 +35,6 @@ function processFile(connection: Connection,
     }
 
     return processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).catch(error => {
-    console.log('here1111');
     console.log(error.message);
     });
 }
@@ -64,8 +63,7 @@ function processDir(connection: Connection,
                     processDir,
                     handleAst))
                 .reduce((a, v) => a.then(() => v).catch(error => {
-                console.log('here123');
-                console.log(error.message);
+                                console.log(error.message);
                 }), Promise.resolve<void>(undefined)));
 }
 
@@ -116,5 +114,5 @@ createConnection().then(connection => {
     };
     return getOrCreateProject(packageName).then(project => processDir(connection, project, dir, handleAst));
 }).catch(error => {
-    console.log(error);
+    console.log(error.message);
 });
