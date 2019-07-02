@@ -1,289 +1,269 @@
 /**
  * Collection of handy but oddly specific routines
  */
-import * as path from 'path';
-import {strictEqual,ok} from 'assert';
-import {Module} from "classModel";
+import path from 'path';
+import {strictEqual} from 'assert';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValue } from "ast-types";
 import { Collection } from "jscodeshift/src/Collection";
-import {ModuleClass} from "classModel/lib/src/ModuleClass";
-import {Registry} from "classModel";
-import {Reference} from "classModel";
-import {Type} from "classModel";
+import {EntityCore} from "classModel";
 import {copyTree} from "./utils";
 import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
-
+import { Connection } from "typeorm";
 import { visit } from "ast-types";
 import {PatternKind} from "ast-types/gen/kinds";
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
-export function handleImportDeclarations1(
-    collection: Collection<namedTypes.Node>,
-    relativeBase: string,
-    importContext: ImportContext,
-    callback: HandleImportSpecifier,
 
-): Promise<void> {
+export class TransformUtils {
+
+    public static processClassDeclarations(
+        connection: Connection,
+        module: EntityCore.Module,
+        collection: Collection<namedTypes.Node>
+    ): Promise<any> {
+        return collection.find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void> => {
+            if(!classDecl.id) {
+                throw new Error('no class name');
+            }
+            const classIdName = classDecl.id.name;
+	    console.log(`class is ${classIdName}`);
+
+	    const classRepo = connection.getRepository(EntityCore.Class);
+
+	    return classRepo.find({module, name: classIdName}).then(classes => {
+	    if(!classes.length) {
+	    return classRepo.save(new EntityCore.Class(module, classIdName, [], []));
+	    } else {
+	    return classes[0];
+	    }
+	    }).then(class_ => {
+	    console.log(class_);
+	    });
+	    })
+	    /*
+            const super_ = classDecl.superClass;
+            if (super_) {
+                let superSpec: Reference|undefined;
+                superSpec = thisModule.getReference1(super_);
+                theClass.superSpec = superSpec;
+
+                thisModule.classes = thisModule.classes.set(theClass.name, theClass);
+                registry.modules = registry.modules.set(thisModule.name, thisModule);
+            }
+*/
+        /*
+            classDecl.body.body.forEach((childNode: namedTypes.Declaration): void => {
+                if(childNode.type === 'ClassMethod') {
+                    //                    this.processClassMethod(theClass, childNode);
+
+                }
+		})
+
+
+	    return classRepo.save(class_);
+	    });
+	    */
+            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+    }
+
+    public static handleImportDeclarations1(
+        collection: Collection<namedTypes.Node>,
+        relativeBase: string,
+        importContext: ImportContext,
+        callback: HandleImportSpecifier,
+
+    ): Promise<void> {
     // @ts-ignore
-    Promises.all(...
-    collection.find(namedTypes.ImportDeclaration,
-        (n: namedTypes.ImportDeclaration): boolean => {
-            console.log(n);
+        return
+        collection.find(namedTypes.ImportDeclaration,
+            (n: namedTypes.ImportDeclaration): boolean => {
 	    const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
-            //	    console.log(r);
+                    //	    console.log(r);
 	    return r;
 	    })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // @ts-ignore
-        .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
-            console.log('here');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // @ts-ignore
+            .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
 	    const importModule = importDecl.source.value != null &&
-            path.resolve(relativeBase, importDecl.source.value.toString()) || '';
+            path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
 	    const promises: Promise<void>[] = [];
-            visit(importDecl, {
-                visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
-                    const node = path.node;
-                    strictEqual(node.imported.type, 'Identifier');
-		    promises.push(callback(importContext, importModule, node.local!.name, node.imported.name, false, false).catch((error: Error): void => {
-		    console.log(error);
+                visit(importDecl, {
+                    visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
+                        const node = path.node;
+                        strictEqual(node.imported.type, 'Identifier');
+                        if(!node.local) {
+                            throw new Error('!node.local');
+                        }
+		    promises.push(callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
+		    console.log(`here 5 ${error}`);
 		    }));
 		    return false;
-                },
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
-                    return false;
-                }
-            });
-	    return Promises.all(...promises);
-        }));
-}
-
-export function handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string, thisModule: Module): void {
-    const c = collection.find(namedTypes.ImportDeclaration);
-    c.forEach((p): void => {
-        const n = p.value;
-        strictEqual(n.importKind, 'value');
-        strictEqual(n.source.type, 'StringLiteral');
-        const source = n.source.value;
-        if (source == null) {
-            throw new Error('source undefined or null');
-        }
-        // make sure is relative
-        if (!/^\.\.?\//.test(source.toString())) {
-            return;
-        }
-        const importModule = path.resolve(relativeBase, source.toString());
-        if (n.specifiers !== undefined) {
-            // @ts-ignore
-            n.specifiers.forEach((kind): void => {
-                //console.log(kind);
-                if (kind.type === 'ImportSpecifier') {
-                    strictEqual(kind.imported.type, 'Identifier');
-                    //km1 thisModule.addImport(kind.imported.name, importModule, undefined, undefined);
-                    //imported[kind.imported.name] = [full, false];
-                } else if (kind.type === 'ImportDefaultSpecifier') {
-                    const local = kind.local;
-                    if (!local) {
-                        throw new Error('kind..local is null');
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
+                        if(!path.node.local) {
+                            throw new Error('undefined localName');
+                        }
+                        promises.push(callback(importContext, importModule, path.node.local.name, undefined, true, false));
+                        return false;
                     }
+                });
+	    return Promise.all(promises).then((): void => undefined).catch((error: Error): void => {
+	    console.log(error);
+	    });
+
+            })
+    }
+
+    public static handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string): Promise<void> {
+        return collection.find(namedTypes.ImportDeclaration).nodes().map((n: namedTypes.ImportDeclaration): Promise<void> => {
+            strictEqual(n.importKind, 'value');
+            strictEqual(n.source.type, 'StringLiteral');
+            const source = n.source.value;
+            if (source == null) {
+                throw new Error('source undefined or null');
+            }
+            // make sure is relative
+            if (!/^\.\.?\//.test(source.toString())) {
+                return Promise.resolve(undefined);
+            }
+            //const importModule = path.resolve(relativeBase, source.toString());
+            if (n.specifiers !== undefined) {
+            // @ts-ignore
+                n.specifiers.forEach((kind): void => {
+                //console.log(kind);
+                    if (kind.type === 'ImportSpecifier') {
+                        strictEqual(kind.imported.type, 'Identifier');
+                    //imported[kind.imported.name] = [full, false];
+                    } else if (kind.type === 'ImportDefaultSpecifier') {
+                        const local = kind.local;
+                        if (!local) {
+                            throw new Error('kind..local is null');
+                        }
 
                     //console.log(`adding default import ${local.name}`);
                     //km1 thisModule.addImport(local.name, importModule, true, false);
                     //imported[local.name] = [full, true];
-                } else if (kind.type === 'ImportNamespaceSpecifier') {
-                    if (kind.local) {
+                    } else if (kind.type === 'ImportNamespaceSpecifier') {
+                        if (kind.local) {
                         //km1 thisModule.addImport(kind.local.name, importModule, false, true);
+                        }
                     }
-                }
-            });
-        }
-
-    });
-    //return imported;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ExportNamedDeclarationsResult {
-
-}
-
-export function processExportNamedDeclarations(collection: Collection<namedTypes.Node>,
-    thisModule: Module):
-    ExportNamedDeclarationsResult {
-    const named = collection.find(namedTypes.ExportNamedDeclaration);
-    const allSpecs = [];
-    named.forEach((p: NodePath<namedTypes.Node>): void => {
-        const n = p.value;
-        if(n.source) {
-            return;
-            //throw new Error('unable to handle export from source');
-        }
-        if (n.declaration) {
-            if(n.specifiers && n.specifiers.length > 0) {
-                throw new Error('woah');
-            }
-            if (n.declaration.type === 'ClassDeclaration') {
-                if (!n.declaration.id) {
-                    throw new Error(n.declaration.type);
-                }
-                thisModule.addExport({ localName: n.declaration.id.name,
-                    exportName: n.declaration.id.name});
-
-                //thisModule.exported[n.declaration.id.name] = new Export(n.declaration.id.name);
-                //;report(n.declaration.id.name);
-            } else if (n.declaration.type === 'VariableDeclaration') {
-            } else { // functiondeclaration and tsfunctiondeclaration
-            }
-        } else {
-            if(n.specifiers) {
-                allSpecs.push(n.specifiers);
-                n.specifiers.forEach((sp1: namedTypes.Specifier): void => {
-                    if(sp1.type !== 'ExportSpecifier') {
-                        throw new Error('expecting ExportSpecifier');
-                    }
-                    const sp = sp1 as namedTypes.ExportSpecifier;
-                    if(sp.local) {
-                        const local = sp.local.name;
-                        const exported = sp.exported.name;
-                        thisModule.addExport({
-                            localName: local,
-                            exportName: exported
-                        });
-                    }
-                    //thisModule.exported[exported] = new Export(local, p);
                 });
             }
-        }
-    });
-    return {};
-}
+            return Promise.resolve(undefined);
 
-// @ts-ignore
-export function processExportDefaultDeclaration(builders, collection, newExports, thisModule: Module): void {
-
-    // @ts-ignore
-    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p): void => {
-        const n = p.value;
-        let name;
-        if (n.declaration.type === 'ClassDeclaration') {
-            name = n.declaration.id.name;
-            const export_ = builders.exportNamedDeclaration(null,
-                [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
-            newExports.push(export_);
-            thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
-        } else {
-            name = n.declaration.name;
-            thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
-        }
-        thisModule.defaultExport = name;
-    });
-}
-
-
-// @ts-ignore
-export function shiftExports(namedTypes, builders, collection, newExports, thisModule): void {
-
-    // @ts-ignore
-    collection.find(namedTypes.ExportDefaultDeclaration).forEach((p): void => {
-        const n = p.value;
-        let name;
-        if (n.declaration.type === 'ClassDeclaration') {
-            name = n.declaration.id.name;
-            const export_ = builders.exportNamedDeclaration(null, [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
-            newExports.push(export_);
-        } else {
-            name = n.declaration.name;
-        }
-        thisModule.defaultExport = name;
-    });
-}
-
-function processClassMethod(moduleClass: ModuleClass, childNode: namedTypes.Declaration): void {
-    const methodDef = childNode as namedTypes.ClassMethod;
-    const kind = methodDef.kind;
-    const key = methodDef.key;
-    if (kind === "method") {
-        let methodName = '';
-        if (key.type === "Identifier") {
-            methodName = key.name;
-        } else {
-            throw new Error(key.type);
-        }
-        const method = moduleClass.getMethod(methodName, true);
-        ok(methodName);
-        const params = methodDef.params;
-        params.forEach(
-            (pk: PatternKind): void => {
-                let name = '';
-                let type_: Type|undefined = undefined;
-                if (pk.type === 'Identifier')  {
-                    name = pk.name;
-                    if (pk.typeAnnotation) {
-
-                        type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
-                        const tree = copyTree(pk.typeAnnotation.typeAnnotation);
-                        type_.tree = tree;
-                        //console.log(tree.toJSON());
-                    }
-                } else if (pk.type === 'AssignmentPattern') {
-                    name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
-                } else if (pk.type === 'RestElement') {
-                } else {
-                    throw new Error(pk.type);
-                }
-                method.addParam(name, type_);
-                moduleClass.methods = moduleClass.methods.set(name, method);
-            });
-
+        }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
+
+    public static processExportNamedDeclarations(
+    	   connection: Connection,
+	   module: EntityCore.Module,
+	   collection: Collection<namedTypes.Node>
+	   ): Promise<void> {/*
+        return collection.find(namedTypes.ExportNamedDeclaration,
+            (n: namedTypes.ExportNamedDeclaration): boolean =>
+                (n.source && n.declaration
+	&& (!n.specifiers || n.specifiers.length === 0) || false))
+            .nodes().map(
+                (node: namedTypes.ExportNamedDeclaration): Promise<void> => {
+                    if(!node.declaration) {
+                        throw new Error('');
+                    }
+                    if (node.declaration.type === 'ClassDeclaration') {
+                        if (!node.declaration.id) {
+                            throw new Error(node.declaration.type);
+                        }
+
+		    const exportRepo = connection.getRepository(EntityCore.Export);
+		    const export_ = new EntityCore.Export( node.declaration.id.name,
+		    node.declaration.id.name, module);
+		    return exportRepo.save(export_).then((export_) => undefined);
 }
+return Promise.resolve(undefined);
+		    }
+		    }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+   */
+        return Promise.resolve(undefined);
+    }
 
-export function processClassDeclarations(collection: Collection<namedTypes.Node>, registry: Registry, thisModule: Module): void {
 
-    collection.find(namedTypes.InterfaceDeclaration).forEach((p: NodePath): void => {
-        const iface = p.value as namedTypes.InterfaceDeclaration;
-        iface.body.properties.forEach((v: namedTypes.ObjectTypeProperty|namedTypes.ObjectTypeSpreadProperty): void => {
-            if(v.type === 'ObjectTypeProperty') {
-                //                console.log(v);
+    // @ts-ignore
+    public static processExportDefaultDeclaration(builders, collection, newExports): Promise<void> {
+
+        return collection.find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): Promise<void> => {
+            let name;
+            if (n.declaration.type === 'ClassDeclaration') {
+	    if(!n.declaration.id) {
+	    throw new Error('');
+	    }
+                name = n.declaration.id.name;
+                const export_ = builders.exportNamedDeclaration(null,
+                    [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
+                newExports.push(export_);
+                //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
+            } else {
+	    console.log(n.declaration.type);
+
+                //name = n.declaration.name;
+                //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
             }
-        })
-        thisModule.addInterface(iface.id.name);
-    })
+            //thisModule.defaultExport = name;
+	    return Promise.resolve(undefined);
+        }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+    }
 
+    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Declaration): void {
+        const methodDef = childNode as namedTypes.ClassMethod;
+        const kind = methodDef.kind;
+        const key = methodDef.key;
+        if (kind === "method") {
+            let methodName = '';
+            if (key.type === "Identifier") {
+                methodName = key.name;
+            } else {
+                throw new Error(key.type);
+            }
 
+	    const methodRepo = connection.getRepository(EntityCore.Method);
+	    methodRepo.find({"classProperty": moduleClass, "name": methodName}).then(methods => {
+	    if(methods.length == 0) {
+	    return methodRepo.save(new EntityCore.Method(methodName, [], moduleClass));
+	    } else {
+	    return methods[0];
+	    }
+	    }).then((method: EntityCore.Method) => {
+                const params = methodDef.params;
+                params.forEach(
+                    (pk: PatternKind): void => {
+                        let name = '';
+                        let type_ = undefined;
+                        if (pk.type === 'Identifier')  {
+                            name = pk.name;
+                            if (pk.typeAnnotation) {
 
-    collection.find(namedTypes.ClassDeclaration).forEach((p: NodePath): void => {
-        const classDecl = p.value;
-        const classIdName = classDecl.id.name;
-        const theClass = thisModule.getClass(classIdName, true);
-        ok(theClass !== undefined);
-        const super_ = classDecl.superClass;
-        if (super_) {
-            let superSpec: Reference|undefined;
-            superSpec = thisModule.getReference1(super_);
-            theClass.superSpec = superSpec;
-
-            thisModule.classes = thisModule.classes.set(theClass.name, theClass);
-	    /* outside access to this module?! */
-            registry.modules = registry.modules.set(thisModule.name, thisModule);
+                                //                            type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
+                                //                            const tree = copyTree(pk.typeAnnotation.typeAnnotation);
+                                //                            type_.tree = tree;
+                                //
+                            }
+                        } else if (pk.type === 'AssignmentPattern') {
+                            name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
+                        } else if (pk.type === 'RestElement') {
+                        } else {
+                            throw new Error(pk.type);
+                        }
+                        //                    method.addParam(name, type_);
+                        //                    moduleClass.methods = moduleClass.methods.set(name, method);
+                    });
+            })
         }
+    }
 
-        classDecl.body.body.forEach((childNode: namedTypes.Declaration): void => {
-            //console.log(childNode.type);
-            if(childNode.type === 'ClassMethod') {
-                processClassMethod(theClass, childNode);
-
-            }
-        })
-
-        thisModule.classes = thisModule.classes.set(classIdName, theClass);
-
-
-    });
 }

@@ -1,13 +1,7 @@
 import core from "jscodeshift";
-import {createRegistry,createConnection} from "./TypeOrm/Factory";
-import {ImportContext} from "./types";
-import {
-    getModuleSpecifier,
-    handleImportDeclarations1,
-    processClassDeclarations,
-    processExportDefaultDeclaration,
-    processExportNamedDeclarations
-} from "./transformUtils";
+import {createConnection} from "./TypeOrm/Factory";
+import {ImportContext,ModuleSpecifier} from "./types";
+import {TransformUtils} from "./transformUtils";
 import {Module} from "../../classModel/lib/src";
 import {EntityCore} from "classModel";
 import {File,Node} from "ast-types/gen/nodes";
@@ -16,6 +10,9 @@ import * as path from "path";
 import j from 'jscodeshift';
 import { Connection } from "typeorm";
 
+export function getModuleSpecifier(path: string): ModuleSpecifier  {
+    return path;
+}
 function getModuleName(path1: string): string {
     const _f = path.resolve(path1);
     //    const relativeBase = path.dirname(_f);
@@ -24,17 +21,20 @@ function getModuleName(path1: string): string {
 }
 
 export function processSourceModule(connection: Connection, project: EntityCore.Project, path1: string, file: File): Promise<void> {
-    console.log(path1);
     const moduleName = getModuleName(path1);
     const moduleRepo = connection.getRepository(EntityCore.Module);
 
     const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
-        if(name === undefined) {
+        if(!name) {
             throw new Error('name undefined');
         }
+        // @ts-ignore
         return moduleRepo.find({project, name}).then(modules => {
             if(!modules.length) {
-                return moduleRepo.save(new EntityCore.Module(name, project, [], [], []));
+	    console.log(`saving new module with ${name}`);
+                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [])).catch(error => {
+                    console.log('unable to create module');
+                });
             } else {
                 return modules[0];
             }
@@ -55,22 +55,25 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName?: string,
                     isDefault?: boolean,
                     isNamespace?: boolean): Promise<void> => {
-                    const importRepo = connection.getRepository(EntityCore.Module);
+                    const importRepo = connection.getRepository(EntityCore.Import);
                     const module = argument as EntityCore.Module;
-		    console.log(`creating ${localName}`);
                     if (localName === undefined) {
                         throw new Error('');
                     }
-		    
+
 		    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
 		    return importRepo.save(import_).then(() => undefined).catch(error => {
-		    console.log(error);
+		    console.log(`unable to create Import: ${error}`);
 		    });
                 };
 
         // @ts-ignore
         const collection = j(file);
-        return handleImportDeclarations1(
+        // const t = TransformUtils;
+        // Object.keys(t).forEach(key => {
+        // console.log(`key is ${key}`);
+        // });
+        return Promise.all([TransformUtils.handleImportDeclarations1(
             collection,
             moduleName,
             context,
@@ -80,7 +83,6 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                 exportedName?: string,
                 isDefault?: boolean,
                 isNamespace?: boolean): Promise<void> => {
-                console.log('here');
                 return handleImportSpecifier(
                     module,
                     importContext,
@@ -89,7 +91,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName,
                     isDefault,
                     isNamespace);
-            });
+            }), TransformUtils.processClassDeclarations(connection, module, collection)]).then(() => {});
 
         /*
         const newExports: Node[] = [];
@@ -100,6 +102,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
 */
     };
     return getOrCreateModule(moduleName).then(handleModule).catch(error => {
-        console.log(error);
+    		    console.log(`here1 ${error}`);
+		    console.log(error);
     });
 }

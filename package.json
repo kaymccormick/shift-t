@@ -7,11 +7,13 @@
     "orm": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts ../classModel/src",
     "orm2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts files/fake-src2",
     "collectClassStructureFake": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts files/fake-src",
+    "transform666": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/transform666.ts /local/home/jade/JsDev/ast-types/gen/namedTypes.ts",
     "collectClassStructure3": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src/StateMachine.ts ../docutils-t/src/StateMachineWS.ts",
     "collectClassStructure2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts src transforms",
     "compile": "tsc -p .",
     "collect1": "ts-node bin/collect.ts files/fake-src2",
-    "collect2": "ts-node bin/collect.ts ../docutils-t/src"
+    "collect2": "ts-node bin/collect.ts ../docutils-t/src",
+    "c-ast": "ts-node bin/collect.ts ../ast-types"
   },
   "dependencies": {
     "@babel/cli": "^7.4.4",
