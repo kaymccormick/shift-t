@@ -74,7 +74,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         // console.log(`key is ${key}`);
         // });
         return Promise.all([TransformUtils.handleImportDeclarations1(
-            collection,
+            collection.nodes()[0],
             moduleName,
             context,
             (importContext: ImportContext,
@@ -91,7 +91,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName,
                     isDefault,
                     isNamespace);
-            }), TransformUtils.processClassDeclarations(connection, module, collection)]).then((): undefined|void => undefined);
+            }), TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0])]).then((): undefined|void => undefined);
 
         /*
         const newExports: Node[] = [];

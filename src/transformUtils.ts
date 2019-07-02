@@ -2,8 +2,10 @@
  * Collection of handy but oddly specific routines
  */
 import path from 'path';
+import j from 'jscodeshift';
 import {strictEqual} from 'assert';
 import {namedTypes} from "ast-types/gen/namedTypes";
+import {File} from "ast-types/gen/nodes";
 import {NodePath} from "ast-types/lib/node-path";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValue } from "ast-types";
@@ -23,74 +25,50 @@ export class TransformUtils {
     public static processClassDeclarations(
         connection: Connection,
         module: EntityCore.Module,
-        collection: Collection<namedTypes.Node>
+        file: File,
     ): Promise<any> {
-        return collection.find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void> => {
+        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void> => {
             if(!classDecl.id) {
                 throw new Error('no class name');
             }
             const classIdName = classDecl.id.name;
-	    console.log(`class is ${classIdName}`);
 
 	    const classRepo = connection.getRepository(EntityCore.Class);
+            const m = copyTree(classDecl);
 
 	    return classRepo.find({module, name: classIdName}).then(classes => {
 	    if(!classes.length) {
-	    return classRepo.save(new EntityCore.Class(module, classIdName, [], []));
+                    /* create new class instance */
+                    const class_ = new EntityCore.Class(module, classIdName, [], []);
+                    class_.astNode = m;
+                    class_.superClassNode = m.get('superClass');
+ 	     return classRepo.save(class_);
 	    } else {
-	    return classes[0];
+                    /* should check and update, no? */
+	    return Promise.resolve(classes[0]);
 	    }
-	    })/*.then(class_ => {
-            //here is the class?
-
-	    })*/;
-	    });
-	    /*
-            const super_ = classDecl.superClass;
-            if (super_) {
-                let superSpec: Reference|undefined;
-                superSpec = thisModule.getReference1(super_);
-                theClass.superSpec = superSpec;
-
-                thisModule.classes = thisModule.classes.set(theClass.name, theClass);
-                registry.modules = registry.modules.set(thisModule.name, thisModule);
-            }
-*/
-        /*
-            classDecl.body.body.forEach((childNode: namedTypes.Declaration): void => {
-                if(childNode.type === 'ClassMethod') {
-                    //                    this.processClassMethod(theClass, childNode);
-
-                }
-		})
-
-
-	    return classRepo.save(class_);
-	    });
-	    */
-            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+            }).then(class_ => {
+            })}).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
 
     public static handleImportDeclarations1(
-        collection: Collection<namedTypes.Node>,
+        file: File,
         relativeBase: string,
         importContext: ImportContext,
         callback: HandleImportSpecifier,
 
     ): Promise<void> {
-    // @ts-ignore
-        return
-        collection.find(namedTypes.ImportDeclaration,
+        return j(file).find(namedTypes.ImportDeclaration,
             (n: namedTypes.ImportDeclaration): boolean => {
 	    const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
-                    //	    console.log(r);
 	    return r;
 	    })
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // @ts-ignore
             .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
+                console.log('here');
 	    const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
 	    const promises: Promise<void>[] = [];
@@ -102,7 +80,7 @@ export class TransformUtils {
                             throw new Error('!node.local');
                         }
 		    promises.push(callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
-		    console.log(`here 5 ${error}`);
+                            console.log(error.message);
 		    }));
 		    return false;
                     },
@@ -116,89 +94,63 @@ export class TransformUtils {
                     }
                 });
 	    return Promise.all(promises).then((): void => undefined).catch((error: Error): void => {
-	    console.log(error);
+	    console.log(error.message);
 	    });
 
             })
     }
 
-    public static handleImportDeclarations( collection: Collection<namedTypes.Node>, maxImport: number, relativeBase: string): Promise<void> {
-        return collection.find(namedTypes.ImportDeclaration).nodes().map((n: namedTypes.ImportDeclaration): Promise<void> => {
-            strictEqual(n.importKind, 'value');
-            strictEqual(n.source.type, 'StringLiteral');
-            const source = n.source.value;
-            if (source == null) {
-                throw new Error('source undefined or null');
-            }
-            // make sure is relative
-            if (!/^\.\.?\//.test(source.toString())) {
-                return Promise.resolve(undefined);
-            }
-            //const importModule = path.resolve(relativeBase, source.toString());
-            if (n.specifiers !== undefined) {
-            // @ts-ignore
-                n.specifiers.forEach((kind): void => {
-                //console.log(kind);
-                    if (kind.type === 'ImportSpecifier') {
-                        strictEqual(kind.imported.type, 'Identifier');
-                    //imported[kind.imported.name] = [full, false];
-                    } else if (kind.type === 'ImportDefaultSpecifier') {
-                        const local = kind.local;
-                        if (!local) {
-                            throw new Error('kind..local is null');
-                        }
-
-                    //console.log(`adding default import ${local.name}`);
-                    //km1 thisModule.addImport(local.name, importModule, true, false);
-                    //imported[local.name] = [full, true];
-                    } else if (kind.type === 'ImportNamespaceSpecifier') {
-                        if (kind.local) {
-                        //km1 thisModule.addImport(kind.local.name, importModule, false, true);
-                        }
-                    }
-                });
-            }
-            return Promise.resolve(undefined);
-
-        }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
-    }
-
     public static processExportNamedDeclarations(
     	   connection: Connection,
 	   module: EntityCore.Module,
-	   collection: Collection<namedTypes.Node>
-	   ): Promise<void> {/*
-        return collection.find(namedTypes.ExportNamedDeclaration,
-            (n: namedTypes.ExportNamedDeclaration): boolean =>
-                (n.source && n.declaration
-	&& (!n.specifiers || n.specifiers.length === 0) || false))
-            .nodes().map(
-                (node: namedTypes.ExportNamedDeclaration): Promise<void> => {
-                    if(!node.declaration) {
-                        throw new Error('');
-                    }
+	   file: File
+	   ): Promise<void> {
+        return j(file).find(namedTypes.ExportNamedDeclaration,
+            (n: namedTypes.ExportNamedDeclaration): boolean => true
+            /*                (n.source && n.declaration
+	&& (!n.specifiers || n.specifiers.length === 0) || false)*/
+        ).nodes().map(
+            (node: namedTypes.ExportNamedDeclaration): Promise<void> => {
+                const exportRepo = connection.getRepository(EntityCore.Export);
+                if(node.declaration) {
                     if (node.declaration.type === 'ClassDeclaration') {
-                        if (!node.declaration.id) {
-                            throw new Error(node.declaration.type);
+                        const exportName = node.declaration.id ? node.declaration.id.name : undefined;
+                        if(exportName === undefined) {
+                            throw new Error('no name');
                         }
-
-		    const exportRepo = connection.getRepository(EntityCore.Export);
-		    const export_ = new EntityCore.Export( node.declaration.id.name,
-		    node.declaration.id.name, module);
+                        return exportRepo.find({module, name: exportName}).then(exports => {
+                            if(exports.length === 0) {
+                                const export_ = new EntityCore.Export( exportName, exportName, module);
 		    return exportRepo.save(export_).then((export_) => undefined);
-}
-return Promise.resolve(undefined);
-		    }
+                            }
+                            return Promise.resolve(undefined);
+                        });
+                    }
+                    else {
+                        throw new Error(`unhandled`);
+                    }
+                } else {
+                    if(node.specifiers && node.specifiers.length) {
+                        return node.specifiers.map((specifier) => {
+                            exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
+                                if(exports.length === 0) {
+                                    const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
+                                    return exportRepo.save(export_).then((export__) => undefined);
+                                }else{
+                                    return Promise.resolve(undefined);
+                                }
+                            });
+                        });
+                    }
+                }
 		    }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
-   */
         return Promise.resolve(undefined);
     }
 
 
-    // @ts-ignore
-    public static processExportDefaultDeclaration(builders, collection, newExports): Promise<void> {
+    /*    public static processExportDefaultDeclaration(builders, file, newExports): Promise<void> {
 
-        return collection.find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): Promise<void> => {
+        return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): Promise<void> => {
             let name;
             if (n.declaration.type === 'ClassDeclaration') {
 	    if(!n.declaration.id) {
@@ -210,7 +162,6 @@ return Promise.resolve(undefined);
                 newExports.push(export_);
                 //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
             } else {
-	    console.log(n.declaration.type);
 
                 //name = n.declaration.name;
                 //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
@@ -219,7 +170,7 @@ return Promise.resolve(undefined);
 	    return Promise.resolve(undefined);
         }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
-
+*/
     public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Declaration): void {
         const methodDef = childNode as namedTypes.ClassMethod;
         const kind = methodDef.kind;

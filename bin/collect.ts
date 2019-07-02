@@ -112,7 +112,11 @@ createConnection().then(connection => {
     const handleAst = (connection: Connection, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void> => {
         return Promise.resolve(undefined);
     };
-    return getOrCreateProject(packageName).then(project => processDir(connection, project, dir, handleAst));
+    return getOrCreateProject(packageName).then((project) => {
+      return processDir(connection, project, dir, handleAst).then(() => {
+      console.log(`processing ${project.name}`);
+      });
+});
 }).catch(error => {
     console.log(error.message);
 });
