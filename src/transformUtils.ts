@@ -34,9 +34,18 @@ export class TransformUtils {
             const classIdName = classDecl.id.name;
 
             const classRepo = connection.getRepository(EntityCore.Class);
+            const nameRepo = connection.getRepository(EntityCore.Name);
             const m = copyTree(classDecl);
 
-            return classRepo.find({module, name: classIdName}).then(classes => {
+            return nameRepo.find({module, name: classIdName}).then((names) => {
+            if(names.length === 0) {
+            const name = new EntityCore.Name();
+            name.name = classIdName;
+            name.nameKind = 'class';
+            name.module = module;
+            return nameRepo.save(name).then(() => undefined);
+            }
+            }).then(() => classRepo.find({module, name: classIdName}).then(classes => {
                 if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
@@ -48,7 +57,14 @@ export class TransformUtils {
                     return Promise.resolve(classes[0]);
                 }
             }).then(class_ => {
-            })}).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+                process.stdout.write('CLASS '+ class_.name + '\n');
+                return j(classDecl).find(namedTypes.ClassMethod).nodes().map((node: namedTypes.ClassMethod) => {
+                    console.log(node.type);
+                    return TransformUtils.processClassMethod(connection, class_, node)
+                });
+}))
+        })
+            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
 
     public static handleImportDeclarations1(
@@ -68,7 +84,6 @@ export class TransformUtils {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // @ts-ignore
             .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
-                //                console.log('here');
                 const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
                 const promises: Promise<void>[] = [];
@@ -113,7 +128,6 @@ export class TransformUtils {
             ).nodes().flatMap(
                 (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => {
                     const exportRepo = connection.getRepository(EntityCore.Export);
-                    //                    console.log(copyTree(node).toJS());
                     if(node.declaration) {
                         if (node.declaration.type === 'ClassDeclaration') {
                             const exportedName = node.declaration.id ? node.declaration.id.name : undefined;
@@ -182,8 +196,9 @@ export class TransformUtils {
                 return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
-    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Declaration): void {
-        const methodDef = childNode as namedTypes.ClassMethod;
+    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.ClassMethod): Promise<void> {
+        console.log('clasmethod');
+        const methodDef = childNode;
         const kind = methodDef.kind;
         const key = methodDef.key;
         if (kind === "method") {
@@ -195,12 +210,21 @@ export class TransformUtils {
             }
 
             const methodRepo = connection.getRepository(EntityCore.Method);
-            methodRepo.find({"classProperty": moduleClass, "name": methodName}).then(methods => {
-                if(methods.length == 0) {
-                    return methodRepo.save(new EntityCore.Method(methodName, [], moduleClass));
+            return methodRepo.find({
+                "classProperty": moduleClass,
+                "name": methodName}).then(methods => {
+                if(methods.length === 0) {
+                    const m = new EntityCore.Method(methodName, [], moduleClass);
+                    if(methodDef.accessibility) {
+                        m.accessibility = methodDef.accessibility ;
+                    }
+                    return methodRepo.save(m);
                 } else {
                     return methods[0];
                 }
+            }).then((method: EntityCore.Method) => {
+                method.astNode = copyTree(methodDef).remove('body');
+                return methodRepo.save(method);
             }).then((method: EntityCore.Method) => {
                 const params = methodDef.params;
                 params.forEach(
@@ -225,8 +249,9 @@ export class TransformUtils {
                         //                    method.addParam(name, type_);
                         //                    moduleClass.methods = moduleClass.methods.set(name, method);
                     });
-            })
+            });
         }
+        return Promise.resolve(undefined);
     }
 
     public static processNames(connection: Connection, module: EntityCore.Module, nodeElement: any) {

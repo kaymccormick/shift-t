@@ -12,7 +12,7 @@ export function getModuleSpecifier(path: string): ModuleSpecifier  {
 }
 function getModuleName(path1: string): string {
     const _f = path.resolve(path1);
-    //    const relativeBase = path.dirname(_f);
+    // const relativeBase = path.dirname(_f);
     const moduleName = _f.replace(/\.ts$/, '');
     return moduleName;
 }
@@ -94,17 +94,11 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
         TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
         TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0]),
-        TransformUtils.processNames(connection,module, collection.node()[0]),
+        TransformUtils.processNames(connection,module, collection.nodes()[0]),
         ]).then((): undefined|void => undefined);
-        /*
-        const newExports: Node[] = [];
-            processClassDeclarations(collection, registry, module);
-            processExportNamedDeclarations(collection, module);
-            processExportDefaultDeclaration(builders,
-                collection, newExports, module);
-*/
     };
     return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
+        console.log(error);
         console.log(error.message);
     });
 }

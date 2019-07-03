@@ -13,7 +13,12 @@ import {doProject} from "../src/process";
 import File = namedTypes.File;
 
 const readdir = promisify(fs.readdir);
+//console.log = () => {throw new Error('no console use')};
 
+function reportError(error: Error) {
+    process.stderr.write(error.toString() +'\n' + error.message.toString() + '\n');
+}
+ 
 function processFile(connection: Connection,
     project: EntityCore.Project,
     fname: string,
@@ -26,16 +31,17 @@ function processFile(connection: Connection,
             parser: require("recast/parsers/typescript")
         });
     }catch(error) {
-        console.log(`unable to parse file ${fname}: ${error.message}`);
+        reportError(new Error(`unable to parse file ${fname}: ${error.message}`));
         return Promise.resolve(undefined);
     }
     if(ast === undefined) {
-        console.log('no ast');
+        reportError(new Error('no ast'));
+
         return Promise.resolve(undefined);
     }
 
     return processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).catch(error => {
-        console.log(error.message);
+        reportError(error);
     });
 }
 
@@ -63,17 +69,17 @@ function processDir(connection: Connection,
                     processDir,
                     handleAst))
                 .reduce((a, v) => a.then(() => v).catch(error => {
-                    console.log(error.message);
+                    reportError(error);
                 }), Promise.resolve<void>(undefined)));
 }
 
 const dir = process.argv[2];
 const f = finder(dir);
 const packageInfo = f.next().value;
-if(packageInfo === undefined) {
-    throw new Error('package.json');
+let packageName: string | undefined = undefined;
+if(packageInfo !== undefined) {
+    packageName = packageInfo.name;
 }
-const packageName = packageInfo.name;
 if(packageName === undefined) {
     throw new Error('need package name');
 }
@@ -105,11 +111,11 @@ createConnection().then(connection => {
         fname: string, ast: namedTypes.File): Promise<void> => {
         return Promise.resolve(undefined);
     };
-    return getOrCreateProject(packageName).then((project) => {
+    return getOrCreateProject(packageName ||'').then((project) => {
         return processDir(connection, project, dir, handleAst).then(() => {
             return doProject(project, connection);
         });
     });
 }).catch(error => {
-    console.log(error.message);
+    reportError(error);
 });

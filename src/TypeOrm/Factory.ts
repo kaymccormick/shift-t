@@ -1,5 +1,5 @@
 import {Registry, TypeOrmRegistry} from "classModel/lib/src";
-import { Project,Class,Export,Import,Method,Parameter,Module } from
+import { Project,Class,Export,Import,Method,Parameter,Module,Name } from
     "classModel/lib/src/entity/core"
 import {Connection, createConnection} from "typeorm";
 
@@ -23,7 +23,7 @@ function myCreateConnection(): Promise<Connection> {
          "entitiesDir": "src/entity",
          "migrationsDir": "src/migration",
          "subscribersDir": "src/subscriber"
-      }, entities: [Project, Class, Export, Import, Method, Parameter, Module]
+      }, entities: [Project, Class, Export, Import, Method, Parameter, Module, Name]
    });
 }
 
