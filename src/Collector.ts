@@ -44,6 +44,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
+            moduleEntity: module,
         };
         const handleImportSpecifier =
         // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
@@ -54,17 +55,39 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName?: string,
                     isDefault?: boolean,
                     isNamespace?: boolean): Promise<void> => {
+                    if (isNamespace) {
+                        console.log('here');
+                    }
                     const importRepo = connection.getRepository(EntityCore.Import);
+                    const nameRepo = connection.getRepository(EntityCore.Name);
                     const module = argument as EntityCore.Module;
                     if (localName === undefined) {
                         throw new Error('no localName');
                     }
-
-                    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
-                    return importRepo.save(import_).then((): undefined => undefined).catch((error: Error): void => {
-                        console.log(`unable to create Import: ${error.message}`);
-                    });
-                };
+                    return nameRepo.find({where: {name: localName, module: importContext.moduleEntity}}).then(names => {
+                        console.log(names.length);
+                        if (names.length === 0) {
+                            const name = new EntityCore.Name();
+                            name.module = importContext.moduleEntity;
+                            name.name = localName;
+                            name.nameKind = 'import';
+                            return nameRepo.save(name).then(() => undefined);
+                        } else {
+                        // update the thing here
+                            console.log(names);
+                        }
+                    }).then(() =>
+                        importRepo.find({module, localName}).then(imports => {
+                            if (imports.length === 0) {
+                                const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
+                                return importRepo.save(import_).then((): undefined => undefined).catch((error: Error): void => {
+                                    console.log(`unable to create Import: ${error.message}`);
+                                });
+                            } else {
+                                //
+                            }
+                        }));
+                }
 
         // @ts-ignore
         const collection = j(file);

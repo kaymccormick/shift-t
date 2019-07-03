@@ -6,9 +6,6 @@ import j from 'jscodeshift';
 import {strictEqual} from 'assert';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getFieldNames, getFieldValue } from "ast-types";
-import { Collection } from "jscodeshift/src/Collection";
 import {EntityCore} from "classModel";
 import {copyTree} from "./utils";
 import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
@@ -35,16 +32,19 @@ export class TransformUtils {
 
             const classRepo = connection.getRepository(EntityCore.Class);
             const nameRepo = connection.getRepository(EntityCore.Name);
-            const m = copyTree(classDecl);
-
-            return nameRepo.find({module, name: classIdName}).then((names) => {
-            if(names.length === 0) {
-            const name = new EntityCore.Name();
-            name.name = classIdName;
-            name.nameKind = 'class';
-            name.module = module;
-            return nameRepo.save(name).then(() => undefined);
+            const m = copyTree(classDecl).remove('body');
+            const superClass = m.get('superClass');
+            if(superClass) {
+//                console.log(superClass.toJS());
             }
+            return nameRepo.find({module, name: classIdName}).then((names) => {
+                if(names.length === 0) {
+                    const name = new EntityCore.Name();
+                    name.name = classIdName;
+                    name.nameKind = 'class';
+                    name.module = module;
+                    return nameRepo.save(name).then(() => undefined);
+                }
             }).then(() => classRepo.find({module, name: classIdName}).then(classes => {
                 if(!classes.length) {
                     /* create new class instance */
@@ -56,13 +56,12 @@ export class TransformUtils {
                     /* should check and update, no? */
                     return Promise.resolve(classes[0]);
                 }
-            }).then(class_ => {
+            }).then((class_: EntityCore.Class) => {
                 process.stdout.write('CLASS '+ class_.name + '\n');
                 return j(classDecl).find(namedTypes.ClassMethod).nodes().map((node: namedTypes.ClassMethod) => {
-                    console.log(node.type);
                     return TransformUtils.processClassMethod(connection, class_, node)
                 });
-}))
+            }))
         })
             .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
@@ -81,13 +80,22 @@ export class TransformUtils {
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
                 return r;
             })
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            // @ts-ignore
+
             .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
                 const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
                 const promises: Promise<void>[] = [];
                 visit(importDecl, {
+                    visitImportNamespaceSpecifier(path: NodePath<namedTypes.ImportNamespaceSpecifier>): boolean {
+                        const node = path.node;
+                        if(!node.local) {
+                            throw new Error('!node.local');
+                        }
+                        promises.push(callback(importContext, importModule, node.local.name, undefined, false, true).catch((error: Error): void => {
+                            console.log(error.message);
+                        }));
+                        return false;
+                    },
                     visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                         const node = path.node;
                         strictEqual(node.imported.type, 'Identifier');
@@ -134,7 +142,7 @@ export class TransformUtils {
                             if (exportedName === undefined) {
                                 throw new Error('no name');
                             }
-                            return exportRepo.find({module, exportedName}).then((exports) => {
+                            return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]) => {
                                 if (exports.length === 0) {
                                     const export_ = new EntityCore.Export(exportedName, exportedName, module);
                                     return exportRepo.save(export_);
@@ -144,7 +152,12 @@ export class TransformUtils {
                                 return Promise.resolve(undefined);
                             });
                         }
-                        else {
+                        else if(node.declaration.type === 'FunctionDeclaration') {
+                        } else if(node.declaration.type === 'TSInterfaceDeclaration') {
+                        } else if(node.declaration.type === 'VariableDeclaration') {
+                        } else if(node.declaration.type === 'TSEnumDeclaration') {
+                        } else if(node.declaration.type === 'TSTypeAliasDeclaration') {
+                        } else{
                             throw new Error(`unhandled ${node.declaration.type}`);
                         }
                     } else {
@@ -156,6 +169,7 @@ export class TransformUtils {
                                             throw new Error('cant deal');
                                         }
                                         const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
+                                        console.log(`creating export ${specifier.local.name}`);
                                         return exportRepo.save(export_).then((export__) => undefined);
                                     }else{
                                         return Promise.resolve(undefined);
@@ -181,23 +195,38 @@ export class TransformUtils {
                     if(n.declaration.id) {
                         name = n.declaration.id.name;
                     }
-                    exportRepo.find({module, isDefaultExport: true}).then(exports => {
-                        if(exports.length === 0) {
-                            const export_ = new EntityCore.Export(name, name, module);
-                            export_.isDefaultExport = true;
-                            return exportRepo.save(export_);
-                        }else {
-                            //
-                        }
-                        return Promise.resolve(undefined);
-                    });
+                } else if(n.declaration.type === 'Identifier') {
+                    name = n.declaration.name;
+                } else if(n.declaration.type === 'FunctionDeclaration') {
+                } else if(n.declaration.type === 'ObjectExpression') {
+                    console.log(copyTree(n.declaration).toJSON());
+                } else {
+                        throw new Error(`unrecognized ype ${n.declaration.type}`);
+
                 }
+
+                exportRepo.find({module, isDefaultExport: true}).then((exports: EntityCore.Export[]) => {
+                    if(exports.length === 0) {
+                        const export_ = new EntityCore.Export(name, undefined, module);
+                        export_.isDefaultExport = true;
+                        return exportRepo.save(export_);
+                    }else {
+                        const export_ = exports[0];
+                        if(export_.localName !== name ||
+                          export_.exportedName !== undefined) {
+                            export_.localName= name;
+                            export_.exportedName = undefined;
+                            return exportRepo.save(export_);
+                        }
+                    }
+                    return Promise.resolve(undefined);
+                });
+
                 //thisModule.defaultExport = name;
                 return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
     public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.ClassMethod): Promise<void> {
-        console.log('clasmethod');
         const methodDef = childNode;
         const kind = methodDef.kind;
         const key = methodDef.key;
@@ -212,7 +241,7 @@ export class TransformUtils {
             const methodRepo = connection.getRepository(EntityCore.Method);
             return methodRepo.find({
                 "classProperty": moduleClass,
-                "name": methodName}).then(methods => {
+                "name": methodName}).then((methods: EntityCore.Method[]) => {
                 if(methods.length === 0) {
                     const m = new EntityCore.Method(methodName, [], moduleClass);
                     if(methodDef.accessibility) {

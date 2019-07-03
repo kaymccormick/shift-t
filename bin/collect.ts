@@ -13,6 +13,7 @@ import {doProject} from "../src/process";
 import File = namedTypes.File;
 
 const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
 //console.log = () => {throw new Error('no console use')};
 
 function reportError(error: Error) {
@@ -112,7 +113,13 @@ createConnection().then(connection => {
         return Promise.resolve(undefined);
     };
     return getOrCreateProject(packageName ||'').then((project) => {
-        return processDir(connection, project, dir, handleAst).then(() => {
+    stat(dir).then(stats => {
+    if(stats.isFile()) {
+        return processFile(connection, project, dir, handleAst);
+        } else if(stats.isDirectory()) {
+        return processDir(connection, project, dir, handleAst);
+        }
+        }).then(() => {
             return doProject(project, connection);
         });
     });

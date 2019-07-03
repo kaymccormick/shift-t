@@ -13,6 +13,7 @@
     "compile": "tsc -p .",
     "collect1": "ts-node bin/collect.ts files/fake-src2",
     "collect2": "ts-node bin/collect.ts ../docutils-t/src",
+    "collect-nodes": "ts-node bin/collect.ts ../docutils-t/src/nodes.ts",
     "c-ast": "ts-node bin/collect.ts ../ast-types"
   },
   "dependencies": {

@@ -11,6 +11,7 @@ export interface HandleAst {
 
 export interface ImportContext {
     module: ModuleSpecifier;
+    moduleEntity: EntityCore.Module;
 }
 
 export interface HandleImportSpecifier {

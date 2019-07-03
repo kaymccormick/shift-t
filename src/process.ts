@@ -4,12 +4,15 @@ import {EntityCore} from "classModel";
 
 type ImportMap = Map<string, EntityCore.Import>;
 
-type ResultType = [EntityCore.Module, ImportMap, Map<string, EntityCore.Class>, Map<string, EntityCore.Export>];
+type ResultType = [EntityCore.Module, ImportMap,
+    Map<string, EntityCore.Class>, Map<string, EntityCore.Export>,
+    Map<string, EntityCore.Name>];
 
 interface ModuleProps {
     classes: Map<string, EntityCore.Class>;
     imports: Map<string, EntityCore.Import>;
     exports: Map<string, EntityCore.Export>;
+    names: Map<string, EntityCore.Name>;
     module: EntityCore.Module;
 }
 
@@ -33,7 +36,7 @@ function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Mod
 }
 
 function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module) {
-    return exportRepo.find({module}).then(exports => {
+    return exportRepo.find({module}).then((exports: EntityCore.Export[]) => {
         const defaultExport = exports.find(e => e.isDefaultExport);
         module.defaultExport = defaultExport;
         return Map<string, EntityCore.Export>(exports.filter(export_ => export_.exportedName).map(export_ => [export_.exportedName || '', export_]))
@@ -57,15 +60,31 @@ function handleClass(
     console.log(class_.name);
     if (class_.superClassNode) {
         let objectName;
+        let exportedName;
+        let okay = false;
         if (class_.superClassNode.type === 'MemberExpression') {
             objectName = class_.superClassNode.object.name;
+            exportedName = class_.superClassNode.property.name;
         } else {
             objectName = class_.superClassNode.name;
         }
+        const name_ = module.names.get(objectName);
+        if(name_) {
+            console.log(`found name kind ${name_.nameKind}`);
+            if(name_.nameKind === 'class'){
+                const c = module.classes.get(objectName);
+                class_.superClass = c;
+                return classRepo.save(class_);
+            }
+        }
         /* class might not even be an import! */
-        const import_ = module.imports.get(class_.superClassNode.name)
+        const import_ = module.imports.get(objectName)
         if(!import_) {
-            throw new Error(`unable to find import for ${class_.superClassNode.name}`);
+            if(objectName === 'Array' || objectName === 'Error') {
+                okay = true;
+            } else {
+                throw new Error(`unable to find import for ${objectName}`);
+            }
         }
         if (import_) {
             const sourceModule = modules.get(import_.sourceModuleName);
@@ -73,11 +92,18 @@ function handleClass(
             if (sourceModule) {
                 let export_: EntityCore.Export | undefined = undefined;
                 if (import_.isDefaultImport) {
+                    console.log('useing default export');
                     export_ = sourceModule.module.defaultExport;
                     //export_ = sourceModule.exports.find((e) => e.isDefaultExport);
-
+                    if(!export_) {
+                        console.log(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                    }
                 } else {
-                    export_ = sourceModule.exports.get(import_.exportedName || '');
+                    if(!exportedName){
+                        exportedName = import_.exportedName ||'';
+                    }
+                    console.log(`looking up export ${exportedName}`);
+                    export_ = sourceModule.exports.get(exportedName);
                 }
                 console.log(`got ${export_}`);
                 if (export_) {
@@ -92,8 +118,9 @@ function handleClass(
             }
         }
 
-
-        throw new Error(`unable to find superclass for ${class_.name}`);
+        if(!okay) {
+            throw new Error(`unable to find superclass for ${class_.name}`);
+        }
     }
     return Promise.resolve(undefined);
 }
@@ -103,26 +130,35 @@ function getRepositories(connection: Connection) {
     const classRepo = connection.getRepository(EntityCore.Class);
     const importRepo = connection.getRepository(EntityCore.Import);
     const exportRepo = connection.getRepository(EntityCore.Export);
-    return {moduleRepo, classRepo, importRepo, exportRepo};
+    const nameRepo = connection.getRepository(EntityCore.Name);
+    return {moduleRepo, classRepo, importRepo, exportRepo, nameRepo};
+}
+
+function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module) {
+
+    return nameRepo.find({where: {module}}).then((names: EntityCore.Name[])    => Map<string, EntityCore.Name>(names.map(name => [name.name || '', name])));
+
 }
 
 export function doProject(project: EntityCore.Project, connection: Connection) {
     console.log(`processing ${project.name}`);
-    const {moduleRepo, classRepo, importRepo, exportRepo} = getRepositories(connection);
+    const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
         imports: Map<string, EntityCore.Import>(),
         exports: Map<string, EntityCore.Export>(),
+        names: Map<string, EntityCore.Name>(),
         module: undefined as unknown as EntityCore.Module
     });
-    return moduleRepo.find({conditions: { project}, relations: ['defaultExport']}).then((modules: EntityCore.Module[]) =>
+    return moduleRepo.find({where: { project}, relations: ['defaultExport']}).then((modules: EntityCore.Module[]) =>
         Promise.all(modules.map((module): Promise<any> =>
             Promise.all([Promise.resolve(module),
                 imports(importRepo, module),
                 classes(classRepo, module),
                 getExports(exportRepo, module),
-            ]).then(([module, imports, classes, exports]: ResultType) => {
-                const r = factory({module, imports, classes, exports});
+                names(nameRepo, module),
+            ]).then(([module, imports, classes, exports, names]: ResultType) => {
+                const r = factory({module, imports, classes, exports, names});
                 // console.log(r.toJS());
                 return r;
             }).then(module => {
