@@ -2,11 +2,12 @@ import {ImportContext,ModuleSpecifier} from "./types";
 import {TransformUtils} from "./transformUtils";
 import {Module} from "../../classModel/lib/src";
 import {EntityCore} from "classModel";
-import {File} from "ast-types/gen/nodes";
 /*import {builders} from "ast-types";*/
 import path from "path";
 import j from 'jscodeshift';
 import { Connection } from "typeorm";
+import {namedTypes} from "ast-types/gen/namedTypes";
+import File = namedTypes.File;
 
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
@@ -91,7 +92,10 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName,
                     isDefault,
                     isNamespace);
-            }), TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0])]).then((): undefined|void => undefined);
+            }),
+            TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
+            TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
+            TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0])]).then((): undefined|void => undefined);
 
         /*
         const newExports: Node[] = [];

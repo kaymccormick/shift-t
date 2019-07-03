@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { namedTypes } from 'ast-types/gen/namedTypes';
-import nodes from 'ast-types/gen/nodes';
 import path from 'path';
 import { promisify } from 'util';
 import { parse } from 'recast';
@@ -10,7 +9,17 @@ import {processSourceModule} from "../src/Collector";
 import {createConnection} from "../src/TypeOrm/Factory";
 import { HandleAst} from'../src/types';
 import finder from 'find-package-json';
-import { Record } from 'immutable';
+import { Record,Map,List,RecordOf } from 'immutable';
+import File = namedTypes.File;
+type ResultType = [EntityCore.Module, ImportMap, Map<number, EntityCore.Class>];
+
+type ImportMap = Map<string, EntityCore.Import>;
+type  ModuleProps = {
+            classes: Map<string, EntityCore.Class>;
+            imports: Map<string, EntityCore.Import>;
+            module: EntityCore.Module;
+            };
+            type ModuleRecord = RecordOf<ModuleProps>;
 
 const readdir = promisify(fs.readdir);
 
@@ -20,7 +29,7 @@ function processFile(connection: Connection,
     handleAst: HandleAst,
 ): Promise<void> {
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
-    let ast: nodes.File|undefined = undefined;
+    let ast:    File|undefined = undefined;
     try {
         ast = parse(content, {
             parser: require("recast/parsers/typescript")
@@ -30,12 +39,12 @@ function processFile(connection: Connection,
         return Promise.resolve(undefined);
     }
     if(ast === undefined) {
-    console.log('no ast');
+        console.log('no ast');
         return Promise.resolve(undefined);
     }
 
     return processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).catch(error => {
-    console.log(error.message);
+        console.log(error.message);
     });
 }
 
@@ -63,7 +72,7 @@ function processDir(connection: Connection,
                     processDir,
                     handleAst))
                 .reduce((a, v) => a.then(() => v).catch(error => {
-                                console.log(error.message);
+                    console.log(error.message);
                 }), Promise.resolve<void>(undefined)));
 }
 
@@ -113,10 +122,41 @@ createConnection().then(connection => {
         return Promise.resolve(undefined);
     };
     return getOrCreateProject(packageName).then((project) => {
-      return processDir(connection, project, dir, handleAst).then(() => {
-      console.log(`processing ${project.name}`);
-      });
-});
-}).catch(error => {
+        return processDir(connection, project, dir, handleAst).then(() => {
+            console.log(`processing ${project.name}`);
+            const moduleRepo = connection.getRepository(EntityCore.Module);
+            const classRepo = connection.getRepository(EntityCore.Class);
+            const importRepo = connection.getRepository(EntityCore.Import);
+            const exportRepo = connection.getRepository(EntityCore.Export);
+            let modules2 = Map<number, EntityCore.Module>();
+            const factory = Record({});
+            moduleRepo.find({project}).then(modules =>
+                 Promise.all(modules.map((module): Promise<any> => Promise.all([ Promise.resolve(module),
+                 importRepo.find({ where: {module}, relations: ["module"]}).then(imports => Map<string, EntityCore.Import>(imports.map(import_ => [import_.localName, import_]))),
+                classRepo.find({module}).then(classes => Map<number, EntityCore.Class>(classes.map(class_ => [class_.id, class_]))),
+                ]).then(([module, imports, classes]: ResultType) => factory({ module, imports, classes })))).then(modules => Map<string, ModuleRecord>(modules.map((module: ModuleRecord) => {
+                if(!module.module) {
+                console.log(module);
+                throw new Error('');
+                }
+                return [module.module.name, module];
+                }))).then(modules =>
+                modules.forEach(module =>
+                  module.classes.forEach(class_ => {
+                if(class_.superClassNode) {
+                  const import_ = module.imports.get(class_.superClassNode.name)
+                  if(import_) {
+                  console.log(import_.module);
+                  const sourceModule = modules.get(import_.sourceModuleName);
+                  if(sourceModule) {
+                  console.log(sourceModule);
+                  }
+                  }
+                  }
+                  }))));
+                 });
+                  });
+                  })
+.catch(error => {
     console.log(error.message);
 });

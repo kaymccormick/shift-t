@@ -5,7 +5,6 @@ import path from 'path';
 import j from 'jscodeshift';
 import {strictEqual} from 'assert';
 import {namedTypes} from "ast-types/gen/namedTypes";
-import {File} from "ast-types/gen/nodes";
 import {NodePath} from "ast-types/lib/node-path";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValue } from "ast-types";
@@ -16,6 +15,7 @@ import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { Connection } from "typeorm";
 import { visit } from "ast-types";
 import {PatternKind} from "ast-types/gen/kinds";
+import File = namedTypes.File;
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
@@ -68,7 +68,7 @@ export class TransformUtils {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // @ts-ignore
             .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
-                console.log('here');
+                //                console.log('here');
 	    const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
 	    const promises: Promise<void>[] = [];
@@ -105,72 +105,83 @@ export class TransformUtils {
 	   module: EntityCore.Module,
 	   file: File
 	   ): Promise<void> {
-        return j(file).find(namedTypes.ExportNamedDeclaration,
-            (n: namedTypes.ExportNamedDeclaration): boolean => true
+        return ((): Promise<void>[] => {
+            return j(file).find(namedTypes.ExportNamedDeclaration,
+                (n: namedTypes.ExportNamedDeclaration): boolean => true
             /*                (n.source && n.declaration
 	&& (!n.specifiers || n.specifiers.length === 0) || false)*/
-        ).nodes().map(
-            (node: namedTypes.ExportNamedDeclaration): Promise<void> => {
-                const exportRepo = connection.getRepository(EntityCore.Export);
-                if(node.declaration) {
-                    if (node.declaration.type === 'ClassDeclaration') {
-                        const exportName = node.declaration.id ? node.declaration.id.name : undefined;
-                        if(exportName === undefined) {
-                            throw new Error('no name');
-                        }
-                        return exportRepo.find({module, name: exportName}).then(exports => {
-                            if(exports.length === 0) {
-                                const export_ = new EntityCore.Export( exportName, exportName, module);
-		    return exportRepo.save(export_).then((export_) => undefined);
+            ).nodes().flatMap(
+                (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => {
+                    const exportRepo = connection.getRepository(EntityCore.Export);
+//                    console.log(copyTree(node).toJS());
+                    if(node.declaration) {
+                        if (node.declaration.type === 'ClassDeclaration') {
+                            const exportedName = node.declaration.id ? node.declaration.id.name : undefined;
+                            if (exportedName === undefined) {
+                                throw new Error('no name');
                             }
-                            return Promise.resolve(undefined);
-                        });
-                    }
-                    else {
-                        throw new Error(`unhandled`);
-                    }
-                } else {
-                    if(node.specifiers && node.specifiers.length) {
-                        return node.specifiers.map((specifier) => {
-                            exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
-                                if(exports.length === 0) {
-                                    const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
-                                    return exportRepo.save(export_).then((export__) => undefined);
-                                }else{
-                                    return Promise.resolve(undefined);
+                            return exportRepo.find({module, exportedName}).then((exports) => {
+                                if (exports.length === 0) {
+                                    const export_ = new EntityCore.Export(exportedName, exportedName, module);
+                                    return exportRepo.save(export_);
+                                } else {
+
                                 }
+                                return Promise.resolve(undefined);
                             });
-                        });
+                        }
+                        else {
+                            throw new Error(`unhandled ${node.declaration.type}`);
+                        }
+                    } else {
+                        if(node.specifiers && node.specifiers.length) {
+                            return node.specifiers.map((specifier): Promise<void> => {
+                                return exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
+                                    if(exports.length === 0) {
+                                        if(!specifier.local || !specifier.exported) {
+                                            throw new Error('cant deal');
+                                        }
+                                        const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
+                                        return exportRepo.save(export_).then((export__) => undefined);
+                                    }else{
+                                        return Promise.resolve(undefined);
+                                    }
+                                });
+                            });
+                        }
                     }
+                    return Promise.resolve(undefined);
+                });
+        })().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+    }
+
+
+    public static processExportDefaultDeclaration(        connection: Connection,
+        module: EntityCore.Module,
+        file: File): Promise<void> {
+        return (() => {
+            return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): Promise<void> => {
+                const exportRepo = connection.getRepository(EntityCore.Export);
+                let name: string |undefined = undefined;
+                if (n.declaration.type === 'ClassDeclaration') {
+	    if(n.declaration.id) {
+                        name = n.declaration.id.name;
+                    }
+                    exportRepo.find({module, isDefaultExport: true}).then(exports => {
+                        if(exports.length === 0) {
+                            const export_ = new EntityCore.Export(name, name, module);
+                            export_.isDefaultExport = true;
+                            return exportRepo.save(export_);
+                        }else {
+                            //
+                        }
+                        return Promise.resolve(undefined);
+                    });
                 }
-		    }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
-        return Promise.resolve(undefined);
-    }
-
-
-    /*    public static processExportDefaultDeclaration(builders, file, newExports): Promise<void> {
-
-        return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): Promise<void> => {
-            let name;
-            if (n.declaration.type === 'ClassDeclaration') {
-	    if(!n.declaration.id) {
-	    throw new Error('');
-	    }
-                name = n.declaration.id.name;
-                const export_ = builders.exportNamedDeclaration(null,
-                    [builders.exportSpecifier(builders.identifier(name), builders.identifier(name))]);
-                newExports.push(export_);
-                //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
-            } else {
-
-                //name = n.declaration.name;
-                //thisModule.addExport({ exportName: undefined, localName: name, isDefaultExport: true});
-            }
-            //thisModule.defaultExport = name;
+                //thisModule.defaultExport = name;
 	    return Promise.resolve(undefined);
-        }).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+            })})().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
-*/
     public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Declaration): void {
         const methodDef = childNode as namedTypes.ClassMethod;
         const kind = methodDef.kind;
