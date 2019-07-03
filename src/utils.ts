@@ -20,7 +20,7 @@ export function copyTree(node: namedTypes.Node): Map<string, ValueKind> {
                 out = out.set(name, value);
             }
         } else if(value
-	&& value.constructor && value.constructor.name === "Node") {
+        && value.constructor && value.constructor.name === "Node") {
             out = out.set(name, copyTree(value));
         } else if(value && value.type) {
             throw new Error(value.type);

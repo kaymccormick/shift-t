@@ -33,20 +33,20 @@ export class TransformUtils {
             }
             const classIdName = classDecl.id.name;
 
-	    const classRepo = connection.getRepository(EntityCore.Class);
+            const classRepo = connection.getRepository(EntityCore.Class);
             const m = copyTree(classDecl);
 
-	    return classRepo.find({module, name: classIdName}).then(classes => {
-	    if(!classes.length) {
+            return classRepo.find({module, name: classIdName}).then(classes => {
+                if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
- 	     return classRepo.save(class_);
-	    } else {
+                    return classRepo.save(class_);
+                } else {
                     /* should check and update, no? */
-	    return Promise.resolve(classes[0]);
-	    }
+                    return Promise.resolve(classes[0]);
+                }
             }).then(class_ => {
             })}).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
@@ -60,18 +60,18 @@ export class TransformUtils {
     ): Promise<void> {
         return j(file).find(namedTypes.ImportDeclaration,
             (n: namedTypes.ImportDeclaration): boolean => {
-	    const r: boolean = /*n.importKind === 'value'
+                const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
-	    return r;
-	    })
+                return r;
+            })
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // @ts-ignore
             .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => {
                 //                console.log('here');
-	    const importModule = importDecl.source.value != null &&
+                const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
-	    const promises: Promise<void>[] = [];
+                const promises: Promise<void>[] = [];
                 visit(importDecl, {
                     visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                         const node = path.node;
@@ -79,10 +79,10 @@ export class TransformUtils {
                         if(!node.local) {
                             throw new Error('!node.local');
                         }
-		    promises.push(callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
+                        promises.push(callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
                             console.log(error.message);
-		    }));
-		    return false;
+                        }));
+                        return false;
                     },
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
@@ -93,23 +93,23 @@ export class TransformUtils {
                         return false;
                     }
                 });
-	    return Promise.all(promises).then((): void => undefined).catch((error: Error): void => {
-	    console.log(error.message);
-	    });
+                return Promise.all(promises).then((): void => undefined).catch((error: Error): void => {
+                    console.log(error.message);
+                });
 
             })
     }
 
     public static processExportNamedDeclarations(
-    	   connection: Connection,
-	   module: EntityCore.Module,
-	   file: File
-	   ): Promise<void> {
+        connection: Connection,
+        module: EntityCore.Module,
+        file: File
+    ): Promise<void> {
         return ((): Promise<void>[] => {
             return j(file).find(namedTypes.ExportNamedDeclaration,
                 (n: namedTypes.ExportNamedDeclaration): boolean => true
             /*                (n.source && n.declaration
-	&& (!n.specifiers || n.specifiers.length === 0) || false)*/
+        && (!n.specifiers || n.specifiers.length === 0) || false)*/
             ).nodes().flatMap(
                 (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => {
                     const exportRepo = connection.getRepository(EntityCore.Export);
@@ -164,7 +164,7 @@ export class TransformUtils {
                 const exportRepo = connection.getRepository(EntityCore.Export);
                 let name: string |undefined = undefined;
                 if (n.declaration.type === 'ClassDeclaration') {
-	    if(n.declaration.id) {
+                    if(n.declaration.id) {
                         name = n.declaration.id.name;
                     }
                     exportRepo.find({module, isDefaultExport: true}).then(exports => {
@@ -179,7 +179,7 @@ export class TransformUtils {
                     });
                 }
                 //thisModule.defaultExport = name;
-	    return Promise.resolve(undefined);
+                return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
     public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Declaration): void {
@@ -194,14 +194,14 @@ export class TransformUtils {
                 throw new Error(key.type);
             }
 
-	    const methodRepo = connection.getRepository(EntityCore.Method);
-	    methodRepo.find({"classProperty": moduleClass, "name": methodName}).then(methods => {
-	    if(methods.length == 0) {
-	    return methodRepo.save(new EntityCore.Method(methodName, [], moduleClass));
-	    } else {
-	    return methods[0];
-	    }
-	    }).then((method: EntityCore.Method) => {
+            const methodRepo = connection.getRepository(EntityCore.Method);
+            methodRepo.find({"classProperty": moduleClass, "name": methodName}).then(methods => {
+                if(methods.length == 0) {
+                    return methodRepo.save(new EntityCore.Method(methodName, [], moduleClass));
+                } else {
+                    return methods[0];
+                }
+            }).then((method: EntityCore.Method) => {
                 const params = methodDef.params;
                 params.forEach(
                     (pk: PatternKind): void => {
