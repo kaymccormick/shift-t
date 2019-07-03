@@ -1,8 +1,6 @@
 import {ImportContext,ModuleSpecifier} from "./types";
 import {TransformUtils} from "./transformUtils";
-import {Module} from "../../classModel/lib/src";
 import {EntityCore} from "classModel";
-/*import {builders} from "ast-types";*/
 import path from "path";
 import j from 'jscodeshift';
 import { Connection } from "typeorm";
@@ -30,7 +28,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
             if(!modules.length) {
                 console.log(`saving new module with ${name}`);
-                return moduleRepo.save(new EntityCore.Module(name, project, [], [], []))/*.catch((error: Error): void => {
+                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], []))/*.catch((error: Error): void => {
                     console.log(error.message);
                     console.log('unable to create module');
                 })*/;
@@ -93,10 +91,11 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     isDefault,
                     isNamespace);
             }),
-            TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
-            TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
-            TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0])]).then((): undefined|void => undefined);
-
+        TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
+        TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
+        TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0]),
+        TransformUtils.processNames(connection,module, collection.node()[0]),
+        ]).then((): undefined|void => undefined);
         /*
         const newExports: Node[] = [];
             processClassDeclarations(collection, registry, module);

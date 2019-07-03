@@ -113,7 +113,7 @@ export class TransformUtils {
             ).nodes().flatMap(
                 (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => {
                     const exportRepo = connection.getRepository(EntityCore.Export);
-//                    console.log(copyTree(node).toJS());
+                    //                    console.log(copyTree(node).toJS());
                     if(node.declaration) {
                         if (node.declaration.type === 'ClassDeclaration') {
                             const exportedName = node.declaration.id ? node.declaration.id.name : undefined;
@@ -229,4 +229,7 @@ export class TransformUtils {
         }
     }
 
+    public static processNames(connection: Connection, module: EntityCore.Module, nodeElement: any) {
+        return Promise.resolve(undefined);
+    }
 }

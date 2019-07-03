@@ -1,25 +1,16 @@
 import fs from 'fs';
-import { namedTypes } from 'ast-types/gen/namedTypes';
+import {namedTypes} from 'ast-types/gen/namedTypes';
 import path from 'path';
-import { promisify } from 'util';
-import { parse } from 'recast';
-import { Connection } from "typeorm";
+import {promisify} from 'util';
+import {parse} from 'recast';
+import {Connection} from "typeorm";
 import {EntityCore} from "classModel";
 import {processSourceModule} from "../src/Collector";
 import {createConnection} from "../src/TypeOrm/Factory";
-import { HandleAst} from'../src/types';
+import {HandleAst} from '../src/types';
 import finder from 'find-package-json';
-import { Record,Map,List,RecordOf } from 'immutable';
+import {doProject} from "../src/process";
 import File = namedTypes.File;
-type ResultType = [EntityCore.Module, ImportMap, Map<number, EntityCore.Class>];
-
-type ImportMap = Map<string, EntityCore.Import>;
-type  ModuleProps = {
-            classes: Map<string, EntityCore.Class>;
-            imports: Map<string, EntityCore.Import>;
-            module: EntityCore.Module;
-            };
-            type ModuleRecord = RecordOf<ModuleProps>;
 
 const readdir = promisify(fs.readdir);
 
@@ -87,27 +78,19 @@ if(packageName === undefined) {
     throw new Error('need package name');
 }
 
-/*
-const packageJson = path.join(dir, 'package.json');
-const pJSon = fs.readFileSync(packageJson, { encoding: 'utf-8' });
-const packageInfo = JSON.parse(pJSon);*/
-
-//
-// const processEntityCore.Project = (connection: Connection, project: EntityCore.Project): Promise<void> => {
-// };
-
 createConnection().then(connection => {
     const handlers: (() => any)[] = [];
 
-    fs.readdirSync(path.join(__dirname, '../src/collect'), { withFileTypes: true }).forEach(entry => {
-        const match = /^(.*)\.tsx?$/i.exec(entry.name);
-        if(entry.isFile() && match) {
-            const module = require(`../src/collect/${match[0]}`);
-            handlers.push(module.default(connection));
-        }
-    });
+    fs.readdirSync(path.join(__dirname, '../src/collect'), { withFileTypes: true })
+        .forEach(entry => {
+            const match = /^(.*)\.tsx?$/i.exec(entry.name);
+            if(entry.isFile() && match) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const module = require(`../src/collect/${match[0]}`);
+                handlers.push(module.default(connection));
+            }
+        });
 
-    const c = connection;
     const projectRepo = connection.getRepository(EntityCore.Project);
     const getOrCreateProject = (name: string): Promise<EntityCore.Project> => {
         return projectRepo.find({name}).then(projects => {
@@ -118,45 +101,15 @@ createConnection().then(connection => {
             }
         });
     }
-    const handleAst = (connection: Connection, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void> => {
+    const handleAst = (connection: Connection, project: EntityCore.Project,
+        fname: string, ast: namedTypes.File): Promise<void> => {
         return Promise.resolve(undefined);
     };
     return getOrCreateProject(packageName).then((project) => {
         return processDir(connection, project, dir, handleAst).then(() => {
-            console.log(`processing ${project.name}`);
-            const moduleRepo = connection.getRepository(EntityCore.Module);
-            const classRepo = connection.getRepository(EntityCore.Class);
-            const importRepo = connection.getRepository(EntityCore.Import);
-            const exportRepo = connection.getRepository(EntityCore.Export);
-            let modules2 = Map<number, EntityCore.Module>();
-            const factory = Record({});
-            moduleRepo.find({project}).then(modules =>
-                 Promise.all(modules.map((module): Promise<any> => Promise.all([ Promise.resolve(module),
-                 importRepo.find({ where: {module}, relations: ["module"]}).then(imports => Map<string, EntityCore.Import>(imports.map(import_ => [import_.localName, import_]))),
-                classRepo.find({module}).then(classes => Map<number, EntityCore.Class>(classes.map(class_ => [class_.id, class_]))),
-                ]).then(([module, imports, classes]: ResultType) => factory({ module, imports, classes })))).then(modules => Map<string, ModuleRecord>(modules.map((module: ModuleRecord) => {
-                if(!module.module) {
-                console.log(module);
-                throw new Error('');
-                }
-                return [module.module.name, module];
-                }))).then(modules =>
-                modules.forEach(module =>
-                  module.classes.forEach(class_ => {
-                if(class_.superClassNode) {
-                  const import_ = module.imports.get(class_.superClassNode.name)
-                  if(import_) {
-                  console.log(import_.module);
-                  const sourceModule = modules.get(import_.sourceModuleName);
-                  if(sourceModule) {
-                  console.log(sourceModule);
-                  }
-                  }
-                  }
-                  }))));
-                 });
-                  });
-                  })
-.catch(error => {
+            return doProject(project, connection);
+        });
+    });
+}).catch(error => {
     console.log(error.message);
 });

@@ -12,13 +12,13 @@ export function copyTree(node: namedTypes.Node): Map<string, ValueKind> {
                 throw new Error('');
             }
             if(value.length >0) {
-                        if(value[0].constructor && value[0].constructor.name === "Node") {
-                                    const x = value.map((elem: namedTypes.Node): Map<string,ValueKind> => copyTree(elem));
-                                      out = out.set(name, x);
-}
-  } else{
-  out = out.set(name, value);
-  }
+                if(value[0].constructor && value[0].constructor.name === "Node") {
+                    const x = value.map((elem: namedTypes.Node): Map<string,ValueKind> => copyTree(elem));
+                    out = out.set(name, x);
+                }
+            } else{
+                out = out.set(name, value);
+            }
         } else if(value
 	&& value.constructor && value.constructor.name === "Node") {
             out = out.set(name, copyTree(value));
