@@ -4,13 +4,13 @@ import {namedTypes} from "ast-types/gen/namedTypes";
 
 type ImportMap = Map<string, EntityCore.Import>;
 
-type ResultType = [EntityCore.Module, ImportMap,
+export type ResultType = [EntityCore.Module, ImportMap,
     Map<string, EntityCore.Class>, Map<string, EntityCore.Export>,
     Map<string, EntityCore.Name>,
     Map<string, EntityCore.Interface>,
 ];
 
-interface ModuleProps {
+export interface ModuleProps {
     classes: Map<string, EntityCore.Class>;
     imports: Map<string, EntityCore.Import>;
     exports: Map<string, EntityCore.Export>;
@@ -19,7 +19,7 @@ interface ModuleProps {
     interfaces: Map<string, EntityCore.Interface>;
 }
 
-type ModuleRecord = RecordOf<ModuleProps>;
+export type ModuleRecord = RecordOf<ModuleProps>;
 
 function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Module) {
     return classRepo.find({module}).then(classes => {
@@ -213,7 +213,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
                 return r;
             }).then((module): Promise<ModuleRecord> => {
                 return moduleRepo.save(module.module).then((): ModuleRecord => module)
-            }))).then((modules): ModuleRecord[] => {
+            }))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
             return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord]  => {
                 if (module === undefined) {
                     console.log('undefined module');
@@ -224,7 +224,14 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
                 }
                 return [module.module.name, module];
             }));
-        })).then((modules: Map<string, ModuleRecord>): Promise<any>[] =>
-        modules.flatMap((module): Promise<any>[] =>
-            module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo,interfaceRepo).catch((error): void => { console.log(error.message); })).valueSeq().toJS()));
-            }
+        })).then((modules: Map<string, ModuleRecord>): Promise<any>[] =>{
+        console.log(`got ${modules.count()} modules`);
+        // @ts-ignore
+        return modules.flatMap((module): Promise<any>[] => {
+        // @ts-ignore
+            return module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo,interfaceRepo).catch((error): void => { console.log(error.message); })).valueSeq().toJS();
+            
+});
+});
+}
+

@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getFieldNames, getFieldValue, eachField, namedTypes } from 'ast-types';
-import { Map } from 'immutable';
+import { Map,List } from 'immutable';
 
 type ValueKind = any|any[];
 //namedTypes.Node | namedTypes.Node[] | string | Map<string, {}> | Map<string, {}>[];
@@ -14,7 +14,7 @@ export function copyTree(node: namedTypes.Node): Map<string, ValueKind> {
             }
             if(value.length >0) {
                 if(value[0].constructor && value[0].constructor.name === "Node") {
-                    const x = value.map((elem: namedTypes.Node): Map<string,ValueKind> => copyTree(elem));
+                    const x = List<Map<string,ValueKind>>(value.map((elem: namedTypes.Node): Map<string,ValueKind> => copyTree(elem)));
                     out = out.set(name, x);
                 }
             } else{

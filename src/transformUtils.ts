@@ -37,11 +37,17 @@ export class TransformUtils {
             const nameRepo = connection.getRepository(EntityCore.Name);
             return nameRepo.find({module, name: idName}).then((names) => {
                 if(names.length === 0) {
+                console.log('creating name');
                     const name = new EntityCore.Name();
                     name.name = idName;
                     name.nameKind = 'interface';
                     name.module = module;
                     return nameRepo.save(name).then(() => undefined);
+                } else {
+                console.log('got names from query');
+                names.forEach(name => {
+                console.log(name.nameKind);
+                });
                 }
             }).then(() => interfaceRepo.find({module, name: idName}).then(interfaces => {
                 if(!interfaces.length) {
@@ -117,7 +123,6 @@ export class TransformUtils {
                     return classRepo.save(class_);
                 }
             }).then((class_: EntityCore.Class) => {
-                process.stdout.write('CLASS '+ class_.name + '\n');
                 return j(classDecl).find(namedTypes.ClassMethod).nodes().map((node: namedTypes.ClassMethod) => {
                     return TransformUtils.processClassMethod(connection, class_, node)
                 });
@@ -261,7 +266,8 @@ export class TransformUtils {
                     name = n.declaration.name;
                 } else if(n.declaration.type === 'FunctionDeclaration') {
                 } else if(n.declaration.type === 'ObjectExpression') {
-                    console.log('object expression');//copyTree(n.declaration).toJSON());
+                    console.log(`object expression`);
+                    console.log(copyTree(n.declaration).toJSON());
                 } else {
                         throw new Error(`unrecognized ype ${n.declaration.type}`);
 
