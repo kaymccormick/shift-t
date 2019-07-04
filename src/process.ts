@@ -1,6 +1,6 @@
-import {Map, Record, RecordOf} from "immutable";
-import {Connection, Repository} from "typeorm";
-import {EntityCore} from "classModel";
+import {Map, Record, RecordOf} from "immutable"; import {Connection,
+Repository} from "typeorm"; import {EntityCore} from "classModel";
+import {namedTypes} from "ast-types/gen/namedTypes";
 
 type ImportMap = Map<string, EntityCore.Import>;
 
@@ -57,7 +57,13 @@ function handleClass(
     modules: Map<string, ModuleRecord>,
     classRepo: Repository<EntityCore.Class>,
 ) {
-    console.log(class_.name);
+    if(class_.implementsNode && class_.implementsNode.length) {
+      class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments) => {
+      if(o.expression.type === 'Identifier') {
+        console.log(`name is ${o.expression.name}`);
+        }
+    });
+    }
     if (class_.superClassNode) {
         let objectName;
         let exportedName;
@@ -70,7 +76,6 @@ function handleClass(
         }
         const name_ = module.names.get(objectName);
         if(name_) {
-            console.log(`found name kind ${name_.nameKind}`);
             if(name_.nameKind === 'class'){
                 const c = module.classes.get(objectName);
                 class_.superClass = c;
@@ -88,24 +93,20 @@ function handleClass(
         }
         if (import_) {
             const sourceModule = modules.get(import_.sourceModuleName);
-            console.log(import_.sourceModuleName);
             if (sourceModule) {
                 let export_: EntityCore.Export | undefined = undefined;
                 if (import_.isDefaultImport) {
-                    console.log('useing default export');
                     export_ = sourceModule.module.defaultExport;
                     //export_ = sourceModule.exports.find((e) => e.isDefaultExport);
                     if(!export_) {
-                        console.log(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                    throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
                     }
                 } else {
                     if(!exportedName){
                         exportedName = import_.exportedName ||'';
                     }
-                    console.log(`looking up export ${exportedName}`);
                     export_ = sourceModule.exports.get(exportedName);
                 }
-                console.log(`got ${export_}`);
                 if (export_) {
                     const class2_ = sourceModule.classes.get(export_.localName || '');
                     if (class2_) {
@@ -141,7 +142,6 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 }
 
 export function doProject(project: EntityCore.Project, connection: Connection) {
-    console.log(`processing ${project.name}`);
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
@@ -159,7 +159,6 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
                 names(nameRepo, module),
             ]).then(([module, imports, classes, exports, names]: ResultType) => {
                 const r = factory({module, imports, classes, exports, names});
-                // console.log(r.toJS());
                 return r;
             }).then(module => {
                 return moduleRepo.save(module.module).then(m => {

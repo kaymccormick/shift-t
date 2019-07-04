@@ -55,9 +55,6 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName?: string,
                     isDefault?: boolean,
                     isNamespace?: boolean): Promise<void> => {
-                    if (isNamespace) {
-                        console.log('here');
-                    }
                     const importRepo = connection.getRepository(EntityCore.Import);
                     const nameRepo = connection.getRepository(EntityCore.Name);
                     const module = argument as EntityCore.Module;
@@ -65,7 +62,6 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                         throw new Error('no localName');
                     }
                     return nameRepo.find({where: {name: localName, module: importContext.moduleEntity}}).then(names => {
-                        console.log(names.length);
                         if (names.length === 0) {
                             const name = new EntityCore.Name();
                             name.module = importContext.moduleEntity;
@@ -74,7 +70,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                             return nameRepo.save(name).then(() => undefined);
                         } else {
                         // update the thing here
-                            console.log(names);
+                            //console.log(names);
                         }
                     }).then(() =>
                         importRepo.find({module, localName}).then(imports => {

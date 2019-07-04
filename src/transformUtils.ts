@@ -19,6 +19,53 @@ export function getModuleSpecifier(path: string): ModuleSpecifier  {
 
 export class TransformUtils {
 
+    public static processInterfaceDeclarations(
+        connection: Connection,
+        module: EntityCore.Module,
+        file: File,
+    ): Promise<any> {
+        return j(file).find(namedTypes.TSInterfaceDeclaration).nodes().map((iDecl: namedTypes.TSInterfaceDeclaration): Promise<void> => {
+            if(!iDecl.id) {
+                throw new Error('no interface name');
+            }
+            if(iDecl.id.type !== 'Identifier') {
+            throw new Error(`unsupported declaration type ${iDecl.id.type}`);
+            }
+            const idName = iDecl.id.name;
+
+            const interfaceRepo = connection.getRepository(EntityCore.Interface);
+            const nameRepo = connection.getRepository(EntityCore.Name);
+            return nameRepo.find({module, name: idName}).then((names) => {
+                if(names.length === 0) {
+                    const name = new EntityCore.Name();
+                    name.name = idName;
+                    name.nameKind = 'interface';
+                    name.module = module;
+                    return nameRepo.save(name).then(() => undefined);
+                }
+            }).then(() => interfaceRepo.find({module, name: idName}).then(interfaces => {
+                if(!interfaces.length) {
+                    /* create new class instance */
+                    const interface_ = new EntityCore.Interface()
+                    interface_.module = module;
+                    interface_.name = idName;
+//                    class_.astNode = m;
+                    interface_.astNode = copyTree(iDecl).toJS();
+                    return interfaceRepo.save(interface_);
+                } else {
+                    /* should check and update, no? */
+                    return Promise.resolve(interfaces[0]);
+                }
+            }).then((interface_: EntityCore.Interface) => {
+                process.stdout.write('IFACE '+ interface_.name + '\n');
+                return j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => {
+                    return TransformUtils.processInterfaceMethod(connection, interface_, node)
+                });
+            }))
+        })
+            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+    }
+
     public static processClassDeclarations(
         connection: Connection,
         module: EntityCore.Module,
@@ -34,6 +81,15 @@ export class TransformUtils {
             const nameRepo = connection.getRepository(EntityCore.Name);
             const m = copyTree(classDecl).remove('body');
             const superClass = m.get('superClass');
+/*            if(classDecl.implements && classDecl.implements.length)
+            if(classDecl.implements[0].type === 'ClassImplements') {
+              classDecl.implements.map(imp => {
+              
+            } else if(classDecl.implements[0].type === 'TSExpressionWithTypeArguments') {
+            throw new Error('unsupported');
+            }
+            Promise.all(classDecl.implements.map(*/
+            
             if(superClass) {
 //                console.log(superClass.toJS());
             }
@@ -51,10 +107,14 @@ export class TransformUtils {
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
+                    class_.implementsNode = m.get('implements');
                     return classRepo.save(class_);
                 } else {
-                    /* should check and update, no? */
-                    return Promise.resolve(classes[0]);
+                const class_ = classes[0];
+                    class_.astNode = m;
+                    class_.superClassNode = m.get('superClass');
+                    class_.implementsNode = m.get('implements');
+                    return classRepo.save(class_);
                 }
             }).then((class_: EntityCore.Class) => {
                 process.stdout.write('CLASS '+ class_.name + '\n');
@@ -137,7 +197,11 @@ export class TransformUtils {
                 (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => {
                     const exportRepo = connection.getRepository(EntityCore.Export);
                     if(node.declaration) {
-                        if (node.declaration.type === 'ClassDeclaration') {
+                        if (node.declaration.type === 'ClassDeclaration'
+                        || node.declaration.type === 'TSInterfaceDeclaration') {
+                        if(!node.declaration || !node.declaration.id || node.declaration.id.type !== 'Identifier'){
+                        throw new Error(`unsupported`);
+                        }
                             const exportedName = node.declaration.id ? node.declaration.id.name : undefined;
                             if (exportedName === undefined) {
                                 throw new Error('no name');
@@ -153,7 +217,6 @@ export class TransformUtils {
                             });
                         }
                         else if(node.declaration.type === 'FunctionDeclaration') {
-                        } else if(node.declaration.type === 'TSInterfaceDeclaration') {
                         } else if(node.declaration.type === 'VariableDeclaration') {
                         } else if(node.declaration.type === 'TSEnumDeclaration') {
                         } else if(node.declaration.type === 'TSTypeAliasDeclaration') {
@@ -169,7 +232,6 @@ export class TransformUtils {
                                             throw new Error('cant deal');
                                         }
                                         const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
-                                        console.log(`creating export ${specifier.local.name}`);
                                         return exportRepo.save(export_).then((export__) => undefined);
                                     }else{
                                         return Promise.resolve(undefined);
@@ -199,7 +261,7 @@ export class TransformUtils {
                     name = n.declaration.name;
                 } else if(n.declaration.type === 'FunctionDeclaration') {
                 } else if(n.declaration.type === 'ObjectExpression') {
-                    console.log(copyTree(n.declaration).toJSON());
+                    console.log('object expression');//copyTree(n.declaration).toJSON());
                 } else {
                         throw new Error(`unrecognized ype ${n.declaration.type}`);
 
@@ -280,6 +342,38 @@ export class TransformUtils {
                     });
             });
         }
+        return Promise.resolve(undefined);
+    }
+    public static processInterfaceMethod(connection: Connection, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
+        const methodDef = childNode;
+        const key = methodDef.key;
+            let methodName = '';
+            if (key.type === "Identifier") {
+                methodName = key.name;
+            } else {
+                throw new Error(key.type);
+            }
+
+            const methodRepo = connection.getRepository(EntityCore.InterfaceMethod);
+            return methodRepo.find({
+                interface_: iface,
+                "name": methodName}).then((methods: EntityCore.InterfaceMethod[]) => {
+                if(methods.length === 0) {
+                    const m = new EntityCore.InterfaceMethod()
+                    m.name = methodName;
+                    m.interface_ = iface;
+/*                    if(methodDef.accessibility) {
+                        m.accessibility = methodDef.accessibility ;
+                    }*/
+                    return methodRepo.save(m);
+                } else {
+                    return methods[0];
+                }
+            }).then((method: EntityCore.InterfaceMethod) => {
+                method.astNode = copyTree(methodDef);
+                return methodRepo.save(method);
+            }).then((method: EntityCore.InterfaceMethod) => {
+            });
         return Promise.resolve(undefined);
     }
 
