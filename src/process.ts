@@ -1,12 +1,14 @@
 import {Map, Record, RecordOf} from "immutable"; import {Connection,
-Repository} from "typeorm"; import {EntityCore} from "classModel";
+    Repository} from "typeorm"; import {EntityCore} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
 
 type ImportMap = Map<string, EntityCore.Import>;
 
 type ResultType = [EntityCore.Module, ImportMap,
     Map<string, EntityCore.Class>, Map<string, EntityCore.Export>,
-    Map<string, EntityCore.Name>];
+    Map<string, EntityCore.Name>,
+    Map<string, EntityCore.Interface>,
+];
 
 interface ModuleProps {
     classes: Map<string, EntityCore.Class>;
@@ -14,6 +16,7 @@ interface ModuleProps {
     exports: Map<string, EntityCore.Export>;
     names: Map<string, EntityCore.Name>;
     module: EntityCore.Module;
+    interfaces: Map<string, EntityCore.Interface>;
 }
 
 type ModuleRecord = RecordOf<ModuleProps>;
@@ -33,6 +36,10 @@ function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Mod
     //     classes,
     //
     // }))
+}
+
+function interfaces(interfaceRepo: Repository<EntityCore.Interface>, module: EntityCore.Module) {
+    return interfaceRepo.find({module}).then(ifaces => Map<string, EntityCore.Interface>(ifaces.map(iface => [iface.name||'', iface])));
 }
 
 function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module) {
@@ -56,13 +63,54 @@ function handleClass(
     module: ModuleRecord,
     modules: Map<string, ModuleRecord>,
     classRepo: Repository<EntityCore.Class>,
-) {
+    interfaceRepo: Repository<EntityCore.Interface>,
+): Promise<EntityCore.Class|undefined> {
     if(class_.implementsNode && class_.implementsNode.length) {
-      class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments) => {
-      if(o.expression.type === 'Identifier') {
-        console.log(`name is ${o.expression.name}`);
-        }
-    });
+        class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments) => {
+            let exportedName;
+
+            if(o.expression.type === 'Identifier') {
+                const name = module.names.get(o.expression.name);
+                if(name) {
+                    console.log(`name is ${name}`);
+                    if(name.nameKind === 'import') {
+                        const import_ = module.imports.get(o.expression.name);
+                        if(import_) {
+                            console.log('found import');
+                            const sourceModule = modules.get(import_.sourceModuleName);
+                            if (sourceModule) {
+                                let export_: EntityCore.Export | undefined = undefined;
+                                if (import_.isDefaultImport) {
+                                    export_ = sourceModule.module.defaultExport;
+                                    if(!export_) {
+                                        throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                                    }
+                                } else {
+                                    if(!exportedName){
+                                        exportedName = import_.exportedName ||'';
+                                    }
+                                    export_ = sourceModule.exports.get(exportedName);
+                                }
+                                if (export_) {
+                                    const interface2_ = sourceModule.interfaces.get(exportedName||'');
+                                    if (interface2_) {
+                                        if(!class_.implements) {
+                                            class_.implements = [interface2_];
+                                        } else {
+                                            class_.implements.push(interface2_);
+                                        }
+                                        //                                        return classRep.save(class_).then((z) => undefined);
+                                    }
+                                } else {
+                                    throw new Error(`no export`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        });
     }
     if (class_.superClassNode) {
         let objectName;
@@ -99,7 +147,7 @@ function handleClass(
                     export_ = sourceModule.module.defaultExport;
                     //export_ = sourceModule.exports.find((e) => e.isDefaultExport);
                     if(!export_) {
-                    throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                        throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
                     }
                 } else {
                     if(!exportedName){
@@ -123,7 +171,7 @@ function handleClass(
             throw new Error(`unable to find superclass for ${class_.name}`);
         }
     }
-    return Promise.resolve(undefined);
+    return classRepo.save(class_);
 }
 
 function getRepositories(connection: Connection) {
@@ -132,7 +180,8 @@ function getRepositories(connection: Connection) {
     const importRepo = connection.getRepository(EntityCore.Import);
     const exportRepo = connection.getRepository(EntityCore.Export);
     const nameRepo = connection.getRepository(EntityCore.Name);
-    return {moduleRepo, classRepo, importRepo, exportRepo, nameRepo};
+    const interfaceRepo = connection.getRepository(EntityCore.Interface);
+    return {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo};
 }
 
 function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module) {
@@ -142,30 +191,30 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 }
 
 export function doProject(project: EntityCore.Project, connection: Connection) {
-    const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo} = getRepositories(connection);
+    const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
         imports: Map<string, EntityCore.Import>(),
         exports: Map<string, EntityCore.Export>(),
+        interfaces: Map<string, EntityCore.Interface>(),
         names: Map<string, EntityCore.Name>(),
         module: undefined as unknown as EntityCore.Module
     });
-    return moduleRepo.find({where: { project}, relations: ['defaultExport']}).then((modules: EntityCore.Module[]) =>
+    return moduleRepo.find({where: { project}, relations: ['defaultExport']}).then((modules: EntityCore.Module[]): Promise<any> =>
         Promise.all(modules.map((module): Promise<any> =>
             Promise.all([Promise.resolve(module),
                 imports(importRepo, module),
                 classes(classRepo, module),
                 getExports(exportRepo, module),
                 names(nameRepo, module),
-            ]).then(([module, imports, classes, exports, names]: ResultType) => {
-                const r = factory({module, imports, classes, exports, names});
+                interfaces(interfaceRepo, module),
+            ]).then(([module, imports, classes, exports, names, interfaces]: ResultType): any => {
+                const r = factory({module, imports, classes, exports, names, interfaces});
                 return r;
-            }).then(module => {
-                return moduleRepo.save(module.module).then(m => {
-                    return module;
-                })
-            }))).then(modules => {
-            return Map<string, ModuleRecord>(modules.map((module: ModuleRecord) => {
+            }).then((module): Promise<ModuleRecord> => {
+                return moduleRepo.save(module.module).then((): ModuleRecord => module)
+            }))).then((modules): ModuleRecord[] => {
+            return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord]  => {
                 if (module === undefined) {
                     console.log('undefined module');
                     throw new Error('undefined module');
@@ -175,8 +224,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
                 }
                 return [module.module.name, module];
             }));
-        })).then((modules: Map<string, ModuleRecord>) =>
-        modules.flatMap(module =>
-            module.classes.map(class_ => handleClass(class_, module, modules, classRepo).catch(error => { console.log(error.message); })
-            )));
-}
+        })).then((modules: Map<string, ModuleRecord>): Promise<any>[] =>
+        modules.flatMap((module): Promise<any>[] =>
+            module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo,interfaceRepo).catch((error): void => { console.log(error.message); })).valueSeq().toJS()));
+            }
