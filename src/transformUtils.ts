@@ -11,11 +11,13 @@ import {copyTree} from "./utils";
 import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { Connection } from "typeorm";
 import { visit } from "ast-types";
-import {PatternKind} from "ast-types/gen/kinds";
+import {PatternKind,TSTypeKind} from "ast-types/gen/kinds";
 import File = namedTypes.File;
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
+
+let logDebug = console.log;
 
 export class TransformUtils {
 
@@ -24,20 +26,25 @@ export class TransformUtils {
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
+    const conn = connection;
         return j(file).find(namedTypes.TSInterfaceDeclaration).nodes().map((iDecl: namedTypes.TSInterfaceDeclaration): Promise<void> => {
             if(!iDecl.id) {
                 throw new Error('no interface name');
             }
             if(iDecl.id.type !== 'Identifier') {
-            throw new Error(`unsupported declaration type ${iDecl.id.type}`);
+                throw new Error(`unsupported declaration type ${iDecl.id.type}`);
             }
             const idName = iDecl.id.name;
+
+            if(iDecl.typeParameters) {
+              iDecl.typeParameters.params.map((param: namedTypes.TSTypeParameter) => {
+               });
+               }
 
             const interfaceRepo = connection.getRepository(EntityCore.Interface);
             const nameRepo = connection.getRepository(EntityCore.Name);
             return nameRepo.find({module, name: idName}).then((names) => {
                 if(names.length === 0) {
-                console.log('creating name');
                     const name = new EntityCore.Name();
                     name.name = idName;
                     name.nameKind = 'interface';
@@ -63,6 +70,8 @@ export class TransformUtils {
                     return Promise.resolve(interfaces[0]);
                 }
             }).then((interface_: EntityCore.Interface) => {
+            const promises = [];
+            promises.push(TransformUtils.processPropertyDeclarations(conn, interface_, iDecl));
                 process.stdout.write('IFACE '+ interface_.name + '\n');
                 return j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => {
                     return TransformUtils.processInterfaceMethod(connection, interface_, node)
@@ -72,12 +81,31 @@ export class TransformUtils {
             .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
 
+    public static processTypeDeclarations(
+        connection: Connection,
+        module: EntityCore.Module,
+        file: File,
+    ): Promise<any> {
+        return j(file).find(namedTypes.TSTypeAliasDeclaration).nodes().map((t: namedTypes.TSTypeAliasDeclaration): Promise<void> => {
+            if(t.id.type !== 'Identifier') {
+                throw new Error(`unsupported declaration type ${t.id.type}`);
+            }
+            const idName = t.id.name;
+            const t2 = t.typeAnnotation;
+            const tsTypeRepo = connection.getRepository(EntityCore.TSType);
+            const typeType = t2.type;
+            console.log(`type is ! ${t2.type}`);
+            return Promise.resolve(undefined);
+})
+            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+    }
+
     public static processClassDeclarations(
         connection: Connection,
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
-        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void> => {
+        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void|void[]> => {
             if(!classDecl.id) {
                 throw new Error('no class name');
             }
@@ -87,18 +115,7 @@ export class TransformUtils {
             const nameRepo = connection.getRepository(EntityCore.Name);
             const m = copyTree(classDecl).remove('body');
             const superClass = m.get('superClass');
-/*            if(classDecl.implements && classDecl.implements.length)
-            if(classDecl.implements[0].type === 'ClassImplements') {
-              classDecl.implements.map(imp => {
-              
-            } else if(classDecl.implements[0].type === 'TSExpressionWithTypeArguments') {
-            throw new Error('unsupported');
-            }
-            Promise.all(classDecl.implements.map(*/
-            
-            if(superClass) {
-//                console.log(superClass.toJS());
-            }
+
             return nameRepo.find({module, name: classIdName}).then((names) => {
                 if(names.length === 0) {
                     const name = new EntityCore.Name();
@@ -123,13 +140,23 @@ export class TransformUtils {
                     return classRepo.save(class_);
                 }
             }).then((class_: EntityCore.Class) => {
-                return j(classDecl).find(namedTypes.ClassMethod).nodes().map((node: namedTypes.ClassMethod) => {
-                    return TransformUtils.processClassMethod(connection, class_, node)
-                });
-            }))
-        })
+                const promises: Promise<void>[] = [];
+                console.log(classDecl.body.body.map(n => n.type));
+                visit(classDecl, {
+                visitTSDeclareMethod(path:NodePath<namedTypes.TSDeclareMethod>):boolean {
+                  promises.push(TransformUtils.processClassMethod(connection,class_, path.node));
+                  return false;
+                  },
+                visitClassMethod(path:NodePath<namedTypes.ClassMethod>):boolean {
+                  promises.push(TransformUtils.processClassMethod(connection,class_, path.node));
+                  return false;
+                  },
+                  });
+                  return Promise.all<void>(promises);
+}));
+})
             .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
-    }
+}
 
     public static handleImportDeclarations1(
         file: File,
@@ -294,8 +321,9 @@ export class TransformUtils {
                 return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
     }
-    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.ClassMethod): Promise<void> {
-        const methodDef = childNode;
+    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<void> {
+    process.stderr.write(`processClassMethod\n`);
+        const methodDef = childNode as namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
         const kind = methodDef.kind;
         const key = methodDef.key;
         if (kind === "method") {
@@ -327,15 +355,18 @@ export class TransformUtils {
                 params.forEach(
                     (pk: PatternKind): void => {
                         let name = '';
+                        console.log(`[${methodName}] pk type is ${pk.type}`);
                         let type_ = undefined;
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
                             if (pk.typeAnnotation) {
-
-                                //                            type_ = new Type(pk.typeAnnotation.typeAnnotation.type, pk.typeAnnotation.typeAnnotation);
-                                //                            const tree = copyTree(pk.typeAnnotation.typeAnnotation);
-                                //                            type_.tree = tree;
-                                //
+                            const annotation = pk.typeAnnotation.typeAnnotation;
+                            // least complex arrangement is one of these
+                            if(annotation.type === 'TSTypeAnnotation' || annotation.type === 'TSTypePredicate') {
+                            } else { // TSTypeKind
+                              const typ: TSTypeKind = annotation as TSTypeKind;
+                              console.log(`typekind if ${typ.type}`);
+                            }
                             }
                         } else if (pk.type === 'AssignmentPattern') {
                             name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
@@ -351,6 +382,7 @@ export class TransformUtils {
         return Promise.resolve(undefined);
     }
     public static processInterfaceMethod(connection: Connection, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
+    process.stderr.write(`processInterfaceMethod\n`);
         const methodDef = childNode;
         const key = methodDef.key;
             let methodName = '';
@@ -386,4 +418,85 @@ export class TransformUtils {
     public static processNames(connection: Connection, module: EntityCore.Module, nodeElement: any) {
         return Promise.resolve(undefined);
     }
+    public static processPropertyDeclarations(        connection: Connection,
+           iface: EntityCore.Interface,
+        inNode: namedTypes.Node,
+)
+{
+        return j(inNode).find(namedTypes.TSPropertySignature).nodes().map((n: namedTypes.TSPropertySignature) => {
+        if(n.key.type !== 'Identifier') {
+        throw new Error(`unsupported key type ${n.key.type}`);
+        }
+        const propName = n.key.name;
+        console.log(`name is ${n.key.name}`);
+        const propertyRepo = connection.getRepository(EntityCore.InterfaceProperty);
+                            const tsTypeRepo = connection.getRepository(EntityCore.TSType);
+
+        (() => {
+        if(n.typeAnnotation !== undefined) {
+        // @ts-ignore
+        return tsTypeRepo.find({module: iface.module,astNode:copyTree(n.typeAnnotation.typeAnnotation).toJS()}).then((types: EntityCore.TSType[]) => {
+        if(types.length === 0) {
+        const t = new EntityCore.TSType();
+        if(n.typeAnnotation) {
+                t.tsNodeType = n.typeAnnotation.typeAnnotation.type;
+        t.astNode = copyTree(n.typeAnnotation.typeAnnotation).toJS();
+        }
+        t.module = iface.module;
+        return tsTypeRepo.save(t);
+        } else {
+        console.log('returning existing type');
+        return types[0];
+        }
+        });
+        } else {
+        return Promise.resolve(undefined);
+        }
+        })().then((type: EntityCore.TSType|undefined) => {
+        if(type) {
+        if(n.typeAnnotation) {
+        const t1 = n.typeAnnotation.typeAnnotation;
+        console.log(`t1.type is ${t1.type}`);
+        if(t1.type === 'TSUnionType') {
+        console.log('union type');
+        const union = new EntityCore.TSUnionType(type.id!);
+        t1.types.map((unionNode: namedTypes.TSType) => {
+        return tsTypeRepo.find({where: { astNode: copyTree(unionNode).toJS() ,
+          module: iface.module}}).then(ts => {
+          console.log(`got ${ts.length} types`);
+          if(ts.length === 0) {
+          const newType = new EntityCore.TSType();
+          newType.tsNodeType = unionNode.type;
+          newType.astNode = copyTree(unionNode).toJS();
+          newType.module = iface.module;
+          return tsTypeRepo.save(newType);
+          } else {
+          return ts[0];
+          }
+});
+});
+}
+}
+}
+}).then(() => {
+        // @ts-ignore
+        return propertyRepo.find({iface, property: { name: propName }}).then((props: EntityCore.InterfaceProperty[]) => {
+        console.log(props.length);
+        if(props.length === 0) {
+        const p = new EntityCore.InterfaceProperty();
+        p.iface = iface;
+        p.property= new EntityCore.Property();
+        //p.property.type = type;
+        p.property.name = propName;
+        p.property.computed = n.computed;
+        p.property.readonly =n.readonly;
+        p.property.optional = n.optional;
+        p.property.hasInitializer= n.initializer != null;
+        p.property.astNode = copyTree(n).toJS();
+        return propertyRepo.save(p);
+}
+});
+});
+}).reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+}
 }
