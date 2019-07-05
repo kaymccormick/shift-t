@@ -1,4 +1,4 @@
-import {ImportContext,ModuleSpecifier} from "./types";
+import {ImportContext,ModuleSpecifier,Args} from "./types";
 import {TransformUtils} from "./transformUtils";
 import {EntityCore} from "classModel";
 import path from "path";
@@ -17,9 +17,9 @@ function getModuleName(path1: string): string {
     return moduleName;
 }
 
-export function processSourceModule(connection: Connection, project: EntityCore.Project, path1: string, file: File): Promise<void> {
+export function processSourceModule(args: Args, project: EntityCore.Project, path1: string, file: File): Promise<void> {
     const moduleName = getModuleName(path1);
-    const moduleRepo = connection.getRepository(EntityCore.Module);
+    const moduleRepo = args.connection.getRepository(EntityCore.Module);
 
     const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
         if(!name) {
@@ -55,8 +55,8 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     exportedName?: string,
                     isDefault?: boolean,
                     isNamespace?: boolean): Promise<void> => {
-                    const importRepo = connection.getRepository(EntityCore.Import);
-                    const nameRepo = connection.getRepository(EntityCore.Name);
+                    const importRepo = args.connection.getRepository(EntityCore.Import);
+                    const nameRepo = args.connection.getRepository(EntityCore.Name);
                     const module = argument as EntityCore.Module;
                     if (localName === undefined) {
                         throw new Error('no localName');
@@ -110,12 +110,12 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     isDefault,
                     isNamespace);
             }),
-        () => TransformUtils.processTypeDeclarations(connection, module, collection.nodes()[0]),
-        () => TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
-        () => TransformUtils.processInterfaceDeclarations(connection, module, collection.nodes()[0]),
-        () => TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
-        () => TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0]),
-        () => TransformUtils.processNames(connection,module, collection.nodes()[0]),
+        () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]),
+        () => TransformUtils.processClassDeclarations(args, module, collection.nodes()[0]),
+        () => TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]),
+        () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]),
+        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]),
+        () => TransformUtils.processNames(args,module, collection.nodes()[0]),
         // @ts-ignore
         ].reduce((a, v: () => Promise<any>) => a.then(r => {
         const z = v();

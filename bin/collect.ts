@@ -7,20 +7,24 @@ import {Connection} from "typeorm";
 import {EntityCore} from "classModel";
 import {processSourceModule} from "../src/Collector";
 import {createConnection} from "../src/TypeOrm/Factory";
-import {HandleAst} from '../src/types';
 import finder from 'find-package-json';
 import {doProject} from "../src/process";
-import File = namedTypes.File;
+import{RestClient}from '../src/RestClient';
 
+import File = namedTypes.File;
+const urlBase = 'http://localhost:7700/cme'
+const restClient = new RestClient(urlBase);
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 //console.log = () => {throw new Error('no console use')};
+
+import { Args, HandleAst } from '../src/types';
 
 function reportError(error: Error) {
     process.stderr.write(error.toString() +'\n' + error.message.toString() + '\n');
 }
  
-function processFile(connection: Connection,
+function processFile(args: Args,
     project: EntityCore.Project,
     fname: string,
     handleAst: HandleAst,
@@ -44,7 +48,7 @@ function processFile(connection: Connection,
     }
 
     process.stderr.write(`begin process module ${fname}\n`);
-    const r = processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).then(() => {
+    const r = processSourceModule(args, project, fname, ast!).then(() => handleAst(args, project, fname, ast!)).then(() => {
         process.stderr.write(`end process module ${fname}\n`);
         }).catch(error => {
         reportError(error);
@@ -52,24 +56,24 @@ function processFile(connection: Connection,
     return r;
 }
 
-function processEntry(connection: Connection,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (connection: Connection, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
+function processEntry(args: Args,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (args: Args, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
     const fname = path.join(path1, ent.name);
     if(ent.isDirectory() && ent.name !== 'node_modules') {
-        return processDir(connection, project, fname, handleAst);
+        return processDir(args, project, fname, handleAst);
     } else if(ent.isFile() && /\.ts$/.test(ent.name)) {
-        return processFile(connection, project, fname, handleAst);
+        return processFile(args, project, fname, handleAst);
     }
     return Promise.resolve<void>(undefined);
 }
 
-function processDir(connection: Connection,
+function processDir(args: Args,
     project: EntityCore.Project,
     dir: string,
     handleAst: HandleAst): Promise<void> {
     return readdir(dir, { withFileTypes: true})
         .then((ents: fs.Dirent[]): Promise<void> =>
             ents.map((ent): Promise<void> =>
-                processEntry(connection,
+                processEntry(args,
                     project,
                     dir,
                     ent,
@@ -114,16 +118,16 @@ createConnection().then(connection => {
             }
         });
     }
-    const handleAst = (connection: Connection, project: EntityCore.Project,
+    const handleAst = (args: Args, project: EntityCore.Project,
         fname: string, ast: namedTypes.File): Promise<void> => {
         return Promise.resolve(undefined);
     };
     return getOrCreateProject(packageName ||'').then((project) => {
     stat(dir).then(stats => {
     if(stats.isFile()) {
-        return processFile(connection, project, dir, handleAst);
+        return processFile({connection, restClient}, project, dir, handleAst);
         } else if(stats.isDirectory()) {
-        return processDir(connection, project, dir, handleAst);
+        return processDir({connection, restClient}, project, dir, handleAst);
         }
         }).then(() => {
             return doProject(project, connection);

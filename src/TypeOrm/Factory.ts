@@ -12,7 +12,8 @@ function myCreateConnection(): Promise<Connection> {
       "password": "derp123",
       "database": "myapp1",
       "synchronize": true,
-      "logging": false,
+      "logging": true,
+      "logger": "file",
       "migrations": [
          "src/migration/**/*.ts"
       ],

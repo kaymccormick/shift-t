@@ -5,8 +5,13 @@ export type ModuleSpecifier = string;
 import { Connection } from 'typeorm';
 
 
+export type Args = {
+  connection: Connection;
+  restClient: RestClient;
+}
+  
 export interface HandleAst {
-    (connection: Connection, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void>;
+    (args: Args, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void>;
 }
 
 export interface ImportContext {

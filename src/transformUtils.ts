@@ -16,17 +16,18 @@ import File = namedTypes.File;
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
+import { Args } from './types';
 
 let logDebug = console.log;
 
 export class TransformUtils {
 
     public static processInterfaceDeclarations(
-        connection: Connection,
+        args: Args,
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
-        const conn = connection;
+        const conn = args.connection;
         return j(file).find(namedTypes.TSInterfaceDeclaration).nodes().map((iDecl: namedTypes.TSInterfaceDeclaration): () => Promise<void> => () => {
             if(!iDecl.id) {
                 throw new Error('no interface name');
@@ -41,8 +42,8 @@ export class TransformUtils {
                 });
             }
 
-            const interfaceRepo = connection.getRepository(EntityCore.Interface);
-            const nameRepo = connection.getRepository(EntityCore.Name);
+            const interfaceRepo = args.connection.getRepository(EntityCore.Interface);
+            const nameRepo = args.connection.getRepository(EntityCore.Name);
             return nameRepo.find({module, name: idName}).then((names) => {
                 if(names.length === 0) {
                     const name = new EntityCore.Name();
@@ -72,15 +73,15 @@ export class TransformUtils {
                 if(!interface_) {
                     throw new Error('failure, no interface!');
                 }
-                [() => TransformUtils.processPropertyDeclarations(conn, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
-                    return TransformUtils.processInterfaceMethod(connection, interface_, node)
+                [() => TransformUtils.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
+                    return TransformUtils.processInterfaceMethod(args, interface_, node)
                 })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
 });
 }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
     public static processTypeDeclarations(
-        connection: Connection,
+        args: Args,
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
@@ -90,7 +91,7 @@ export class TransformUtils {
             }
             const idName = t.id.name;
             const t2 = t.typeAnnotation;
-            const tsTypeRepo = connection.getRepository(EntityCore.TSType);
+            const tsTypeRepo = args.connection.getRepository(EntityCore.TSType);
             const typeType = t2.type;
             console.log(`type is ! ${t2.type}`);
             return Promise.resolve(undefined);
@@ -99,7 +100,7 @@ export class TransformUtils {
     }
 
     public static processClassDeclarations(
-        connection: Connection,
+        args: Args,
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
@@ -109,8 +110,8 @@ export class TransformUtils {
             }
             const classIdName = classDecl.id.name;
 
-            const classRepo = connection.getRepository(EntityCore.Class);
-            const nameRepo = connection.getRepository(EntityCore.Name);
+            const classRepo = args.connection.getRepository(EntityCore.Class);
+            const nameRepo = args.connection.getRepository(EntityCore.Name);
             const m = copyTree(classDecl).remove('body');
             const superClass = m.get('superClass');
 
@@ -142,11 +143,11 @@ export class TransformUtils {
                 console.log(classDecl.body.body.map(n => n.type));
                 visit(classDecl, {
                     visitTSDeclareMethod(path: NodePath<namedTypes.TSDeclareMethod>): boolean {
-                        promises.push(TransformUtils.processClassMethod(connection,class_, path.node));
+                        promises.push(TransformUtils.processClassMethod(args,class_, path.node));
                         return false;
                     },
                     visitClassMethod(path: NodePath<namedTypes.ClassMethod>): boolean {
-                        promises.push(TransformUtils.processClassMethod(connection,class_, path.node));
+                        promises.push(TransformUtils.processClassMethod(args,class_, path.node));
                         return false;
                     },
                 });
@@ -222,7 +223,7 @@ export class TransformUtils {
     }
 
     public static processExportNamedDeclarations(
-        connection: Connection,
+        args: Args,
         module: EntityCore.Module,
         file: File
     ): Promise<void> {
@@ -233,7 +234,7 @@ export class TransformUtils {
         && (!n.specifiers || n.specifiers.length === 0) || false)*/
             ).nodes().map(
                 (node: namedTypes.ExportNamedDeclaration): () => Promise<any> => () => {
-                    const exportRepo = connection.getRepository(EntityCore.Export);
+                    const exportRepo = args.connection.getRepository(EntityCore.Export);
                     if(node.declaration) {
                         if (node.declaration.type === 'ClassDeclaration'
                         || node.declaration.type === 'TSInterfaceDeclaration') {
@@ -285,12 +286,12 @@ export class TransformUtils {
     }
 
 
-    public static processExportDefaultDeclaration(        connection: Connection,
+    public static processExportDefaultDeclaration(args: Args,
         module: EntityCore.Module,
         file: File): Promise<void> {
         return (() => {
             return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): () => Promise<void> => () => {
-                const exportRepo = connection.getRepository(EntityCore.Export);
+                const exportRepo = args.connection.getRepository(EntityCore.Export);
                 let name: string |undefined = undefined;
                 if (n.declaration.type === 'ClassDeclaration') {
                     if(n.declaration.id) {
@@ -328,7 +329,7 @@ export class TransformUtils {
                 return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
-    public static processClassMethod(connection: Connection, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<void> {
+    public static processClassMethod(args: Args, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<void> {
         process.stderr.write(`processClassMethod\n`);
         const methodDef = childNode as namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
         const kind = methodDef.kind;
@@ -341,7 +342,7 @@ export class TransformUtils {
                 throw new Error(key.type);
             }
 
-            const methodRepo = connection.getRepository(EntityCore.Method);
+            const methodRepo = args.connection.getRepository(EntityCore.Method);
             return methodRepo.find({
                 "classProperty": moduleClass,
                 "name": methodName}).then((methods: EntityCore.Method[]) => {
@@ -388,7 +389,7 @@ export class TransformUtils {
         }
         return Promise.resolve(undefined);
     }
-    public static processInterfaceMethod(connection: Connection, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
+    public static processInterfaceMethod(args: Args, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
         process.stderr.write(`processInterfaceMethod\n`);
         const methodDef = childNode;
         const key = methodDef.key;
@@ -399,7 +400,7 @@ export class TransformUtils {
             throw new Error(key.type);
         }
 
-        const methodRepo = connection.getRepository(EntityCore.InterfaceMethod);
+        const methodRepo = args.connection.getRepository(EntityCore.InterfaceMethod);
         return methodRepo.find({
             interface_: iface,
             "name": methodName}).then((methods: EntityCore.InterfaceMethod[]) => {
@@ -422,10 +423,10 @@ export class TransformUtils {
         return Promise.resolve(undefined);
     }
 
-    public static processNames(connection: Connection, module: EntityCore.Module, nodeElement: any): Promise<any> {
+    public static processNames(args: Args, module: EntityCore.Module, nodeElement: any): Promise<any> {
         return Promise.resolve(undefined);
     }
-    public static processPropertyDeclarations(        connection: Connection,
+    public static processPropertyDeclarations(        args: Args,
         iface: EntityCore.Interface,
         inNode: namedTypes.Node,
     ): Promise<any>
@@ -439,8 +440,8 @@ export class TransformUtils {
             }
             const propName = n.key.name;
             console.log(`name is ${n.key.name}`);
-            const propertyRepo = connection.getRepository(EntityCore.InterfaceProperty);
-            const tsTypeRepo = connection.getRepository(EntityCore.TSType);
+            const propertyRepo = args.connection.getRepository(EntityCore.InterfaceProperty);
+            const tsTypeRepo = args.connection.getRepository(EntityCore.TSType);
 
             ((): Promise<any> => {
                 if(n.typeAnnotation !== undefined) {
@@ -449,6 +450,7 @@ export class TransformUtils {
                     console.log(`looking for type ${JSON.stringify(astNode)}`);
                     return tsTypeRepo.find({module: iface.module,astNode}).then((types: EntityCore.TSType[]) => {
                         if(types.length === 0) {
+                        console.log('constructing typ');
                             const t = new EntityCore.TSType();
                             if(n.typeAnnotation) {
                                 t.tsNodeType = n.typeAnnotation.typeAnnotation.type;
@@ -473,7 +475,7 @@ export class TransformUtils {
                             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             const ref = new EntityCore.TSTypeReference(type.id!);
                             console.log(`typeref type is ${t1.typeName.type}`);
-                            const nameRepo = connection.getRepository(EntityCore.Name);
+                            const nameRepo = args.connection.getRepository(EntityCore.Name);
                             if(t1.typeName.type !== 'Identifier') {
                                 throw new Error(t1.typeName.type);
                             }
@@ -494,11 +496,11 @@ export class TransformUtils {
                                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                 const ref = new EntityCore.TSTypeReference(type.id!);
                                 ref.typeName = name__;
-                                return connection.manager.save(ref);
+                                return args.connection.manager.save(ref);
                             });
 
                         } else if (t1.type === 'TSUnionType') {
-                            return this.handleTSUnionType(type, t1, tsTypeRepo, iface, connection);
+                            return this.handleTSUnionType(type, t1, tsTypeRepo, iface, args);
                         }
                     }
                 }
@@ -533,7 +535,7 @@ export class TransformUtils {
         t1: namedTypes.TSUnionType,
         tsTypeRepo: Repository<EntityCore.TSType>,
         iface: EntityCore.Interface,
-        connection: Connection): Promise<any> {
+        args: Args): Promise<any> {
         console.log('union type');
         if (!type.id) {
             throw new Error('need id');
@@ -565,7 +567,7 @@ export class TransformUtils {
             union.types = results;
 
             console.log(union);
-            return connection.getRepository(EntityCore.TSUnionType).save(union).then(union_ => {
+            return args.connection.getRepository(EntityCore.TSUnionType).save(union).then(union_ => {
                 console.log(union_);
             }).catch((error: Error): void => {
                 console.log('unable to save union type ' + error.message);
