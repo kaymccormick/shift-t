@@ -27,7 +27,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         }
         return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
             if(!modules.length) {
-                console.log(`saving new module with ${name}`);
+//                console.log(`saving new module with ${name}`);
                 return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], []))/*.catch((error: Error): void => {
                     console.log(error.message);
                     console.log('unable to create module');
@@ -91,7 +91,7 @@ export function processSourceModule(connection: Connection, project: EntityCore.
         // Object.keys(t).forEach(key => {
         // console.log(`key is ${key}`);
         // });
-        return Promise.all([TransformUtils.handleImportDeclarations1(
+        return [() => TransformUtils.handleImportDeclarations1(
             collection.nodes()[0],
             moduleName,
             context,
@@ -110,11 +110,21 @@ export function processSourceModule(connection: Connection, project: EntityCore.
                     isDefault,
                     isNamespace);
             }),
-        TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
-        TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
-        TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0]),
-        TransformUtils.processNames(connection,module, collection.nodes()[0]),
-        ]).then((): undefined|void => undefined);
+        () => TransformUtils.processTypeDeclarations(connection, module, collection.nodes()[0]),
+        () => TransformUtils.processClassDeclarations(connection, module, collection.nodes()[0]),
+        () => TransformUtils.processInterfaceDeclarations(connection, module, collection.nodes()[0]),
+        () => TransformUtils.processExportDefaultDeclaration(connection, module, collection.nodes()[0]),
+        () => TransformUtils.processExportNamedDeclarations(connection, module, collection.nodes()[0]),
+        () => TransformUtils.processNames(connection,module, collection.nodes()[0]),
+        // @ts-ignore
+        ].reduce((a, v: () => Promise<any>) => a.then(r => {
+        const z = v();
+        return z.then(cr => [...r, cr]);
+        }), Promise.resolve([])).then((results: any[]) => {
+        //console.log(results);
+        }).catch((error: Error): void => {
+        console.log(error);
+        });
     };
     return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
         console.log(error);

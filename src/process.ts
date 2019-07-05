@@ -72,11 +72,9 @@ function handleClass(
             if(o.expression.type === 'Identifier') {
                 const name = module.names.get(o.expression.name);
                 if(name) {
-                    console.log(`name is ${name}`);
                     if(name.nameKind === 'import') {
                         const import_ = module.imports.get(o.expression.name);
                         if(import_) {
-                            console.log('found import');
                             const sourceModule = modules.get(import_.sourceModuleName);
                             if (sourceModule) {
                                 let export_: EntityCore.Export | undefined = undefined;
@@ -200,7 +198,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
         names: Map<string, EntityCore.Name>(),
         module: undefined as unknown as EntityCore.Module
     });
-    return moduleRepo.find({where: { project}, relations: ['defaultExport']}).then((modules: EntityCore.Module[]): Promise<any> =>
+    return moduleRepo.find({where: { project}, relations: ['defaultExport', 'types']}).then((modules: EntityCore.Module[]): Promise<any> =>
         Promise.all(modules.map((module): Promise<any> =>
             Promise.all([Promise.resolve(module),
                 imports(importRepo, module),
@@ -228,6 +226,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
         console.log(`got ${modules.count()} modules`);
         // @ts-ignore
         return modules.flatMap((module): Promise<any>[] => {
+        console.log(module.module.types);
         // @ts-ignore
             return module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo,interfaceRepo).catch((error): void => { console.log(error.message); })).valueSeq().toJS();
             

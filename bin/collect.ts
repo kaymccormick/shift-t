@@ -28,9 +28,11 @@ function processFile(connection: Connection,
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
+    process.stderr.write('begin parsing\n');
         ast = parse(content, {
             parser: require("recast/parsers/typescript")
         });
+    process.stderr.write('end parsing\n');
     }catch(error) {
         reportError(new Error(`unable to parse file ${fname}: ${error.message}`));
         return Promise.resolve(undefined);
@@ -41,9 +43,13 @@ function processFile(connection: Connection,
         return Promise.resolve(undefined);
     }
 
-    return processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).catch(error => {
+    process.stderr.write(`begin process module ${fname}\n`);
+    const r = processSourceModule(connection, project, fname, ast!).then(() => handleAst(connection, project, fname, ast!)).then(() => {
+        process.stderr.write(`end process module ${fname}\n`);
+        }).catch(error => {
         reportError(error);
     });
+    return r;
 }
 
 function processEntry(connection: Connection,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (connection: Connection, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
