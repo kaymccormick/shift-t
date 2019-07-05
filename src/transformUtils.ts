@@ -51,16 +51,14 @@ export class TransformUtils {
                     name.module = module;
                     return nameRepo.save(name).then(() => undefined);
                 } else {
-                    console.log('got names from query');
-                    names.forEach(name => {
-                        console.log(name.nameKind);
-                    });
+                const name = names[0];
+                name.nameKind = 'interface';
+                return nameRepo.save(name);
                 }
-            }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']}).then(interfaces => {
+            }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then(interfaces => {
                 if(!interfaces.length) {
                     /* create new class instance */
                     const interface_ = new EntityCore.Interface()
-                    console.log(`setting module for interface to ${module}`);
                     interface_.module = module;
                     interface_.name = idName;
                     //                    class_.astNode = m;
@@ -70,19 +68,15 @@ export class TransformUtils {
                     /* should check and update, no? */
                     return Promise.resolve(interfaces[0]);
                 }
-            }).then((interface_: EntityCore.Interface) => {
-                const promises = [];
+                }).then((interface_: EntityCore.Interface) => {
                 if(!interface_) {
                     throw new Error('failure, no interface!');
                 }
-                promises.push(TransformUtils.processPropertyDeclarations(conn, interface_, iDecl));
-                process.stdout.write('IFACE '+ interface_.name + '\n');
-                return j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => {
+                [() => TransformUtils.processPropertyDeclarations(conn, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
                     return TransformUtils.processInterfaceMethod(connection, interface_, node)
-                });
-            }))
-        })
-            .reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+                })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+});
+}).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
     public static processTypeDeclarations(
@@ -100,7 +94,7 @@ export class TransformUtils {
             const typeType = t2.type;
             console.log(`type is ! ${t2.type}`);
             return Promise.resolve(undefined);
-        })            .reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+        }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
 
     }
 
@@ -109,7 +103,7 @@ export class TransformUtils {
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
-        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): Promise<void|void[]> => () => {
+        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): () => Promise<any> => () => {
             if(!classDecl.id) {
                 throw new Error('no class name');
             }
@@ -176,47 +170,54 @@ export class TransformUtils {
                 return r;
             })
 
-            .nodes().map((importDecl: namedTypes.ImportDeclaration): Promise<void> => () => {
+            .nodes().map((importDecl: namedTypes.ImportDeclaration): () => Promise<void> => () => {
                 const importModule = importDecl.source.value != null &&
             path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
-                const promises: Promise<void>[] = [];
+                const promises: (() => Promise<void>)[] = [];
                 visit(importDecl, {
                     visitImportNamespaceSpecifier(path: NodePath<namedTypes.ImportNamespaceSpecifier>): boolean {
                         const node = path.node;
-                        if(!node.local) {
+
+                        promises.push(() => {
+                                                if(!node.local) {
                             throw new Error('!node.local');
                         }
-                        promises.push(callback(importContext, importModule, node.local.name, undefined, false, true).catch((error: Error): void => {
+                        return callback(importContext, importModule, node.local.name, undefined, false, true).catch((error: Error): void => {
                             console.log(error.message);
-                        }));
+                        });
+                        });
+                        
                         return false;
                     },
                     visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
                         const node = path.node;
                         strictEqual(node.imported.type, 'Identifier');
-                        if(!node.local) {
+
+                        promises.push(() => {
+                                                if(!node.local) {
                             throw new Error('!node.local');
                         }
-                        promises.push(callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
+                        return callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
                             console.log(error.message);
-                        }));
+                        });
+                        });
                         return false;
                     },
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
+                        promises.push(() => {
                         if(!path.node.local) {
                             throw new Error('undefined localName');
                         }
-                        promises.push(callback(importContext, importModule, path.node.local.name, undefined, true, false));
+                        return callback(importContext, importModule, path.node.local.name, undefined, true, false);
+                        });
                         return false;
                     }
                 });
-                return promises.reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined).catch((error: Error): void => {
-                    console.log(error.message);
-                });
+                return promises.reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
 
             })        
-            .reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+            .reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
 
     }
 
@@ -225,13 +226,13 @@ export class TransformUtils {
         module: EntityCore.Module,
         file: File
     ): Promise<void> {
-        return ((): Promise<void>[] => {
+        return ((): (() => Promise<any>)[] => {
             return j(file).find(namedTypes.ExportNamedDeclaration,
                 (n: namedTypes.ExportNamedDeclaration): boolean => true
             /*                (n.source && n.declaration
         && (!n.specifiers || n.specifiers.length === 0) || false)*/
             ).nodes().map(
-                (node: namedTypes.ExportNamedDeclaration): Promise<void|any>|Promise<void|any>[] => () => {
+                (node: namedTypes.ExportNamedDeclaration): () => Promise<any> => () => {
                     const exportRepo = connection.getRepository(EntityCore.Export);
                     if(node.declaration) {
                         if (node.declaration.type === 'ClassDeclaration'
@@ -441,10 +442,12 @@ export class TransformUtils {
             const propertyRepo = connection.getRepository(EntityCore.InterfaceProperty);
             const tsTypeRepo = connection.getRepository(EntityCore.TSType);
 
-            (() => {
+            ((): Promise<any> => {
                 if(n.typeAnnotation !== undefined) {
                     // @ts-ignore
-                    return tsTypeRepo.find({module: iface.module,astNode:copyTree(n.typeAnnotation.typeAnnotation).toJS()}).then((types: EntityCore.TSType[]) => {
+                    const astNode: any = copyTree(n.typeAnnotation.typeAnnotation).toJS();
+                    console.log(`looking for type ${JSON.stringify(astNode)}`);
+                    return tsTypeRepo.find({module: iface.module,astNode}).then((types: EntityCore.TSType[]) => {
                         if(types.length === 0) {
                             const t = new EntityCore.TSType();
                             if(n.typeAnnotation) {
@@ -454,7 +457,7 @@ export class TransformUtils {
                             t.module = iface.module;
                             return tsTypeRepo.save(t);
                         } else {
-                            console.log('returning existing type');
+                            console.log(`returning existing type ${types[0].astNode}`);
                             return types[0];
                         }
                     });
@@ -495,7 +498,7 @@ export class TransformUtils {
                             });
 
                         } else if (t1.type === 'TSUnionType') {
-                            this.handleTSUnionType(type, t1, tsTypeRepo, iface, connection);
+                            return this.handleTSUnionType(type, t1, tsTypeRepo, iface, connection);
                         }
                     }
                 }
@@ -567,6 +570,6 @@ export class TransformUtils {
             }).catch((error: Error): void => {
                 console.log('unable to save union type ' + error.message);
             });
-        }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+        });//.reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 }
