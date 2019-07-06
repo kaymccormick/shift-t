@@ -11,7 +11,7 @@ import {copyTree} from "./utils";
 import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import {Connection, Repository} from "typeorm";
 import { visit } from "ast-types";
-import {PatternKind,TSTypeKind} from "ast-types/gen/kinds";
+import {PatternKind,TSTypeKind,TSTypeAnnotationKind} from "ast-types/gen/kinds";
 import File = namedTypes.File;
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
@@ -27,6 +27,7 @@ export class TransformUtils {
         module: EntityCore.Module,
         file: File,
     ): Promise<any> {
+        console.log('here1');
         const conn = args.connection;
         return j(file).find(namedTypes.TSInterfaceDeclaration).nodes().map((iDecl: namedTypes.TSInterfaceDeclaration): () => Promise<void> => () => {
             if(!iDecl.id) {
@@ -50,11 +51,13 @@ export class TransformUtils {
                     name.name = idName;
                     name.nameKind = 'interface';
                     name.module = module;
+                    console.log('saving name');
                     return nameRepo.save(name).then(() => undefined);
                 } else {
-                const name = names[0];
-                name.nameKind = 'interface';
-                return nameRepo.save(name);
+                    const name = names[0];
+                    name.nameKind = 'interface';
+                    console.log('saving name');
+                    return nameRepo.save(name);
                 }
             }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then(interfaces => {
                 if(!interfaces.length) {
@@ -64,20 +67,21 @@ export class TransformUtils {
                     interface_.name = idName;
                     //                    class_.astNode = m;
                     interface_.astNode = copyTree(iDecl).toJS();
+                    console.log('saving interface');
                     return interfaceRepo.save(interface_);
                 } else {
                     /* should check and update, no? */
                     return Promise.resolve(interfaces[0]);
                 }
-                }).then((interface_: EntityCore.Interface) => {
+            }).then((interface_: EntityCore.Interface) => {
                 if(!interface_) {
                     throw new Error('failure, no interface!');
                 }
-                [() => TransformUtils.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
+                return [() => TransformUtils.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
                     return TransformUtils.processInterfaceMethod(args, interface_, node)
                 })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
-});
-}).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+            });
+        }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
     public static processTypeDeclarations(
@@ -90,8 +94,15 @@ export class TransformUtils {
                 throw new Error(`unsupported declaration type ${t.id.type}`);
             }
             const idName = t.id.name;
+            console.log(`type alias ${idName}`);
             const t2 = t.typeAnnotation;
-            const tsTypeRepo = args.connection.getRepository(EntityCore.TSType);
+
+            // @ts-ignore
+            return args.restClient.findTsType(module.id, copyTree(t2).toJS()).then((type_: any) => {
+                console.log('i got type');
+                console.log(type_);
+            });
+
             const typeType = t2.type;
             console.log(`type is ! ${t2.type}`);
             return Promise.resolve(undefined);
@@ -121,6 +132,7 @@ export class TransformUtils {
                     name.name = classIdName;
                     name.nameKind = 'class';
                     name.module = module;
+                    console.log('saving name');
                     return nameRepo.save(name).then(() => undefined);
                 }
             }).then(() => classRepo.find({module, name: classIdName}).then(classes => {
@@ -130,17 +142,19 @@ export class TransformUtils {
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
+                    console.log('saving class');
                     return classRepo.save(class_);
                 } else {
                     const class_ = classes[0];
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
+                    console.log('saving class');
                     return classRepo.save(class_);
                 }
             }).then((class_: EntityCore.Class) => {
                 const promises: Promise<void>[] = [];
-                console.log(classDecl.body.body.map(n => n.type));
+                //                console.log(classDecl.body.body.map(n => n.type));
                 visit(classDecl, {
                     visitTSDeclareMethod(path: NodePath<namedTypes.TSDeclareMethod>): boolean {
                         promises.push(TransformUtils.processClassMethod(args,class_, path.node));
@@ -180,12 +194,12 @@ export class TransformUtils {
                         const node = path.node;
 
                         promises.push(() => {
-                                                if(!node.local) {
-                            throw new Error('!node.local');
-                        }
-                        return callback(importContext, importModule, node.local.name, undefined, false, true).catch((error: Error): void => {
-                            console.log(error.message);
-                        });
+                            if(!node.local) {
+                                throw new Error('!node.local');
+                            }
+                            return callback(importContext, importModule, node.local.name, undefined, false, true).catch((error: Error): void => {
+                                console.log(error.message);
+                            });
                         });
                         
                         return false;
@@ -195,22 +209,22 @@ export class TransformUtils {
                         strictEqual(node.imported.type, 'Identifier');
 
                         promises.push(() => {
-                                                if(!node.local) {
-                            throw new Error('!node.local');
-                        }
-                        return callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
-                            console.log(error.message);
-                        });
+                            if(!node.local) {
+                                throw new Error('!node.local');
+                            }
+                            return callback(importContext, importModule, node.local.name, node.imported.name, false, false).catch((error: Error): void => {
+                                console.log(error.message);
+                            });
                         });
                         return false;
                     },
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
                         promises.push(() => {
-                        if(!path.node.local) {
-                            throw new Error('undefined localName');
-                        }
-                        return callback(importContext, importModule, path.node.local.name, undefined, true, false);
+                            if(!path.node.local) {
+                                throw new Error('undefined localName');
+                            }
+                            return callback(importContext, importModule, path.node.local.name, undefined, true, false);
                         });
                         return false;
                     }
@@ -248,6 +262,7 @@ export class TransformUtils {
                             return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]) => {
                                 if (exports.length === 0) {
                                     const export_ = new EntityCore.Export(exportedName, exportedName, module);
+                                    console.log('saving export');
                                     return exportRepo.save(export_);
                                 } else {
 
@@ -271,6 +286,7 @@ export class TransformUtils {
                                             throw new Error('cant deal');
                                         }
                                         const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
+                                        console.log('saving export');
                                         return exportRepo.save(export_).then((export__) => undefined);
                                     }else{
                                         return Promise.resolve(undefined);
@@ -312,6 +328,7 @@ export class TransformUtils {
                     if(exports.length === 0) {
                         const export_ = new EntityCore.Export(name, undefined, module);
                         export_.isDefaultExport = true;
+                        console.log('saving export');
                         return exportRepo.save(export_);
                     }else {
                         const export_ = exports[0];
@@ -319,6 +336,7 @@ export class TransformUtils {
                           export_.exportedName !== undefined) {
                             export_.localName= name;
                             export_.exportedName = undefined;
+                            console.log('saving export');
                             return exportRepo.save(export_);
                         }
                     }
@@ -329,7 +347,7 @@ export class TransformUtils {
                 return Promise.resolve(undefined);
             })})().reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
-    public static processClassMethod(args: Args, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<void> {
+    public static processClassMethod(args: Args, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<any> {
         process.stderr.write(`processClassMethod\n`);
         const methodDef = childNode as namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
         const kind = methodDef.kind;
@@ -345,36 +363,39 @@ export class TransformUtils {
             const methodRepo = args.connection.getRepository(EntityCore.Method);
             return methodRepo.find({
                 "classProperty": moduleClass,
-                "name": methodName}).then((methods: EntityCore.Method[]) => {
+                "name": methodName}).then((methods: EntityCore.Method[]): Promise<any> => {
                 if(methods.length === 0) {
                     const m = new EntityCore.Method(methodName, [], moduleClass);
                     if(methodDef.accessibility) {
                         m.accessibility = methodDef.accessibility ;
                     }
-                    return methodRepo.save(m);
+
+                    console.log('saving method');
+                    return methodRepo.save(m).catch((error: Error): undefined|Promise<void> =>{
+                        console.log(`unable to save method: ${error.message}`);
+                        return Promise.resolve(undefined);
+                    });
                 } else {
-                    return methods[0];
+                    return Promise.resolve(methods[0]);
                 }
-            }).then((method: EntityCore.Method) => {
+            }).then((method: EntityCore.Method|undefined): Promise<any> => {
+                if(!method) {
+                    return Promise.resolve(undefined);
+                }
                 method.astNode = copyTree(methodDef).remove('body');
+                console.log('saving method');
                 return methodRepo.save(method);
-            }).then((method: EntityCore.Method) => {
+            }).then((method: EntityCore.Method|undefined): Promise<any> => {
+                if(!method) {Promise.resolve(undefined);}
                 const params = methodDef.params;
-                params.forEach(
-                    (pk: PatternKind): void => {
+                return params.map(
+                    (pk: PatternKind): () => Promise<void> => (): Promise<void> => {
                         let name = '';
-                        console.log(`[${methodName}] pk type is ${pk.type}`);
                         let type_ = undefined;
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
                             if (pk.typeAnnotation) {
-                                const annotation = pk.typeAnnotation.typeAnnotation;
-                                // least complex arrangement is one of these
-                                if(annotation.type === 'TSTypeAnnotation' || annotation.type === 'TSTypePredicate') {
-                                } else { // TSTypeKind
-                                    const typ: TSTypeKind = annotation as TSTypeKind;
-                                    console.log(`typekind if ${typ.type}`);
-                                }
+                                return this.handleType(args, pk.typeAnnotation.typeAnnotation).then(()=>undefined);
                             }
                         } else if (pk.type === 'AssignmentPattern') {
                             name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
@@ -382,9 +403,8 @@ export class TransformUtils {
                         } else {
                             throw new Error(pk.type);
                         }
-                        //                    method.addParam(name, type_);
-                        //                    moduleClass.methods = moduleClass.methods.set(name, method);
-                    });
+                        return Promise.resolve(undefined);
+}).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined)).then(() =>undefined);
             });
         }
         return Promise.resolve(undefined);
@@ -411,12 +431,14 @@ export class TransformUtils {
                 /*                    if(methodDef.accessibility) {
                         m.accessibility = methodDef.accessibility ;
                     }*/
+                console.log('saving method');
                 return methodRepo.save(m);
             } else {
                 return methods[0];
             }
         }).then((method: EntityCore.InterfaceMethod) => {
             method.astNode = copyTree(methodDef);
+            console.log('saving method');
             return methodRepo.save(method);
         }).then((method: EntityCore.InterfaceMethod) => {
         });
@@ -431,6 +453,7 @@ export class TransformUtils {
         inNode: namedTypes.Node,
     ): Promise<any>
     {
+        console.log('here');
         if(!iface.module) {
             throw new Error('need module');
         }
@@ -441,88 +464,43 @@ export class TransformUtils {
             const propName = n.key.name;
             console.log(`name is ${n.key.name}`);
             const propertyRepo = args.connection.getRepository(EntityCore.InterfaceProperty);
-            const tsTypeRepo = args.connection.getRepository(EntityCore.TSType);
 
             ((): Promise<any> => {
-                if(n.typeAnnotation !== undefined) {
-                    // @ts-ignore
-                    const astNode: any = copyTree(n.typeAnnotation.typeAnnotation).toJS();
-                    console.log(`looking for type ${JSON.stringify(astNode)}`);
-                    return tsTypeRepo.find({module: iface.module,astNode}).then((types: EntityCore.TSType[]) => {
-                        if(types.length === 0) {
-                        console.log('constructing typ');
-                            const t = new EntityCore.TSType();
-                            if(n.typeAnnotation) {
-                                t.tsNodeType = n.typeAnnotation.typeAnnotation.type;
-                                t.astNode = copyTree(n.typeAnnotation.typeAnnotation).toJS();
-                            }
-                            t.module = iface.module;
-                            return tsTypeRepo.save(t);
-                        } else {
-                            console.log(`returning existing type ${types[0].astNode}`);
-                            return types[0];
-                        }
-                    });
+                if(n.typeAnnotation != null) {
+                    return this.handleType(args, n.typeAnnotation.typeAnnotation);
                 } else {
                     return Promise.resolve(undefined);
                 }
-            })().then((type: EntityCore.TSType|undefined) => {
+            })().then((type: EntityCore.TSType|undefined): Promise<any> => {
                 if (type) {
                     if (n.typeAnnotation) {
                         const t1 = n.typeAnnotation.typeAnnotation;
                         console.log(`t1.type is ${t1.type}`);
-                        if (t1.type === 'TSTypeReference') {
-                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                            const ref = new EntityCore.TSTypeReference(type.id!);
-                            console.log(`typeref type is ${t1.typeName.type}`);
-                            const nameRepo = args.connection.getRepository(EntityCore.Name);
-                            if(t1.typeName.type !== 'Identifier') {
-                                throw new Error(t1.typeName.type);
-                            }
-                            const name = t1.typeName.name;
-                            return nameRepo.find({
-                                module: iface.module,
-                                name: name
-                            }).then(names => {
-                                if (names.length === 0) {
-                                    const name_ = new EntityCore.Name()
-                                    name_.name = name;
-                                    name_.module = iface.module;
-                                    return nameRepo.save(name_);
-                                } else {
-                                    return names[0];
-                                }
-                            }).then(name__ => {
-                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                                const ref = new EntityCore.TSTypeReference(type.id!);
-                                ref.typeName = name__;
-                                return args.connection.manager.save(ref);
-                            });
-
-                        } else if (t1.type === 'TSUnionType') {
-                            return this.handleTSUnionType(type, t1, tsTypeRepo, iface, args);
-                        }
+                        //this.handleTypeAnnotation(args);
                     }
                 }
-
-            }).then((): Promise<any> => {
                 // @ts-ignore
                 return propertyRepo.find({iface, property: { name: propName }}
                 ).then((props: EntityCore.InterfaceProperty[]): Promise<any> => {
-                    console.log(props.length);
                     if(props.length === 0) {
                         const p = new EntityCore.InterfaceProperty();
                         p.iface = iface;
                         p.property = new EntityCore.Property();
-                        //p.property.type = type;
+                        p.property.type = type;
                         p.property.name = propName;
                         p.property.computed = n.computed;
                         p.property.readonly = n.readonly;
                         p.property.optional = n.optional;
                         p.property.hasInitializer = n.initializer != null;
                         p.property.astNode = copyTree(n).toJS();
-                        return propertyRepo.save(p);
+
+                        console.log('saving property');
+                        return propertyRepo.save(p).catch((error: Error): Promise<any> => {
+                            console.log('unable to save property');
+                            return Promise.resolve(undefined);
+                        });
                     } else {
+                        console.log('returning existing property');
                         return Promise.resolve(props[0]);
                     }
 
@@ -531,47 +509,24 @@ export class TransformUtils {
         }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
-    private static handleTSUnionType(type: EntityCore.TSType,
-        t1: namedTypes.TSUnionType,
-        tsTypeRepo: Repository<EntityCore.TSType>,
-        iface: EntityCore.Interface,
-        args: Args): Promise<any> {
-        console.log('union type');
-        if (!type.id) {
-            throw new Error('need id');
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const union = new EntityCore.TSUnionType(type.id!);
-        return (t1.types.map((unionNode: namedTypes.TSType) => {
-            return () => tsTypeRepo.find({
-                where: {
-                    astNode: copyTree(unionNode).toJS(),
-                    module: iface.module
-                }
-            }).then(ts => {
-                console.log(`got ${ts.length} types`);
-                if (ts.length === 0) {
-                    const newType = new EntityCore.TSType();
-                    newType.tsNodeType = unionNode.type;
-                    newType.astNode = copyTree(unionNode).toJS();
-                    newType.module = iface.module;
-                    return tsTypeRepo.save(newType);
-                } else {
-                    return ts[0];
-                }
-            });
-            // @ts-ignore
-        })).reduce((a, v) => a.then(r => v().then(cr => [...r, cr])), Promise.resolve([])).then(results => {
-            console.log('saving union type');
-            console.log(results);
-            union.types = results;
+    public static handleType(args: Args, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
+        const astNode: any = copyTree(typeAnnotation).toJS();
+        console.log(`looking for type ${JSON.stringify(astNode)}`);
+        //@ts-ignore
+        return args.restClient.findTsType(iface.module.id, astNode).then((type_: any): Promise<any> => {
+            if(!type_) {
+                // @ts-ignore
+                return args.restClient.createTsType(iface.module!.id, astNode, 'propDecl').catch((error: Error): void => {
+                    console.log(`unable to create ts type via rest: ${error.message}`);
+                    return undefined;
+                });
+            } else {
+                return type_;
+            }
+        });
 
-            console.log(union);
-            return args.connection.getRepository(EntityCore.TSUnionType).save(union).then(union_ => {
-                console.log(union_);
-            }).catch((error: Error): void => {
-                console.log('unable to save union type ' + error.message);
-            });
-        });//.reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
+    
+   
+
 }
