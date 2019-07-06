@@ -29,6 +29,7 @@ throw new Error(data.error);
      //@ts-ignore
      tsType[key] = tsTypeInfo[key];
      });
+     return tsType;
 });
      }
 }

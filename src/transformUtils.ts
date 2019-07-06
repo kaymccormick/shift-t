@@ -52,14 +52,18 @@ export class TransformUtils {
                     name.nameKind = 'interface';
                     name.module = module;
                     console.log('saving name');
-                    return nameRepo.save(name).then(() => undefined);
+                    return nameRepo.save(name).catch((error: Error): void => {
+                    console.log(`unable to persist name: ${error.message}`);
+            }).then(() => undefined);
                 } else {
                     const name = names[0];
                     name.nameKind = 'interface';
                     console.log('saving name');
-                    return nameRepo.save(name);
+                    return nameRepo.save(name).catch((error: Error): void => {
+                    console.log(`unable to persist name: ${error.message}`);
+            });
                 }
-            }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then(interfaces => {
+            }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then((interfaces): Promise<any> => {
                 if(!interfaces.length) {
                     /* create new class instance */
                     const interface_ = new EntityCore.Interface()
@@ -68,7 +72,9 @@ export class TransformUtils {
                     //                    class_.astNode = m;
                     interface_.astNode = copyTree(iDecl).toJS();
                     console.log('saving interface');
-                    return interfaceRepo.save(interface_);
+                    return interfaceRepo.save(interface_).catch((error: Error): void => {
+                    console.log(`unable to persist interface: ${error.message}`);
+            });
                 } else {
                     /* should check and update, no? */
                     return Promise.resolve(interfaces[0]);
@@ -133,9 +139,11 @@ export class TransformUtils {
                     name.nameKind = 'class';
                     name.module = module;
                     console.log('saving name');
-                    return nameRepo.save(name).then(() => undefined);
+                    return nameRepo.save(name).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            }).then(() => undefined);
                 }
-            }).then(() => classRepo.find({module, name: classIdName}).then(classes => {
+            }).then(() => classRepo.find({module, name: classIdName}).then((classes): Promise<any> => {
                 if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
@@ -143,29 +151,33 @@ export class TransformUtils {
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
                     console.log('saving class');
-                    return classRepo.save(class_);
+                    return classRepo.save(class_).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            });
                 } else {
                     const class_ = classes[0];
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
                     console.log('saving class');
-                    return classRepo.save(class_);
+                    return classRepo.save(class_).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            });
                 }
             }).then((class_: EntityCore.Class) => {
-                const promises: Promise<void>[] = [];
+                const promises: (() => Promise<void>)[] = [];
                 //                console.log(classDecl.body.body.map(n => n.type));
                 visit(classDecl, {
                     visitTSDeclareMethod(path: NodePath<namedTypes.TSDeclareMethod>): boolean {
-                        promises.push(TransformUtils.processClassMethod(args,class_, path.node));
+                        promises.push(() => TransformUtils.processClassMethod(args,class_, path.node));
                         return false;
                     },
                     visitClassMethod(path: NodePath<namedTypes.ClassMethod>): boolean {
-                        promises.push(TransformUtils.processClassMethod(args,class_, path.node));
+                        promises.push(() => TransformUtils.processClassMethod(args,class_, path.node));
                         return false;
                     },
                 });
-                return promises.reduce((a: Promise<void>, v: Promise<void>): Promise<void> => a.then(() => v), Promise.resolve(undefined)).then(() => undefined);
+                return promises.reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined)).then(() =>undefined);
             }));
         })            .reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
@@ -263,7 +275,9 @@ export class TransformUtils {
                                 if (exports.length === 0) {
                                     const export_ = new EntityCore.Export(exportedName, exportedName, module);
                                     console.log('saving export');
-                                    return exportRepo.save(export_);
+                                    return exportRepo.save(export_).catch((error: Error): void => {
+                    console.log(`unable to persist export: ${error.message}`);
+            });
                                 } else {
 
                                 }
@@ -287,7 +301,9 @@ export class TransformUtils {
                                         }
                                         const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
                                         console.log('saving export');
-                                        return exportRepo.save(export_).then((export__) => undefined);
+                                        return exportRepo.save(export_).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            }).then((export__) => undefined);
                                     }else{
                                         return Promise.resolve(undefined);
                                     }
@@ -329,7 +345,9 @@ export class TransformUtils {
                         const export_ = new EntityCore.Export(name, undefined, module);
                         export_.isDefaultExport = true;
                         console.log('saving export');
-                        return exportRepo.save(export_);
+                        return exportRepo.save(export_).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            });
                     }else {
                         const export_ = exports[0];
                         if(export_.localName !== name ||
@@ -337,7 +355,9 @@ export class TransformUtils {
                             export_.localName= name;
                             export_.exportedName = undefined;
                             console.log('saving export');
-                            return exportRepo.save(export_);
+                            return exportRepo.save(export_).catch((error: Error): void => {
+                    console.log(`unable to persist class: ${error.message}`);
+            });
                         }
                     }
                     return Promise.resolve(undefined);
@@ -348,7 +368,7 @@ export class TransformUtils {
             })})().reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
     public static processClassMethod(args: Args, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<any> {
-        process.stderr.write(`processClassMethod\n`);
+        process.stderr.write(`processClassMethod `);
         const methodDef = childNode as namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
         const kind = methodDef.kind;
         const key = methodDef.key;
@@ -356,6 +376,7 @@ export class TransformUtils {
             let methodName = '';
             if (key.type === "Identifier") {
                 methodName = key.name;
+                    process.stderr.write(`${methodName}\n`);
             } else {
                 throw new Error(key.type);
             }
@@ -370,7 +391,7 @@ export class TransformUtils {
                         m.accessibility = methodDef.accessibility ;
                     }
 
-                    console.log('saving method');
+                    console.log(`saving method ${m.name}`);
                     return methodRepo.save(m).catch((error: Error): undefined|Promise<void> =>{
                         console.log(`unable to save method: ${error.message}`);
                         return Promise.resolve(undefined);
@@ -383,20 +404,27 @@ export class TransformUtils {
                     return Promise.resolve(undefined);
                 }
                 method.astNode = copyTree(methodDef).remove('body');
-                console.log('saving method');
-                return methodRepo.save(method);
+                console.log('updating ast Node in method');
+                return methodRepo.save(method).catch((error: Error): void => {
+                    console.log(`unable to persist method: ${error.message}`);
+            });
             }).then((method: EntityCore.Method|undefined): Promise<any> => {
                 if(!method) {Promise.resolve(undefined);}
                 const params = methodDef.params;
                 return params.map(
                     (pk: PatternKind, index:number): () => Promise<void> => (): Promise<void> => {
-                    (() => {
+                    return ((): Promise<any> => {
                         let name = '';
                         let type_ = undefined;
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
                             if (pk.typeAnnotation) {
-                                return this.handleType(args, moduleClass.moduleId, pk.typeAnnotation.typeAnnotation);
+                                return this.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then(type_ => {
+                                console.log(`got type ${type_}`);
+                                return type_;
+                                }).catch((error: Error): void => {
+                    console.log(`unable to handle type: ${error.message}`);
+            });
                             }
                         } else if (pk.type === 'AssignmentPattern') {
                             name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
@@ -406,6 +434,9 @@ export class TransformUtils {
                         }
                         return Promise.resolve(undefined);
                         })().then(type => {
+                        if(!type) {
+                        throw new Error('no type');
+                        }
                         let name = '';
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
@@ -413,10 +444,18 @@ export class TransformUtils {
                             if(!name) {
                             throw new Error('no name');
                             }
-                        const parameter = EntityCore.Parameter(name, method);
+                        const parameter = new EntityCore.Parameter(name, method!);
                         parameter.ordinal = index;
-                        parameter.type = type;
-                        return this.connection.manager.save(parameter).then(() => undefined);
+                        if(!type) {
+                        throw new Error('no type');
+                        }
+                        parameter.typeId = type.id;
+                        console.log(`persisting parameter ${parameter}`);
+                        return args.connection.manager.save(parameter).catch((error: Error): void => {
+                    console.log(`unable to persist parameter: ${error.message}`);
+            }).catch((error: Error): void => {
+                    console.log(`unable to process class method: ${error.message}`);
+            }).then(() => undefined);
 
                         });
 }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined)).then(() =>undefined);
@@ -438,7 +477,7 @@ export class TransformUtils {
         const methodRepo = args.connection.getRepository(EntityCore.InterfaceMethod);
         return methodRepo.find({
             interface_: iface,
-            "name": methodName}).then((methods: EntityCore.InterfaceMethod[]) => {
+            "name": methodName}).then((methods: EntityCore.InterfaceMethod[]):Promise<any> => {
             if(methods.length === 0) {
                 const m = new EntityCore.InterfaceMethod()
                 m.name = methodName;
@@ -447,14 +486,18 @@ export class TransformUtils {
                         m.accessibility = methodDef.accessibility ;
                     }*/
                 console.log('saving method');
-                return methodRepo.save(m);
+                return methodRepo.save(m).catch((error: Error): void => {
+                    console.log(`unable to method class: ${error.message}`);
+            });
             } else {
-                return methods[0];
+                return Promise.resolve(methods[0]);
             }
-        }).then((method: EntityCore.InterfaceMethod) => {
+        }).then((method: EntityCore.InterfaceMethod):Promise<any> => {
             method.astNode = copyTree(methodDef);
             console.log('saving method');
-            return methodRepo.save(method);
+            return methodRepo.save(method).catch((error: Error): void => {
+                    console.log(`unable to persist method: ${error.message}`);
+            });
         }).then((method: EntityCore.InterfaceMethod) => {
         });
         return Promise.resolve(undefined);
@@ -482,8 +525,9 @@ export class TransformUtils {
 
             ((): Promise<any> => {
                 if(n.typeAnnotation != null) {
+                console.log('here it is');
                     return this.handleType(args, iface.module!.id, n.typeAnnotation.typeAnnotation);
-                } else {
+                } else {throw new Error('beep');
                     return Promise.resolve(undefined);
                 }
             })().then((type: EntityCore.TSType|undefined): Promise<any> => {
@@ -501,6 +545,10 @@ export class TransformUtils {
                         const p = new EntityCore.InterfaceProperty();
                         p.iface = iface;
                         p.property = new EntityCore.Property();
+                        if(!type) {
+                        throw new Error('no type');
+                        }
+                        
                         p.property.type = type;
                         p.property.name = propName;
                         p.property.computed = n.computed;
@@ -519,23 +567,30 @@ export class TransformUtils {
                         return Promise.resolve(props[0]);
                     }
 
+                }).catch((error: Error): void => {
+                console.log(`error is ${error.message}`);
                 });
             });
         }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
-    public static handleType(args: Args, methodId: number, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
+    public static handleType(args: Args, moduleId: number, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
         const astNode: any = copyTree(typeAnnotation).toJS();
-        console.log(`looking for type ${JSON.stringify(astNode)}`);
+        process.stderr.write(`handleType, looking for type ${JSON.stringify(astNode)}\n`);
         //@ts-ignore
         return args.restClient.findTsType(moduleId, astNode).then((type_: any): Promise<any> => {
             if(!type_) {
+                console.log('creating type');
                 // @ts-ignore
                 return args.restClient.createTsType(moduleId, astNode, 'propDecl').catch((error: Error): void => {
                     console.log(`unable to create ts type via rest: ${error.message}`);
                     return undefined;
+                }).then((type_: EntityCore.TSType): EntityCore.TSType => {
+                console.log(`created type ${type_}`);
+                return type_;
                 });
             } else {
+            console.log('found type');
                 return type_;
             }
         });

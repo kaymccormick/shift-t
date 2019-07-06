@@ -3,7 +3,6 @@ import {namedTypes} from 'ast-types/gen/namedTypes';
 import path from 'path';
 import {promisify} from 'util';
 import {parse} from 'recast';
-import {Connection} from "typeorm";
 import {EntityCore} from "classModel";
 import {processSourceModule} from "../src/Collector";
 import {createConnection} from "../src/TypeOrm/Factory";
@@ -20,7 +19,7 @@ const stat = promisify(fs.stat);
 
 import { Args, HandleAst } from '../src/types';
 
-function reportError(error: Error) {
+function reportError(error: Error): void {
     process.stderr.write(error.toString() +'\n' + error.message.toString() + '\n');
 }
  
@@ -32,11 +31,11 @@ function processFile(args: Args,
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
-    process.stderr.write('begin parsing\n');
+        process.stderr.write('begin parsing\n');
         ast = parse(content, {
             parser: require("recast/parsers/typescript")
         });
-    process.stderr.write('end parsing\n');
+        process.stderr.write('end parsing\n');
     }catch(error) {
         reportError(new Error(`unable to parse file ${fname}: ${error.message}`));
         return Promise.resolve(undefined);
@@ -47,13 +46,14 @@ function processFile(args: Args,
         return Promise.resolve(undefined);
     }
 
-    process.stderr.write(`begin process module ${fname}\n`);
-    const r = processSourceModule(args, project, fname, ast!).then(() => handleAst(args, project, fname, ast!)).then(() => {
-        process.stderr.write(`end process module ${fname}\n`);
+    return (() =>  {
+        process.stderr.write(`begin process module ${fname}\n`);
+        return processSourceModule(args, project, fname, ast!).then(() => handleAst(args, project, fname, ast!)).then(() => {
+            process.stderr.write(`end process module ${fname}\n`);
         }).catch(error => {
-        reportError(error);
-    });
-    return r;
+            reportError(error);
+        });
+    })();
 }
 
 function processEntry(args: Args,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (args: Args, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
@@ -72,17 +72,16 @@ function processDir(args: Args,
     handleAst: HandleAst): Promise<void> {
     return readdir(dir, { withFileTypes: true})
         .then((ents: fs.Dirent[]): Promise<void> =>
-            ents.map((ent): Promise<void> =>
-                processEntry(args,
+            ents.map((ent): () => Promise<void> =>
+                () => processEntry(args,
                     project,
                     dir,
                     ent,
                     processDir,
                     handleAst))
-                .reduce((a, v) => a.then(() => v).catch(error => {
-                    reportError(error);
-                }), Promise.resolve<void>(undefined)));
+                .reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => v()), Promise.resolve(undefined)));
 }
+
 
 const dir = process.argv[2];
 const f = finder(dir);
@@ -123,12 +122,12 @@ createConnection().then(connection => {
         return Promise.resolve(undefined);
     };
     return getOrCreateProject(packageName ||'').then((project) => {
-    stat(dir).then(stats => {
-    if(stats.isFile()) {
-        return processFile({connection, restClient}, project, dir, handleAst);
-        } else if(stats.isDirectory()) {
-        return processDir({connection, restClient}, project, dir, handleAst);
-        }
+        stat(dir).then(stats => {
+            if(stats.isFile()) {
+                return processFile({connection, restClient}, project, dir, handleAst);
+            } else if(stats.isDirectory()) {
+                return processDir({connection, restClient}, project, dir, handleAst);
+            }
         }).then(() => {
             return doProject(project, connection);
         });
