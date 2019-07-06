@@ -65,6 +65,8 @@ function handleClass(
     classRepo: Repository<EntityCore.Class>,
     interfaceRepo: Repository<EntityCore.Interface>,
 ): Promise<EntityCore.Class|undefined> {
+return Promise.resolve(undefined);
+/*
     if(class_.implementsNode && class_.implementsNode.length) {
         class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments) => {
             let exportedName;
@@ -128,7 +130,7 @@ function handleClass(
                 return classRepo.save(class_);
             }
         }
-        /* class might not even be an import! */
+        // class might not even be an import!
         const import_ = module.imports.get(objectName)
         if(!import_) {
             if(objectName === 'Array' || objectName === 'Error') {
@@ -170,6 +172,7 @@ function handleClass(
         }
     }
     return classRepo.save(class_);
+    */
 }
 
 function getRepositories(connection: Connection) {
@@ -226,7 +229,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
         console.log(`got ${modules.count()} modules`);
         // @ts-ignore
         return modules.flatMap((module): Promise<any>[] => {
-        console.log(module.module.types);
+        //console.log(module.module.types);
         // @ts-ignore
             return module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo,interfaceRepo).catch((error): void => { console.log(error.message); })).valueSeq().toJS();
             

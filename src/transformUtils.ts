@@ -389,13 +389,14 @@ export class TransformUtils {
                 if(!method) {Promise.resolve(undefined);}
                 const params = methodDef.params;
                 return params.map(
-                    (pk: PatternKind): () => Promise<void> => (): Promise<void> => {
+                    (pk: PatternKind, index:number): () => Promise<void> => (): Promise<void> => {
+                    (() => {
                         let name = '';
                         let type_ = undefined;
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
                             if (pk.typeAnnotation) {
-                                return this.handleType(args, pk.typeAnnotation.typeAnnotation).then(()=>undefined);
+                                return this.handleType(args, moduleClass.moduleId, pk.typeAnnotation.typeAnnotation);
                             }
                         } else if (pk.type === 'AssignmentPattern') {
                             name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
@@ -404,6 +405,20 @@ export class TransformUtils {
                             throw new Error(pk.type);
                         }
                         return Promise.resolve(undefined);
+                        })().then(type => {
+                        let name = '';
+                        if (pk.type === 'Identifier')  {
+                            name = pk.name;
+                            }
+                            if(!name) {
+                            throw new Error('no name');
+                            }
+                        const parameter = EntityCore.Parameter(name, method);
+                        parameter.ordinal = index;
+                        parameter.type = type;
+                        return this.connection.manager.save(parameter).then(() => undefined);
+
+                        });
 }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined)).then(() =>undefined);
             });
         }
@@ -467,7 +482,7 @@ export class TransformUtils {
 
             ((): Promise<any> => {
                 if(n.typeAnnotation != null) {
-                    return this.handleType(args, n.typeAnnotation.typeAnnotation);
+                    return this.handleType(args, iface.module!.id, n.typeAnnotation.typeAnnotation);
                 } else {
                     return Promise.resolve(undefined);
                 }
@@ -509,14 +524,14 @@ export class TransformUtils {
         }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
     }
 
-    public static handleType(args: Args, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
+    public static handleType(args: Args, methodId: number, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
         const astNode: any = copyTree(typeAnnotation).toJS();
         console.log(`looking for type ${JSON.stringify(astNode)}`);
         //@ts-ignore
-        return args.restClient.findTsType(iface.module.id, astNode).then((type_: any): Promise<any> => {
+        return args.restClient.findTsType(moduleId, astNode).then((type_: any): Promise<any> => {
             if(!type_) {
                 // @ts-ignore
-                return args.restClient.createTsType(iface.module!.id, astNode, 'propDecl').catch((error: Error): void => {
+                return args.restClient.createTsType(moduleId, astNode, 'propDecl').catch((error: Error): void => {
                     console.log(`unable to create ts type via rest: ${error.message}`);
                     return undefined;
                 });
