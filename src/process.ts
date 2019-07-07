@@ -5,6 +5,7 @@ import {
 } from "typeorm";
 import {EntityCore} from "classModel";
 import {namedTypes} from "ast-types/gen/namedTypes";
+import winston,{Logger} from 'winston';
 
 type ImportMap = Map<string, EntityCore.Import>;
 
@@ -46,9 +47,12 @@ function interfaces(interfaceRepo: Repository<EntityCore.Interface>, module: Ent
     return interfaceRepo.find({module}).then(ifaces => Map<string, EntityCore.Interface>(ifaces.map(iface => [iface.name || '', iface])));
 }
 
-function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module) {
+function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module, logger: Logger) {
     return exportRepo.find({module}).then((exports: EntityCore.Export[]) => {
         const defaultExport = exports.find(e => e.isDefaultExport);
+        if(defaultExport) {
+        logger.info(`found default export ${defaultExport} for ${module}`);
+        }
         module.defaultExport = defaultExport;
         return Map<string, EntityCore.Export>(exports.filter(export_ => export_.exportedName).map(export_ => [export_.exportedName || '', export_]))
     });
@@ -78,7 +82,7 @@ function updateClassImplements(classRepo: Repository<EntityCore.Class>, class_: 
                             if (import_.isDefaultImport) {
                                 export_ = sourceModule.module.defaultExport;
                                 if (!export_) {
-                                    throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                                    throw new Error(`updateClassImplements: no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
                                 }
                             } else {
                                 if (!exportedName) {
@@ -147,7 +151,7 @@ function updateSuperClass(class_: EntityCore.Class, module: ModuleRecord, classR
                         export_ = sourceModule.module.defaultExport;
                         //export_ = sourceModule.exports.find((e) => e.isDefaultExport);
                         if (!export_) {
-                            throw new Error(`no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
+                            throw new Error(`updateSuperClass: no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
                         }
                     } else {
                         if (!exportedName) {
@@ -219,7 +223,7 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 
 }
 
-export function doProject(project: EntityCore.Project, connection: Connection) {
+export function doProject(project: EntityCore.Project, connection: Connection,logger:Logger) {
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
@@ -237,7 +241,7 @@ export function doProject(project: EntityCore.Project, connection: Connection) {
             Promise.all([Promise.resolve(module),
                 imports(importRepo, module),
                 classes(classRepo, module),
-                getExports(exportRepo, module),
+                getExports(exportRepo, module, logger),
                 names(nameRepo, module),
                 interfaces(interfaceRepo, module),
             ]).then(([module, imports, classes, exports, names, interfaces]: ResultType): any => {

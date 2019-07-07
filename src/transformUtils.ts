@@ -16,6 +16,7 @@ import File = namedTypes.File;
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
+import uuidv4 from 'uuid/v4';
 import { Args } from './types';
 
 let logDebug = console.log;
@@ -332,6 +333,7 @@ export class TransformUtils {
                 } else if(n.declaration.type === 'Identifier') {
                     name = n.declaration.name;
                 } else if(n.declaration.type === 'FunctionDeclaration') {
+                } else if(n.declaration.type === 'TSDeclareFunction') {
                 } else if(n.declaration.type === 'ObjectExpression') {
                     console.log(`object expression`);
                     console.log(copyTree(n.declaration).toJSON());
@@ -434,7 +436,7 @@ export class TransformUtils {
                         }
                         return Promise.resolve(undefined);
                         })().then(type => {
-                        if(!type) {
+                        if(!type && pk.type === 'Identifier' && pk.typeAnnotation) {
                         throw new Error('no type');
                         }
                         let name = '';
@@ -442,7 +444,7 @@ export class TransformUtils {
                             name = pk.name;
                             }
                             if(!name) {
-                            throw new Error('no name');
+                            throw new Error(`no name, ${pk.type}`);
                             }
                         const parameter = new EntityCore.Parameter(name, method!);
                         parameter.ordinal = index;
@@ -575,15 +577,19 @@ export class TransformUtils {
     }
 
     public static handleType(args: Args, moduleId: number, typeAnnotation: namedTypes.Node): Promise<EntityCore.TSType|undefined> {
+    const iterationId = uuidv4();
+    args.logger.info('handleType', { iterationId, astNode: copyTree(typeAnnotation).toJS() });
+    const r: Promise<any> = ((): Promise<any> => {
         const astNode: any = copyTree(typeAnnotation).toJS();
-        process.stderr.write(`handleType, looking for type ${JSON.stringify(astNode)}\n`);
+//        process.stderr.write(`handleType, looking for type ${JSON.stringify(astNode)}\n`);
         //@ts-ignore
         return args.restClient.findTsType(moduleId, astNode).then((type_: any): Promise<any> => {
             if(!type_) {
                 console.log('creating type');
                 // @ts-ignore
                 return args.restClient.createTsType(moduleId, astNode, 'propDecl').catch((error: Error): void => {
-                    console.log(`unable to create ts type via rest: ${error.message}`);
+                    console.log(error.stack);
+                    console.log(`unable to create ts type via rest: ${error.message}: ${JSON.stringify(astNode)}`);
                     return undefined;
                 }).then((type_: EntityCore.TSType): EntityCore.TSType => {
                 console.log(`created type ${type_}`);
@@ -591,12 +597,14 @@ export class TransformUtils {
                 });
             } else {
             console.log('found type');
-                return type_;
+    args.logger.info('handledType', { iterationId, tstype: type_.toPojo(), astNode: copyTree(typeAnnotation).toJS() });
+    return type_;
             }
         });
-
+})().then((arg: any): any => {
+    args.logger.info('exit handledType', { iterationId });
+    return arg;
+    });
+    return r;
     }
-    
-   
-
 }

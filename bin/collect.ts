@@ -9,10 +9,15 @@ import {createConnection} from "../src/TypeOrm/Factory";
 import finder from 'find-package-json';
 import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
+import winston, { Logger } from 'winston';
+import { Factory } from 'classModel/lib/src/entity/core/Factory';
 
 import File = namedTypes.File;
 const urlBase = 'http://localhost:7700/cme'
-const restClient = new RestClient(urlBase);
+const console= new winston.transports.Console();
+const file = new winston.transports.File({level: 'debug', filename: 'collect.log'})
+const logger = winston.createLogger({transports:[console, file]});
+const restClient = new RestClient(urlBase, new Factory(logger));
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 //console.log = () => {throw new Error('no console use')};
@@ -20,7 +25,7 @@ const stat = promisify(fs.stat);
 import { Args, HandleAst } from '../src/types';
 
 function reportError(error: Error): void {
-    process.stderr.write(error.toString() +'\n' + error.message.toString() + '\n');
+    logger.info(error.toString() +'\n' + error.message.toString() + '\n');
 }
  
 function processFile(args: Args,
@@ -121,15 +126,16 @@ createConnection().then(connection => {
         fname: string, ast: namedTypes.File): Promise<void> => {
         return Promise.resolve(undefined);
     };
+    const args: Args = {connection, restClient, logger};
     return getOrCreateProject(packageName ||'').then((project) => {
         stat(dir).then(stats => {
             if(stats.isFile()) {
-                return processFile({connection, restClient}, project, dir, handleAst);
+                return processFile(args, project, dir, handleAst);
             } else if(stats.isDirectory()) {
-                return processDir({connection, restClient}, project, dir, handleAst);
+                return processDir(args, project, dir, handleAst);
             }
         }).then(() => {
-            return doProject(project, connection);
+            return doProject(project, connection, args.logger);
         });
     });
 }).catch(error => {
