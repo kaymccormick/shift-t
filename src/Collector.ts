@@ -1,6 +1,6 @@
 import {ImportContext,ModuleSpecifier,Args} from "./types";
 import {TransformUtils} from "./transformUtils";
-import {EntityCore} from "classModel";
+import EntityCore from"classModel/lib/src/entityCore";
 import path from "path";
 import j from 'jscodeshift';
 import { Connection } from "typeorm";
@@ -27,8 +27,8 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
         }
         return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
             if(!modules.length) {
-//                console.log(`saving new module with ${name}`);
-                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], []))/*.catch((error: Error): void => {
+                //                console.log(`saving new module with ${name}`);
+                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], [], []))/*.catch((error: Error): void => {
                     console.log(error.message);
                     console.log('unable to create module');
                 })*/;
@@ -91,9 +91,10 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
         // Object.keys(t).forEach(key => {
         // console.log(`key is ${key}`);
         // });
-        return [() => TransformUtils.handleImportDeclarations1(
+        return [() => TransformUtils.handleImportDeclarations(
+            args,
             collection.nodes()[0],
-            moduleName,
+            moduleName!,
             context,
             (importContext: ImportContext,
                 importName: string,
@@ -118,12 +119,12 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
         () => TransformUtils.processNames(args,module, collection.nodes()[0]),
         // @ts-ignore
         ].reduce((a, v: () => Promise<any>) => a.then(r => {
-        const z = v();
-        return z.then(cr => [...r, cr]);
+            const z = v();
+            return z.then(cr => [...r, cr]);
         }), Promise.resolve([])).then((results: any[]) => {
         //console.log(results);
         }).catch((error: Error): void => {
-        console.log(error);
+            console.log(error);
         });
     };
     return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {

@@ -1,4 +1,4 @@
-import {EntityCore} from "classModel";
+import EntityCore from "classModel/lib/src/entityCore";
 import { Connection } from 'typeorm';
 import { namedTypes } from 'ast-types/gen/namedTypes';
 

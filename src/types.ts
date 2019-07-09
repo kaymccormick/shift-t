@@ -5,10 +5,10 @@ export type ModuleSpecifier = string;
 import { Connection } from 'typeorm';
 import { Logger } from 'winston';
 
-export type Args = {
-  connection: Connection;
-  restClient: RestClient;
-  logger: Logger;
+export interface Args {
+    connection: Connection;
+    restClient: RestClient;
+    logger: Logger;
 }
   
 export interface HandleAst {

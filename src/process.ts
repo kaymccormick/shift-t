@@ -3,7 +3,7 @@ import {
     Connection,
     Repository
 } from "typeorm";
-import {EntityCore} from "classModel";
+import EntityCore from "classModel/lib/src/entityCore";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import winston,{Logger} from 'winston';
 
@@ -36,7 +36,7 @@ function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Mod
         if (noNames.length) {
             throw new Error('pop')
         }
-        return Map<string, EntityCore.Class>(classes.map(class_ => [class_.name, class_]))
+        return Map<string, EntityCore.Class>(classes.map(class_ => [class_.name!, class_]))
     })//.then(classes => ({
     //     classes,
     //
@@ -51,7 +51,7 @@ function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCor
     return exportRepo.find({module}).then((exports: EntityCore.Export[]) => {
         const defaultExport = exports.find(e => e.isDefaultExport);
         if(defaultExport) {
-        logger.info(`found default export ${defaultExport} for ${module}`);
+            logger.info(`found default export ${defaultExport} for ${module}`);
         }
         module.defaultExport = defaultExport;
         return Map<string, EntityCore.Export>(exports.filter(export_ => export_.exportedName).map(export_ => [export_.exportedName || '', export_]))
@@ -223,7 +223,7 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 
 }
 
-export function doProject(project: EntityCore.Project, connection: Connection,logger:Logger) {
+export function doProject(project: EntityCore.Project, connection: Connection,logger: Logger) {
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
@@ -261,7 +261,7 @@ export function doProject(project: EntityCore.Project, connection: Connection,lo
                 if (!module.module) {
                     throw new Error('');
                 }
-                return [module.module.name, module];
+                return [module.module.name!, module];
             }));
         })).then((modules: Map<string, ModuleRecord>): Promise<any>[] => {
         console.log(`got ${modules.count()} modules`);

@@ -3,7 +3,7 @@ import {namedTypes} from 'ast-types/gen/namedTypes';
 import path from 'path';
 import {promisify} from 'util';
 import {parse} from 'recast';
-import {EntityCore} from "classModel";
+import EntityCore from "classModel/lib/src/entityCore";
 import {processSourceModule} from "../src/Collector";
 import {createConnection} from "../src/TypeOrm/Factory";
 import finder from 'find-package-json';
@@ -11,12 +11,17 @@ import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
 import winston, { Logger } from 'winston';
 import { Factory } from 'classModel/lib/src/entity/core/Factory';
+import { Syslog } from 'winston-syslog';
 
+const syslogTransport = new Syslog({});
+  
 import File = namedTypes.File;
 const urlBase = 'http://localhost:7700/cme'
 const console= new winston.transports.Console();
-const file = new winston.transports.File({level: 'debug', filename: 'collect.log'})
-const logger = winston.createLogger({transports:[console, file]});
+const file = new winston.transports.File({level: 'debug', filename:
+      'collect.log'})
+const logger = winston.createLogger({transports:[console, file, syslogTransport]});
+
 const restClient = new RestClient(urlBase, new Factory(logger));
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
@@ -36,11 +41,11 @@ function processFile(args: Args,
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
-        process.stderr.write('begin parsing\n');
+        args.logger.debug('begin parsing');
         ast = parse(content, {
             parser: require("recast/parsers/typescript")
         });
-        process.stderr.write('end parsing\n');
+        args.logger.debug('end parsing');
     }catch(error) {
         reportError(new Error(`unable to parse file ${fname}: ${error.message}`));
         return Promise.resolve(undefined);
@@ -52,9 +57,9 @@ function processFile(args: Args,
     }
 
     return (() =>  {
-        process.stderr.write(`begin process module ${fname}\n`);
+        args.logger.debug(`begin process module ${fname}\n`);
         return processSourceModule(args, project, fname, ast!).then(() => handleAst(args, project, fname, ast!)).then(() => {
-            process.stderr.write(`end process module ${fname}\n`);
+            args.logger.debug(`end process module ${fname}\n`);
         }).catch(error => {
             reportError(error);
         });
