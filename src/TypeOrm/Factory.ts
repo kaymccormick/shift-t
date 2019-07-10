@@ -1,8 +1,10 @@
 import { Project,Class,Export,Import,Method,Parameter,Module,Name,Interface,InterfaceMethod,Type,TypeEnum,TSType,Property,InterfaceProperty,TSUnionType,TSTypeReference } from
     "classModel/lib/src/entity/core"
 import {Connection, createConnection} from "typeorm";
+import {Logger as WinstonLogger} from 'winston';
+import {Logger} from './Logger';
 
-function myCreateConnection(): Promise<Connection> {
+function myCreateConnection(logger: WinstonLogger): Promise<Connection> {
    return createConnection({
       "type": "postgres",
       "host": "localhost",
@@ -12,7 +14,7 @@ function myCreateConnection(): Promise<Connection> {
       "database": "myapp1",
       "synchronize": true,
       "logging": true,
-      "logger": "file",
+      "logger": new Logger(logger),
       "migrations": [
          "src/migration/**/*.ts"
       ],

@@ -1,3 +1,4 @@
+import {Promise} from 'bluebird';
 /**
  * Collection of handy but oddly specific routines
  */
@@ -387,9 +388,9 @@ export class TransformUtils {
 
     public static processExportDefaultDeclaration(args: Args,
         module: EntityCore.Module,
-        file: File): Promise<void> {
+        file: File): Promise<any> {
         return (() => {
-            return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): () => Promise<void> => () => {
+            return j(file).find(namedTypes.ExportDefaultDeclaration).nodes().map((n: namedTypes.ExportDefaultDeclaration): () => Promise<any> => () => {
                 const exportRepo = args.connection.getRepository(EntityCore.Export);
                 let name: string |undefined = undefined;
                 if (n.declaration.type === 'ClassDeclaration') {
@@ -408,7 +409,7 @@ export class TransformUtils {
 
                 }
 
-                exportRepo.find({module, isDefaultExport: true}).then((exports: EntityCore.Export[]) => {
+                return exportRepo.find({module, isDefaultExport: true}).then((exports: EntityCore.Export[]) => {
                     if(exports.length === 0) {
                         const export_ = new EntityCore.Export(name, undefined, module);
                         export_.isDefaultExport = true;

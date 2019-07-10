@@ -1,3 +1,4 @@
+import {Promise} from 'bluebird';
 import {Map, Record, RecordOf} from "immutable";
 import {
     Connection,
@@ -5,7 +6,7 @@ import {
 } from "typeorm";
 import EntityCore from "classModel/lib/src/entityCore";
 import {namedTypes} from "ast-types/gen/namedTypes";
-import winston,{Logger} from 'winston';
+import winston, {Logger} from 'winston';
 
 type ImportMap = Map<string, EntityCore.Import>;
 
@@ -26,7 +27,7 @@ export interface ModuleProps {
 
 export type ModuleRecord = RecordOf<ModuleProps>;
 
-function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Module) {
+function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Module): Promise<Map<string, EntityCore.Class>> {
     return classRepo.find({module}).then(classes => {
         const noNames = classes.filter(c => !c.name);
         if (noNames.length > 1) {
@@ -43,14 +44,14 @@ function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Mod
     // }))
 }
 
-function interfaces(interfaceRepo: Repository<EntityCore.Interface>, module: EntityCore.Module) {
+function interfaces(interfaceRepo: Repository<EntityCore.Interface>, module: EntityCore.Module): Promise<Map<string, EntityCore.Interface>> {
     return interfaceRepo.find({module}).then(ifaces => Map<string, EntityCore.Interface>(ifaces.map(iface => [iface.name || '', iface])));
 }
 
-function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module, logger: Logger) {
+function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module, logger: Logger): Promise<Map<string, EntityCore.Export>> {
     return exportRepo.find({module}).then((exports: EntityCore.Export[]) => {
         const defaultExport = exports.find(e => e.isDefaultExport);
-        if(defaultExport) {
+        if (defaultExport) {
             logger.info(`found default export ${defaultExport} for ${module}`);
         }
         module.defaultExport = defaultExport;
@@ -58,7 +59,7 @@ function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCor
     });
 }
 
-function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.Module) {
+function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.Module): Promise<Map<string, EntityCore.Import>> {
     return importRepo.find({where: {module}, relations: ["module"]}).then(imports => {
         const defaultImport = imports.find(i => i.isDefaultImport);
 
@@ -66,7 +67,8 @@ function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.M
     });
 }
 
-function updateClassImplements(classRepo: Repository<EntityCore.Class>, class_: EntityCore.Class, module: ModuleRecord, modules: Map<string, ModuleRecord>) {
+function updateClassImplements(logger: Logger, classRepo: Repository<EntityCore.Class>, class_: EntityCore.Class, module: ModuleRecord, modules: Map<string, ModuleRecord>) {
+    logger.debug('ENTER updateClassImplements');
     return class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments): () => Promise<any> => (): Promise<any> => {
         let exportedName;
 
@@ -183,16 +185,18 @@ function updateSuperClass(class_: EntityCore.Class, module: ModuleRecord, classR
 }
 
 function handleClass(
+    logger: Logger,
     class_: EntityCore.Class,
     module: ModuleRecord,
     modules: Map<string, ModuleRecord>,
     classRepo: Repository<EntityCore.Class>,
     interfaceRepo: Repository<EntityCore.Interface>,
 ): Promise<any> {
+    logger.debug('ENTER handleClass');
     const tasks: (() => Promise<any>)[] = [];
     if (class_.implementsNode && class_.implementsNode.length) {
         tasks.push(() => {
-            return updateClassImplements(classRepo, class_, module, modules);
+            return updateClassImplements(logger, classRepo, class_, module, modules);
         });
     }
     if (class_.superClassNode) {
@@ -200,10 +204,20 @@ function handleClass(
             return updateSuperClass(class_, module, classRepo, modules);
         });
     }
-    return tasks.reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => v()), Promise.resolve(undefined)).then(() => {
+    logger.info('about to task reduce');
+    return tasks.reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => {
+        const r = v().catch((error: Error) => {
+            logger.error('erro in reduce!', {error});
+        });
+        return r;
+    }), Promise.resolve(undefined)).then(() => {
         return classRepo.save(class_).catch((error: Error): void => {
             console.log(`unable to persist class: ${error.message}`);
-        });
+        })
+    }).then(() => {
+        logger.debug('FINISHED handleClass');
+    }).catch((error: Error) => {
+        logger.error('errorzzz', {error});
     });
 }
 
@@ -217,13 +231,14 @@ function getRepositories(connection: Connection) {
     return {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo};
 }
 
-function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module) {
+function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module): Promise<Map<string, EntityCore.Name>> {
 
     return nameRepo.find({where: {module}}).then((names: EntityCore.Name[]) => Map<string, EntityCore.Name>(names.map(name => [name.name || '', name])));
 
 }
 
-export function doProject(project: EntityCore.Project, connection: Connection,logger: Logger) {
+export function doProject(project: EntityCore.Project, connection: Connection, logger: Logger): Promise<void> {
+    logger.debug('ENTER doProject');
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),
@@ -237,44 +252,84 @@ export function doProject(project: EntityCore.Project, connection: Connection,lo
         where: {project},
         relations: ['defaultExport', 'types']
     }).then((modules: EntityCore.Module[]): Promise<any> =>
-        Promise.all(modules.map((module): Promise<any> =>
-            Promise.all([Promise.resolve(module),
-                imports(importRepo, module),
-                classes(classRepo, module),
-                getExports(exportRepo, module, logger),
-                names(nameRepo, module),
-                interfaces(interfaceRepo, module),
-            ]).then(([module, imports, classes, exports, names, interfaces]: ResultType): any => {
-                const r = factory({module, imports, classes, exports, names, interfaces});
-                return r;
-            }).then((module): Promise<ModuleRecord> => {
-                return moduleRepo.save(module.module).catch((error: Error): void => {
-                    console.log(module.module);
-                    console.log(`unable to persist module: ${error.message}`);
-                }).then((): ModuleRecord => module)
-            }))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
-            return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord] => {
-                if (module === undefined) {
-                    console.log('undefined module');
-                    throw new Error('undefined module');
-                }
-                if (!module.module) {
-                    throw new Error('');
-                }
-                return [module.module.name!, module];
-            }));
-        })).then((modules: Map<string, ModuleRecord>): Promise<any>[] => {
+        modules.map((module): () => Promise<any> => () => {
+            const o: { [x: string]: any } = {module};
+            return imports(importRepo, module).then(imports_ => {
+                o.imports = imports_;
+            }).then(() => {
+                return classes(classRepo, module).then(classes_ => {
+                    o.classes = classes_;
+                }).then(() => {
+                    return getExports(exportRepo, module, logger).then(exports_ => {
+                        o.exports = exports_;
+                    }).catch((error: Error) => {
+                        logger.error('error!', {error});
+                    }).then(() => {
+                        return names(nameRepo, module).catch((error: Error) => {
+                            logger.error('error!!', {error});
+                        }).then(names_ => {
+                            o.names = names_;
+                        }).then(() => {
+                            return interfaces(interfaceRepo, module).catch((error: Error) => {
+                                logger.error('error!!!', {error});
+                            }).then(ifaces => {
+                                o.interfaces = ifaces;
+                            }).then(() => {
+                                const r = factory(o);
+                                return r;
+                            }).then((module: ModuleRecord): Promise<ModuleRecord> => {
+                                return moduleRepo.save(module.module).catch((error: Error): void => {
+                                    console.log(module.module);
+                                    console.log(`unable to persist module: ${error.message}`);
+                                }).then((module_) => {
+                                    //                            module.module = module_;
+                                    return module;
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+            // @ts-ignore
+        }).reduce((a, v: () => Promise<any>) => a.then(r => {
+            const z = v();
+            return z.then(cr => [...r, cr]).catch((error: Error) => {
+                logger.error('errorz', {error});
+            });;
+        }), Promise.resolve([]))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
+        logger.info('zz', { modules });
+        return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord] => {
+            logger.info('zz1');
+            if (module === undefined) {
+                console.log('undefined module');
+                logger.error('woop');
+                throw new Error('undefined module');
+            }
+            if (!module.module) {
+                logger.error('woop2', { module });
+                throw new Error('module');
+            }
+            return [module.module.name!, module];
+        }));
+    }).then((modules: Map<string, ModuleRecord>): Promise<any> => {
+        logger.info('modules', {modules: modules.toJS()});
         console.log(`got ${modules.count()} modules`);
         // @ts-ignore
-        return modules.flatMap((module): Promise<any>[] => {
+        return modules.map((module): () => Promise<any> => () => {
             //console.log(module.module.types);
             // @ts-ignore
-            return module.classes.map((class_): Promise<any> => handleClass(class_, module, modules, classRepo, interfaceRepo).catch((error): void => {
-                console.log(error.message);
-            })).valueSeq().toJS();
-
-        });
+            logger.info('zzzz');
+            return module.classes.map((class_): () => Promise<any> => () => handleClass(logger, class_, module, modules, classRepo, interfaceRepo).catch((error: Error) => {
+                logger.error('error', {error});
+            })).reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => v()), Promise.resolve(undefined));
+        }).reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => v()), Promise.resolve(undefined)) as Promise<void>;
+    }).then(() => {
+        logger.debug('FINISED doProject');
+    }).catch((error: Error) => {
+        logger.error('error', {error});
     });
 }
+
+
 
 

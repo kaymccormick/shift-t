@@ -1,0 +1,16 @@
+return tsTypeRepo.find({module: iface.module,astNode}).then((types: EntityCore.TSType[]) => {
+    if(types.length === 0) {
+    console.log('constructing typ');
+        const t = new EntityCore.TSType();
+        if(n.typeAnnotation) {
+            t.tsNodeType = n.typeAnnotation.typeAnnotation.type;
+            t.astNode = copyTree(n.typeAnnotation.typeAnnotation).toJS();
+        }
+        t.module = iface.module;
+        return tsTypeRepo.save(t);
+    } else {
+        console.log(`returning existing type ${types[0].astNode}`);
+        return types[0];
+    }
+});
+

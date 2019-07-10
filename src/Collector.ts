@@ -1,3 +1,4 @@
+import {Promise} from 'bluebird';
 import {ImportContext,ModuleSpecifier,Args} from "./types";
 import {TransformUtils} from "./transformUtils";
 import EntityCore from"classModel/lib/src/entityCore";
@@ -41,6 +42,7 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
     const handleModule = (
         module: EntityCore.Module
     ): Promise<void>    => {
+    args.logger.info('handleModule');
         const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
@@ -91,7 +93,8 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
         // Object.keys(t).forEach(key => {
         // console.log(`key is ${key}`);
         // });
-        return [() => TransformUtils.handleImportDeclarations(
+        return [
+          () => TransformUtils.handleImportDeclarations(
             args,
             collection.nodes()[0],
             moduleName!,
@@ -111,24 +114,26 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
                     isDefault,
                     isNamespace);
             }),
-        () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]),
+
         () => TransformUtils.processClassDeclarations(args, module, collection.nodes()[0]),
         () => TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]),
         () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]),
         () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]),
         () => TransformUtils.processNames(args,module, collection.nodes()[0]),
-        // @ts-ignore
-        ].reduce((a, v: () => Promise<any>) => a.then(r => {
+      () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]),        
+    // @ts-ignore
+    ].reduce((a, v: () => Promise<any>) => a.then(r => {
             const z = v();
-            return z.then(cr => [...r, cr]);
+            return z.then(cr => [...r, cr]).catch((error: Error) => {
+        args.logger.error('errorz', {error});
+        });;
         }), Promise.resolve([])).then((results: any[]) => {
-        //console.log(results);
+        args.logger.debug('results', {results});
         }).catch((error: Error): void => {
-            console.log(error);
+        args.logger.error('error1', { error});
         });
     };
     return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
-        console.log(error);
-        console.log(error.message);
+    args.logger.error('error2', { error});
     });
 }
