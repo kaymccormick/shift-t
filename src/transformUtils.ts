@@ -19,33 +19,33 @@ import { Logger } from 'winston';
 
 function myReduce<I,O>(logger: Logger, input: I[], inputResult: PromiseResult<O>, callback: (element: I, index: number) => Promise<PromiseResult<O>>) {
 // @ts-ignore
-logger.info('myReduce');
+    logger.info('myReduce');
     return input.map((elem, index): () => Promise<PromiseResult<O>> => {
-    logger.debug('zz');
-    return (): Promise<PromiseResult<O>> => {
-    logger.debug('calling callback');
-    let r: any|undefined = undefined;
-    try {
-        r = callback(elem, index);
-    } catch(error) {
-        logger.error('error', { error });
-        r = () => Promise.resolve( { success: false, hasResult: false, error, id: 'myreduce' } );
-    }
+        logger.debug('zz');
+        return (): Promise<PromiseResult<O>> => {
+            logger.debug('calling callback');
+            let r: any|undefined = undefined;
+            try {
+                r = callback(elem, index);
+            } catch(error) {
+                logger.error('error', { error });
+                r = () => Promise.resolve( { success: false, hasResult: false, error, id: 'myreduce' } );
+            }
         
-        return r;
+            return r;
         };
-        }).reduce((a: Promise<PromiseResult<O[]>>,
+    }).reduce((a: Promise<PromiseResult<O[]>>,
         v: () => Promise<PromiseResult<O>>): Promise<PromiseResult<O[]>> => a.then((r: PromiseResult<O[]>): PromiseResult<O[]> => {
-logger.info('calling func');
+        logger.info('calling func');
         // @ts-ignore
         return v().catch((error: AppError): PromiseResult<O> => {
-        logger.debug('reduce error', { error });
+            logger.debug('reduce error', { error });
         }).then((cr: PromiseResult<O>): Promise<PromiseResult<O[]>> => {
-logger.info('myReduce2');
+            logger.info('myReduce2');
             r.result!.push(cr.result!);
             return Promise.resolve(r);
         }).catch((error: AppError): PromiseResult<O[]> => {
-logger.info('myReduce3');
+            logger.info('myReduce3');
             // @ts-ignore
             return { success: false, hasResult: false, error };
         });
@@ -111,7 +111,7 @@ export class TransformUtils {
             args.logger.debug('callback in again');
             const classResult =  { id: 'processClassDeclarations.class', success: false, hasResult: false };
             if(!classDecl.id) {
-            args.logger.error('no class name');
+                args.logger.error('no class name');
                 throw new AppError('no class name', 'no-class-name');
             }
             const classIdName = classDecl.id.name;
@@ -122,25 +122,25 @@ export class TransformUtils {
             const m = copyTree(classDecl).remove('body');
             const superClass = m.get('superClass');
 
-//@ts-ignore
+            //@ts-ignore
             return (() => {
-            const nameResult = { id: 'name', success: false, hasResult: false };
-            return nameRepo.find({module, name: classIdName}).then((names): Promise<PromiseResult<EntityCore.Name>>  => {
-                if(names.length === 0) {
-                    const name = new EntityCore.Name();
-                    name.name = classIdName;
-                    name.nameKind = 'class';
-                    name.module = module;
-                    args.logger.debug('saving name');
-                    return nameRepo.save(name).then((name_): Promise<PromiseResult<EntityCore.Name>> => {
-                return Promise.resolve(Object.assign({}, nameResult, { result: name_, success: true, hasResult: true }));
+                const nameResult = { id: 'name', success: false, hasResult: false };
+                return nameRepo.find({module, name: classIdName}).then((names): Promise<PromiseResult<EntityCore.Name>>  => {
+                    if(names.length === 0) {
+                        const name = new EntityCore.Name();
+                        name.name = classIdName;
+                        name.nameKind = 'class';
+                        name.module = module;
+                        args.logger.debug('saving name');
+                        return nameRepo.save(name).then((name_): Promise<PromiseResult<EntityCore.Name>> => {
+                            return Promise.resolve(Object.assign({}, nameResult, { result: name_, success: true, hasResult: true }));
+                        });
+                    } else {
+                        return Promise.resolve(Object.assign({}, nameResult, { result: names[0], success: true, hasResult: true }));
+                    }
                 });
-                } else {
-                return Promise.resolve(Object.assign({}, nameResult, { result: names[0], success: true, hasResult: true }));
-                }
-                });
-                })().then((): Promise<PromiseResult<EntityCore.Class>> => classRepo.find({module, name: classIdName}).then((classes): Promise<PromiseResult<EntityCore.Class>> => {
-            args.logger.debug('found classes', { classes: classes.map(c => c.toPojo()) } );
+            })().then((): Promise<PromiseResult<EntityCore.Class>> => classRepo.find({module, name: classIdName}).then((classes): Promise<PromiseResult<EntityCore.Class>> => {
+                args.logger.debug('found classes', { classes: classes.map(c => c.toPojo()) } );
                 if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
@@ -160,7 +160,7 @@ export class TransformUtils {
                     return classRepo.save(class_).then(class__ => {
                         return Promise.resolve(Object.assign({}, classResult, { result: class__, success: true, hasResult: true }));
                     });
-}
+                }
             }).then((classResult: PromiseResult<EntityCore.Class>) => {
                 const promises: ([string, () => Promise<PromiseResult<any>>])[] = [];
                 visit(classDecl, {
@@ -177,8 +177,8 @@ export class TransformUtils {
                 return promises.reduce((a: Promise<PromiseResult<any>>, v: [string, () => Promise<PromiseResult<any>>]): Promise<PromiseResult<any>> => a.then(() => v[1]().catch((error: AppError): PromiseResult<any> => {
                     return { id: error.id, success: false, hasResult: false, error };
                 })), Promise.resolve({ ...mainResult, success: true }));
-                }));
-                });
+            }));
+        });
     }
 
     public static handleImportDeclarations1(
@@ -318,81 +318,75 @@ export class TransformUtils {
         args: TransformUtilsArgs,
         module: EntityCore.Module,
         file: File
-    ): Promise<void> {
+    ): Promise<PromiseResult<EntityCore.Export[]>> {
+        const result: PromiseResult<EntityCore.Export[]> = {success: false, hasResult: false,
+            id: 'processExportNamedDeclarations' };
         args.logger.debug('processExportNamedDeclarations', { module: module.toPojo()});
-        return j(file).find(namedTypes.ExportNamedDeclaration,
+        return myReduce(j(file).find(namedTypes.ExportNamedDeclaration,
             (n: namedTypes.ExportNamedDeclaration): boolean => true
-        ).nodes().map(
-            (node: namedTypes.ExportNamedDeclaration): () => Promise<void> => () => {
-                return (() => {
-                    const exportRepo = args.connection.getRepository(EntityCore.Export);
-                    if(node.declaration) {
-                        if (node.declaration.type === 'ClassDeclaration'
+        ).nodes(), result, (node: namedTypes.ExportNamedDeclaration): () => Promise<PromiseResult<EntityCore.Export>> => () => {
+            const exportRepo = args.connection.getRepository(EntityCore.Export);
+            if(node.declaration) {
+                if (node.declaration.type === 'ClassDeclaration'
                         || node.declaration.type === 'TSInterfaceDeclaration') {
-                            if(!node.declaration
+                    if(!node.declaration
                             || !node.declaration.id
                             || node.declaration.id.type !== 'Identifier'){
-                                throw new AppError(`unsupported`, `unsupported`);
-                            }
-                            const exportedName = node.declaration.id
-                                ? node.declaration.id.name
-                                : undefined;
-                            assert.ok(exportedName !== undefined);
-                            return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]) => {
-                                if (exports.length === 0) {
-                                    const export_ = new EntityCore.Export(exportedName, exportedName, module);
-                                    args.logger.debug('saving export');
-                                    return exportRepo.save(export_).catch((error: Error): void => {
-                                        args.logger.debug(`unable to persist export: ${error.message}`);
-                                        throw error;
-
-                                    });
-                                } else {
-                                    return Promise.resolve(exports[0]);
-                                }
-                                throw new AppError('should not be undefined', 'should not be undefined');
-                            });
-                        }
-                        else if(node.declaration.type === 'FunctionDeclaration') {
-                        } else if(node.declaration.type === 'VariableDeclaration') {
-                        } else if(node.declaration.type === 'TSEnumDeclaration') {
-                        } else if(node.declaration.type === 'TSTypeAliasDeclaration') {
-                        } else{
-                            throw new AppError(`unhandled ${node.declaration.type}`, node.declaration.type);
-                        }
-                    } else {
-                        if(node.specifiers && node.specifiers.length) {
-                            return node.specifiers.map((specifier): () => Promise<void> => () => {
-                                return exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
-                                    if(exports.length === 0) {
-                                        if(!specifier.local || !specifier.exported) {
-                                            throw new AppError('cant deal', 'cant deal');
-                                        }
-                                        const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
-                                        args.logger.debug('saving export');
-                                        return exportRepo.save(export_).catch((error: Error): void => {
-                                            args.logger.debug(`unable to persist class: ${error.message}`);
-                                        }).then((export__) => undefined);
-                                    } else {
-                                        args.logger.error('undefined');
-                                        return Promise.resolve(undefined);
-                                    }
-                                });
-                            }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v().catch((error: Error) => {
-                                args.logger.error('error1', {error});
-                            })), Promise.resolve(undefined));
-                        }
+                        throw new AppError(`unsupported`, `unsupported`);
                     }
-                    args.logger.error('undefined1');
+                    const exportedName = node.declaration.id
+                        ? node.declaration.id.name
+                        : undefined;
+                    assert.ok(exportedName !== undefined);
+                    return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]) => {
+                        if (exports.length === 0) {
+                            const export_ = new EntityCore.Export(exportedName, exportedName, module);
+                            args.logger.debug('saving export');
+                            return exportRepo.save(export_).then(export__ => {
+                                return Promise.resolve(Object.assign({}, result, { result: export__, succsss: true, hasResult: true }));
+                            });
+                        } else {
+                            return Promise.resolve(Object.assign({}, result, { result: exports[0], succsss: true, hasResult: true }));
 
-                    return Promise.resolve(undefined);
-                })().then(() => undefined);
-            }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v().catch((error: Error) => {
-            args.logger.error('error', {error});
-        })), Promise.resolve(undefined));
+                            throw new AppError('should not be undefined', 'should not be undefined');
+                        }
+                    });
+                }
+                else if(node.declaration.type === 'FunctionDeclaration') {
+                } else if(node.declaration.type === 'VariableDeclaration') {
+                } else if(node.declaration.type === 'TSEnumDeclaration') {
+                } else if(node.declaration.type === 'TSTypeAliasDeclaration') {
+                } else{
+                    throw new AppError(`unhandled ${node.declaration.type}`, node.declaration.type);
+                }
+            } else {
+                if(node.specifiers && node.specifiers.length) {
+                    return node.specifiers.map((specifier): () => Promise<void> => () => {
+                        return exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
+                            if(exports.length === 0) {
+                                if(!specifier.local || !specifier.exported) {
+                                    throw new AppError('cant deal', 'cant deal');
+                                }
+                                const export_ = new EntityCore.Export( specifier.local.name, specifier.exported.name, module);
+                                args.logger.debug('saving export');
+                                return exportRepo.save(export_).catch((error: Error): void => {
+                                    args.logger.debug(`unable to persist class: ${error.message}`);
+                                }).then((export__) => undefined);
+                            } else {
+                                args.logger.error('undefined');
+                                return Promise.resolve(undefined);
+                            }
+                        });
+                    }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v().catch((error: Error) => {
+                        args.logger.error('error1', {error});
+                    })), Promise.resolve(undefined));
+                }
+            }
+            args.logger.error('undefined1');
 
+            return Promise.resolve(undefined);
+        });
     }
-
 
     public static processExportDefaultDeclaration(args: TransformUtilsArgs,
         module: EntityCore.Module,
@@ -502,61 +496,61 @@ export class TransformUtils {
             const params = methodDef.params;
             // @ts-ignore
             return myReduce<PatternKind, EntityCore.Parameter>(args.logger, params, {result: [], success: true, hasResult: true, id: 'hi'}, (pk: PatternKind, index: number): () => Promise<PromiseResult<EntityCore.Parameter>> => (): Promise<PromiseResult<EntityCore.Parameter>> => {
-                    return ((): Promise<PromiseResult<EntityCore.TSType>> => { // IIFE
-                        const typeResult: PromiseResult<EntityCore.TSType> = { success: false, id: 'parameter type',
-                            hasResult: false };
-                        args.logger.debug('parameter');
+                return ((): Promise<PromiseResult<EntityCore.TSType>> => { // IIFE
+                    const typeResult: PromiseResult<EntityCore.TSType> = { success: false, id: 'parameter type',
+                        hasResult: false };
+                    args.logger.debug('parameter');
+                    let name = '';
+                    let type_ = undefined;
+                    if (pk.type === 'Identifier')  {
+                        name = pk.name;
+                        if (pk.typeAnnotation) {
+                            return this.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then((type_) => {
+                                args.logger.debug(`got type ${type_}`);
+                                //@ts-ignore
+                                return Promise.resolve(Object.assign({}, typeResult, { success: true, hasResult: true, result: type_ }));
+                            });
+                        }
+                    } else if (pk.type === 'AssignmentPattern') {
+                        name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
+                    } else if (pk.type === 'RestElement') {
+                    } else {
+                        args.logger.error('type error', { type: pk.type });
+                        throw new AppError('type error', 'type error');
+                    }
+                    return Promise.resolve(typeResult);
+                })().then((typeResult: PromiseResult<EntityCore.TSType>): Promise<PromiseResult<EntityCore.Parameter>> => {
+                    const paramResult: PromiseResult<EntityCore.Parameter> = { success: true, hasResult: false, id: 'parameter' };
+                    if(typeResult.success && typeResult.hasResult) {
+                        const type = typeResult.result!;
+                        if(!type && pk.type === 'Identifier' && pk.typeAnnotation) {
+                            throw new AppError('no type', 'no type');
+                        }
                         let name = '';
-                        let type_ = undefined;
                         if (pk.type === 'Identifier')  {
                             name = pk.name;
-                            if (pk.typeAnnotation) {
-                                return this.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then((type_) => {
-                                    args.logger.debug(`got type ${type_}`);
-                                    //@ts-ignore
-                                    return Promise.resolve(Object.assign({}, typeResult, { success: true, hasResult: true, result: type_ }));
-                                });
-                            }
-                        } else if (pk.type === 'AssignmentPattern') {
-                            name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
-                        } else if (pk.type === 'RestElement') {
-                        } else {
-                            args.logger.error('type error', { type: pk.type });
-                            throw new AppError('type error', 'type error');
                         }
-                        return Promise.resolve(typeResult);
-                    })().then((typeResult: PromiseResult<EntityCore.TSType>): Promise<PromiseResult<EntityCore.Parameter>> => {
-                        const paramResult: PromiseResult<EntityCore.Parameter> = { success: true, hasResult: false, id: 'parameter' };
-                        if(typeResult.success && typeResult.hasResult) {
-                            const type = typeResult.result!;
-                            if(!type && pk.type === 'Identifier' && pk.typeAnnotation) {
-                                throw new AppError('no type', 'no type');
-                            }
-                            let name = '';
-                            if (pk.type === 'Identifier')  {
-                                name = pk.name;
-                            }
-                            if(!name) {
-                                throw new AppError(`no name, ${pk.type}`, pk.type);
-                            }
-                            const parameter = new EntityCore.Parameter(name, methodResult.result!);
-                            parameter.ordinal = index;
-                            if(!type) {
-                                throw new AppError('no type', 'no type');
-                            }
-                            parameter.typeId = type.id;
-                            args.logger.debug(`persisting parameter ${parameter}`);
-                            return args.connection.manager.save(parameter).then(parameter => {
-                                //@ts-ignore
-                                return Promise.resolve(Object.assign({}, paramResult, { success: true, hasResult: true, result: parameter }));
-                            });
-                        } else {
-                            return Promise.resolve(paramResult);
+                        if(!name) {
+                            throw new AppError(`no name, ${pk.type}`, pk.type);
                         }
-                    });
+                        const parameter = new EntityCore.Parameter(name, methodResult.result!);
+                        parameter.ordinal = index;
+                        if(!type) {
+                            throw new AppError('no type', 'no type');
+                        }
+                        parameter.typeId = type.id;
+                        args.logger.debug(`persisting parameter ${parameter}`);
+                        return args.connection.manager.save(parameter).then(parameter => {
+                            //@ts-ignore
+                            return Promise.resolve(Object.assign({}, paramResult, { success: true, hasResult: true, result: parameter }));
+                        });
+                    } else {
+                        return Promise.resolve(paramResult);
+                    }
                 });
-});
-}
+            });
+        });
+    }
 
     public static processNames(args: TransformUtilsArgs, module: EntityCore.Module, nodeElement: any): Promise<any> {
         return Promise.resolve(undefined);
