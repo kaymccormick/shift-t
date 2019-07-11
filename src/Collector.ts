@@ -1,3 +1,5 @@
+
+import AppError from './AppError';
 import {Promise} from 'bluebird';
 import {ImportContext,ModuleSpecifier,Args} from "./types";
 import {TransformUtils} from "./transformUtils";
@@ -7,6 +9,7 @@ import j from 'jscodeshift';
 import { Connection } from "typeorm";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import File = namedTypes.File;
+import { TransformUtilsArgs } from '../src/transformUtils';
 
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
@@ -18,13 +21,13 @@ function getModuleName(path1: string): string {
     return moduleName;
 }
 
-export function processSourceModule(args: Args, project: EntityCore.Project, path1: string, file: File): Promise<void> {
+export function processSourceModule(args: TransformUtilsArgs, project: EntityCore.Project, path1: string, file: File): Promise<void> {
     const moduleName = getModuleName(path1);
     const moduleRepo = args.connection.getRepository(EntityCore.Module);
 
     const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
         if(!name) {
-            throw new Error('name undefined');
+            throw new AppError('name undefined');
         }
         return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
             if(!modules.length) {
@@ -61,7 +64,7 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
                     const nameRepo = args.connection.getRepository(EntityCore.Name);
                     const module = argument as EntityCore.Module;
                     if (localName === undefined) {
-                        throw new Error('no localName');
+                        throw new AppError('no localName');
                     }
                     return nameRepo.find({where: {name: localName, module: importContext.moduleEntity}}).then(names => {
                         if (names.length === 0) {
@@ -113,16 +116,30 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
                     exportedName,
                     isDefault,
                     isNamespace);
-            }),
-
-        () => TransformUtils.processClassDeclarations(args, module, collection.nodes()[0]),
-        () => TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]),
-        () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]),
-        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]),
-        () => TransformUtils.processNames(args,module, collection.nodes()[0]),
-      () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]),        
+            }).catch((error: Error): void => {
+        args.logger.error('error00000000', { error});
+        }),
+        () => TransformUtils.processClassDeclarations(args, module, collection.nodes()[0]).catch((error: AppError): void => {
+        args.logger.error('error2', { error});
+        }),
+        () => TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
+        args.logger.error('error3', { error});
+        }),
+        () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]).catch((error: Error): void => {
+        args.logger.error('error4', { error});
+        }),
+        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
+        args.logger.error('error5', { error});
+        }),
+        () => TransformUtils.processNames(args,module, collection.nodes()[0]).catch((error: Error): void => {
+        args.logger.error('error6', { error});
+        }),
+/*      () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
+        args.logger.error('error7', { error});
+        }), */
     // @ts-ignore
     ].reduce((a, v: () => Promise<any>) => a.then(r => {
+    args.logger.info('here');
             const z = v();
             return z.then(cr => [...r, cr]).catch((error: Error) => {
         args.logger.error('errorz', {error});
@@ -130,10 +147,10 @@ export function processSourceModule(args: Args, project: EntityCore.Project, pat
         }), Promise.resolve([])).then((results: any[]) => {
         args.logger.debug('results', {results});
         }).catch((error: Error): void => {
-        args.logger.error('error1', { error});
+        args.logger.error('error00000', { error});
         });
     };
     return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
-    args.logger.error('error2', { error});
+    args.logger.error('error22', { error});
     });
 }

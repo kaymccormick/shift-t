@@ -1,3 +1,6 @@
+/**
+ * Main AST collector script.
+ */
 import {Promise} from 'bluebird';
 import fs from 'fs';
 import {namedTypes} from 'ast-types/gen/namedTypes';
@@ -12,16 +15,29 @@ import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
 import winston from 'winston';
 import { Factory } from 'classModel/lib/src/entity/core/Factory';
+import uuidv4 from 'uuid/v4';
+import { TransformUtilsArgs } from '../src/transformUtils';
+
 //import { Syslog } from 'winston-syslog';
 
 //const syslogTransport = new Syslog({});
 
+try {
+    fs.unlinkSync('collect.log');
+
+}
+catch(error) {
+}
+
 import File = namedTypes.File;
+const runUuid = uuidv4();
 const urlBase = 'http://localhost:7700/cme'
-const console  = new winston.transports.Console({level: 'info'});
+const console  = new winston.transports.Console({level: 'error'});
 const file = new winston.transports.File({level: 'debug', filename:
       'collect.log'})
-const logger = winston.createLogger({transports:[console, file/*, syslogTransport*/]});
+const loggerTranports = [console, file/*, syslogTransport*/];
+const logger = winston.createLogger({transports:loggerTranports,
+    defaultMeta: { runUuid }});
 
 const restClient = new RestClient(urlBase, new Factory(logger));
 const readdir = promisify(fs.readdir);
@@ -35,7 +51,7 @@ function reportError(error: Error): void {
     logger.warn(error.toString() +'\n' + error.message.toString() + '\n', { error });
 }
 
-function processFile(args: Args,
+function processFile(args: TransformUtilsArgs,
     project: EntityCore.Project,
     fname: string,
     handleAst: HandleAst,
@@ -63,16 +79,16 @@ function processFile(args: Args,
         args.logger.debug(`begin process module ${fname}\n`);
         // PM5
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any
-        return processSourceModule(args, project, fname, ast!).then(/*PM7*/(): Promise<any> => handleAst(args, project, fname, ast!)).then(/*PM8*/():void => {
+        return processSourceModule(args, project, fname, ast!).then(/*PM7*/(): Promise<any> => handleAst(args, project, fname, ast!)).then(/*PM8*/(): void => {
             args.logger.debug(`end process module ${fname}\n`);
         }).catch(error => {
-        logger.error('error3', {error});
+            logger.error('error3', {error});
             //reportError(error);
         });
     })();
 }
 
-function processEntry(args: Args,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (args: Args, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
+function processEntry(args: TransformUtilsArgs,project: EntityCore.Project, path1: string, ent: fs.Dirent, processDir: (args: TransformUtilsArgs, project: EntityCore.Project, dir: string, handleAst: HandleAst) => Promise<void>, handleAst: HandleAst): Promise<void> {
     const fname = path.join(path1, ent.name);
     if(ent.isDirectory() && ent.name !== 'node_modules') {
         return processDir(args, project, fname, handleAst);
@@ -82,7 +98,7 @@ function processEntry(args: Args,project: EntityCore.Project, path1: string, ent
     return Promise.resolve<void>(undefined);
 }
 
-function processDir(args: Args,
+function processDir(args: TransformUtilsArgs,
     project: EntityCore.Project,
     dir: string,
     handleAst: HandleAst): Promise<void> {
@@ -116,65 +132,63 @@ logger.info('begin run', {program: process.argv[1], dir, packageName});
 
 // PM1             /* PM12 */
 createConnection(logger).then((connection: Connection) => {
-    const handlers: (() => any)[] = [];
+    (() => {
+        const handlers: (() => any)[] = [];
 
-    logger.debug('loading collector modules');
-    fs.readdirSync(path.join(__dirname, '../src/collect'), { withFileTypes: true })
-        .forEach(entry => {
-            const match = /^(.*)\.tsx?$/i.exec(entry.name);
-            if(entry.isFile() && match) {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const module = require(`../src/collect/${match[0]}`);
-                handlers.push(module.default(connection));
-            }
-        });
+        logger.debug('loading collector modules');
+        fs.readdirSync(path.join(__dirname, '../src/collect'), { withFileTypes: true })
+            .forEach(entry => {
+                const match = /^(.*)\.tsx?$/i.exec(entry.name);
+                if(entry.isFile() && match) {
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires
+                    const module = require(`../src/collect/${match[0]}`);
+                    handlers.push(module.default(connection));
+                }
+            });
 
-    const projectRepo = connection.getRepository(EntityCore.Project);
-    const getOrCreateProject = (name: string): Promise<EntityCore.Project> => {
-        return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]) => {
-            if (!projects.length) {
-            // PM3
-                return projectRepo.save(new EntityCore.Project(name, []));
-            } else {
-                return Promise.resolve(/*PM14*/projects[0]);
-            }
+        const projectRepo = connection.getRepository(EntityCore.Project);
+        const getOrCreateProject = (name: string): Promise<EntityCore.Project> => {
+            return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]) => {
+                if (!projects.length) {
+                    // PM3
+                    return projectRepo.save(new EntityCore.Project(name, []));
+                } else {
+                    return Promise.resolve(/*PM14*/projects[0]);
+                }
+            });
+        }
+        /* No op? */
+        const handleAst = (args: TransformUtilsArgs, project: EntityCore.Project,
+            fname: string, ast: namedTypes.File): Promise<void> => {
+            return Promise.resolve(undefined);
+        };
+        const args: TransformUtilsArgs = {connection, restClient, logger};
+        //PM2
+        return getOrCreateProject(packageName ||'').then(/*PM15*/(project) => {
+            logger.debug('got project', {project});
+            //PM4
+            return stat(dir).then(/*PM16*/stats => {
+                logger.debug('got stats', { path: dir, stats });
+                if(stats.isFile()) {
+                    return processFile(args, project, dir, handleAst);
+                } else if(stats.isDirectory()) {
+                    return processDir(args, project, dir, handleAst);
+                }
+            }).then(/*PM17*/() => {
+                args.logger.debug('calling doProject');
+                return doProject(project, connection, args.logger).then(() => {
+                    args.logger.debug('here');
+                });
+            }).catch((error: Error) => {
+                logger.error('error5', {error});
+            });
         });
-    }
-    /* No op? */
-    const handleAst = (args: Args, project: EntityCore.Project,
-        fname: string, ast: namedTypes.File): Promise<void> => {
-        return Promise.resolve(undefined);
-    };
-    const args: Args = {connection, restClient, logger};
-    //PM2
-    return getOrCreateProject(packageName ||'').then(/*PM15*/(project) => {
-    logger.debug('got project', {project});
-        //PM4
-        return stat(dir).then(/*PM16*/stats => {
-             logger.debug('got stats', { path: dir, stats });
-            if(stats.isFile()) {
-                return processFile(args, project, dir, handleAst);
-            } else if(stats.isDirectory()) {
-                return processDir(args, project, dir, handleAst);
-            }
-        }).then(/*PM17*/() => {
-            args.logger.debug('calling doProject');
-            return doProject(project, connection, args.logger).then(() => {
-            args.logger.debug('here');
-});
-        }).catch((error: Error) => {
-        logger.error('error5', {error});
-        });
+    })().then(() => {
+        connection.close();
+        logger.debug('final then');
     });
-    }).then(() => {
-    connection.close();
-    logger.debug('final then');
-    })
-.catch((error: Error): void => {  // PM1
-    connection.close();
-throw new Error();
 }).catch((error: Error): void => {
-logger.error('error6', {error});
+    logger.error('error6', {error});
     //reportError(error);
 });
 

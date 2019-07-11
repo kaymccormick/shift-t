@@ -207,7 +207,7 @@ function handleClass(
     logger.info('about to task reduce');
     return tasks.reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => {
         const r = v().catch((error: Error) => {
-            logger.error('erro in reduce!', {error});
+            logger.error('error in reduce!', {error});
         });
         return r;
     }), Promise.resolve(undefined)).then(() => {
@@ -294,7 +294,7 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
         }).reduce((a, v: () => Promise<any>) => a.then(r => {
             const z = v();
             return z.then(cr => [...r, cr]).catch((error: Error) => {
-                logger.error('errorz', {error});
+                logger.error('1errorz', {error});
             });;
         }), Promise.resolve([]))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
         logger.info('zz', { modules });
@@ -318,7 +318,6 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
         return modules.map((module): () => Promise<any> => () => {
             //console.log(module.module.types);
             // @ts-ignore
-            logger.info('zzzz');
             return module.classes.map((class_): () => Promise<any> => () => handleClass(logger, class_, module, modules, classRepo, interfaceRepo).catch((error: Error) => {
                 logger.error('error', {error});
             })).reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => v()), Promise.resolve(undefined));

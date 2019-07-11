@@ -1,18 +1,27 @@
 import { namedTypes } from 'ast-types/gen/namedTypes';
-import nodes from 'ast-types/gen/nodes';
-import {EntityCore} from "classModel";
+import EntityCore from "classModel/lib/src/entityCore";
 export type ModuleSpecifier = string;
 import { Connection } from 'typeorm';
 import { Logger } from 'winston';
+import {RestClient} from './RestClient';
 
-export interface Args {
+export interface PromiseResult<T> {
+  id: string;
+  success: boolean;
+  hasResult: boolean;
+  result?: T;
+  error?: Error;
+}
+
+export interface Args<T> {
     connection: Connection;
     restClient: RestClient;
     logger: Logger;
+    caller?: T;
 }
-  
+
 export interface HandleAst {
-    (args: Args, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void>;
+    (args: Args<any>, project: EntityCore.Project,fname: string,ast: namedTypes.File): Promise<void>;
 }
 
 export interface ImportContext {

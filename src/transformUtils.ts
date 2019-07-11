@@ -15,20 +15,41 @@ import { visit } from "ast-types";
 import {PatternKind} from "ast-types/gen/kinds";
 import File = namedTypes.File;
 import {ProcessInterfaces} from './process/interfaces';
+import { Logger } from 'winston';
 
-function myReduce<I,O>(input: I[], inputResult: PromiseResult<O>, callback: (element: I) => Promise<PromiseResult<O>>) {
+function myReduce<I,O>(logger: Logger, input: I[], inputResult: PromiseResult<O>, callback: (element: I, index: number) => Promise<PromiseResult<O>>) {
 // @ts-ignore
-    return input.map((elem): () => Promise<PromiseResult<O>> => () => callback(elem)).reduce((a: Promise<PromiseResult<O[]>>,
+logger.info('myReduce');
+    return input.map((elem, index): () => Promise<PromiseResult<O>> => {
+    logger.debug('zz');
+    return (): Promise<PromiseResult<O>> => {
+    logger.debug('calling callback');
+    let r: any|undefined = undefined;
+    try {
+        r = callback(elem, index);
+    } catch(error) {
+        logger.error('error', { error });
+        r = () => Promise.resolve( { success: false, hasResult: false, error, id: 'myreduce' } );
+    }
+        
+        return r;
+        };
+        }).reduce((a: Promise<PromiseResult<O[]>>,
         v: () => Promise<PromiseResult<O>>): Promise<PromiseResult<O[]>> => a.then((r: PromiseResult<O[]>): PromiseResult<O[]> => {
+logger.info('calling func');
         // @ts-ignore
-        return v().then((cr: PromiseResult<O>): Promise<PromiseResult<O[]>> => {
+        return v().catch((error: AppError): PromiseResult<O> => {
+        logger.debug('reduce error', { error });
+        }).then((cr: PromiseResult<O>): Promise<PromiseResult<O[]>> => {
+logger.info('myReduce2');
             r.result!.push(cr.result!);
             return Promise.resolve(r);
         }).catch((error: AppError): PromiseResult<O[]> => {
+logger.info('myReduce3');
             // @ts-ignore
             return { success: false, hasResult: false, error };
         });
-    }), Promise.resolve({id: 'accumulator', success: true, hasResult: true, result: []} as PromiseResult<O[]>);
+    }), Promise.resolve({id: 'accumulator', success: true, hasResult: true, result: []} as PromiseResult<O[]>));
 
 
 }
@@ -80,40 +101,53 @@ export class TransformUtils {
         module: EntityCore.Module,
         file: File,
     ): Promise<PromiseResult<EntityCore.Class[]>> {
-        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: false, hasResult: false };
-        args.logger.info('processClassDeclarations');
-        return j(file).find(namedTypes.ClassDeclaration).nodes().map((classDecl: namedTypes.ClassDeclaration): () => Promise<PromiseResult<EntityCore.Class>> => () => {
+    // @ts-ignore
+        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
+        args.logger.info('processClassDeclarations', {type: 'main', module});
+        const x = j(file).find(namedTypes.ClassDeclaration).nodes();
+        args.logger.info('length', { length: x.length });
+        // @ts-ignore              
+        return myReduce<namedTypes.ClassDeclaration, EntityCore.Class>(args.logger, x, mainResult, (classDecl: namedTypes.ClassDeclaration): () => Promise<PromiseResult<EntityCore.Class>> => {
+            args.logger.debug('callback in again');
             const classResult =  { id: 'processClassDeclarations.class', success: false, hasResult: false };
-            args.logger.info('processClassDeclarations1');
             if(!classDecl.id) {
+            args.logger.error('no class name');
                 throw new AppError('no class name', 'no-class-name');
             }
             const classIdName = classDecl.id.name;
+            args.logger.info('processClassDeclarations1', { className: classIdName });
 
             const classRepo = args.connection.getRepository(EntityCore.Class);
             const nameRepo = args.connection.getRepository(EntityCore.Name);
             const m = copyTree(classDecl).remove('body');
             const superClass = m.get('superClass');
 
-            return nameRepo.find({module, name: classIdName}).then((names) => {
+//@ts-ignore
+            return (() => {
+            const nameResult = { id: 'name', success: false, hasResult: false };
+            return nameRepo.find({module, name: classIdName}).then((names): Promise<PromiseResult<EntityCore.Name>>  => {
                 if(names.length === 0) {
                     const name = new EntityCore.Name();
                     name.name = classIdName;
                     name.nameKind = 'class';
                     name.module = module;
                     args.logger.debug('saving name');
-                    return nameRepo.save(name).catch((error: Error): void => {
-                        args.logger.debug(`unable to persist class: ${error.message}`);
-                    }).then(() => undefined);
+                    return nameRepo.save(name).then((name_): Promise<PromiseResult<EntityCore.Name>> => {
+                return Promise.resolve(Object.assign({}, nameResult, { result: name_, success: true, hasResult: true }));
+                });
+                } else {
+                return Promise.resolve(Object.assign({}, nameResult, { result: names[0], success: true, hasResult: true }));
                 }
-            }).then(() => classRepo.find({module, name: classIdName}).then((classes): Promise<any> => {
+                });
+                })().then((): Promise<PromiseResult<EntityCore.Class>> => classRepo.find({module, name: classIdName}).then((classes): Promise<PromiseResult<EntityCore.Class>> => {
+            args.logger.debug('found classes', { classes: classes.map(c => c.toPojo()) } );
                 if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
-                    args.logger.debug('saving class');
+                    args.logger.debug('saving class', { "class": class_.toPojo });
                     return classRepo.save(class_).then(class__ => {
                         return Promise.resolve(Object.assign({}, classResult, { result: class__, success: true, hasResult: true }));
                     });
@@ -126,7 +160,7 @@ export class TransformUtils {
                     return classRepo.save(class_).then(class__ => {
                         return Promise.resolve(Object.assign({}, classResult, { result: class__, success: true, hasResult: true }));
                     });
-                }
+}
             }).then((classResult: PromiseResult<EntityCore.Class>) => {
                 const promises: ([string, () => Promise<PromiseResult<any>>])[] = [];
                 visit(classDecl, {
@@ -143,10 +177,8 @@ export class TransformUtils {
                 return promises.reduce((a: Promise<PromiseResult<any>>, v: [string, () => Promise<PromiseResult<any>>]): Promise<PromiseResult<any>> => a.then(() => v[1]().catch((error: AppError): PromiseResult<any> => {
                     return { id: error.id, success: false, hasResult: false, error };
                 })), Promise.resolve({ ...mainResult, success: true }));
-            }));
-        }).reduce((a: Promise<PromiseResult<any>>, v: [string, () => Promise<PromiseResult<any>>]): Promise<PromiseResult<any>> => a.then(() => v[1]().catch((error: AppError): PromiseResult<any> => {
-            return { id: error.id, success: false, hasResult: false, error };
-        })), Promise.resolve({ ...mainResult, success: true }));
+                }));
+                });
     }
 
     public static handleImportDeclarations1(
@@ -306,7 +338,6 @@ export class TransformUtils {
                                 ? node.declaration.id.name
                                 : undefined;
                             assert.ok(exportedName !== undefined);
-                            args.logger.debug('here');
                             return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]) => {
                                 if (exports.length === 0) {
                                     const export_ = new EntityCore.Export(exportedName, exportedName, module);
@@ -469,8 +500,8 @@ export class TransformUtils {
                 return methodResult;
             }
             const params = methodDef.params;
-            return params.map(
-                (pk: PatternKind, index: number): () => Promise<PromiseResult<EntityCore.Parameter>> => (): Promise<PromiseResult<EntityCore.Parameter>> => {
+            // @ts-ignore
+            return myReduce<PatternKind, EntityCore.Parameter>(args.logger, params, {result: [], success: true, hasResult: true, id: 'hi'}, (pk: PatternKind, index: number): () => Promise<PromiseResult<EntityCore.Parameter>> => (): Promise<PromiseResult<EntityCore.Parameter>> => {
                     return ((): Promise<PromiseResult<EntityCore.TSType>> => { // IIFE
                         const typeResult: PromiseResult<EntityCore.TSType> = { success: false, id: 'parameter type',
                             hasResult: false };
@@ -523,13 +554,9 @@ export class TransformUtils {
                             return Promise.resolve(paramResult);
                         }
                     });
-                }).reduce((a: Promise<PromiseResult<EntityCore.Parameter>>, v: () => Promise<PromiseResult<EntityCore.Parameter>>): Promise<PromiseResult<EntityCore.Parameter>> => a.then(() => v().catch((error: AppError): Promise<PromiseResult<EntityCore.Parameter>> => {
-                args.logger.error('errorzzzz', { error});
-                // @ts-ignore
-                return Promise.resolve(Object.assign({}, processClassMethodResult, { error }));
-            })), Promise.resolve(processClassMethodResult));
-        });
-    }
+                });
+});
+}
 
     public static processNames(args: TransformUtilsArgs, module: EntityCore.Module, nodeElement: any): Promise<any> {
         return Promise.resolve(undefined);
