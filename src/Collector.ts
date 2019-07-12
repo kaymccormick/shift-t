@@ -97,7 +97,9 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
         // console.log(`key is ${key}`);
         // });
         return [
-          () => TransformUtils.handleImportDeclarations(
+          () => {
+          args.logger.info('handling import declarations');
+          return TransformUtils.handleImportDeclarations(
             args,
             collection.nodes()[0],
             moduleName!,
@@ -118,7 +120,8 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
                     isNamespace);
             }).catch((error: Error): void => {
         args.logger.error('error00000000', { error});
-        }),
+        });
+        },
         () => {
         args.logger.debug('calling into processClassDeclarations');
         return ProcessClasses.processClassDeclarations(args, module, collection.nodes()[0]).catch((error: AppError): void => {

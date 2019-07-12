@@ -3,7 +3,7 @@ import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import EntityCore from "classModel/lib/src/entityCore";
 import {copyTree} from "../../utils";
-import { TransformUtilsArgs, myReduce } from '../../transformUtils';
+import { TransformUtilsArgs, myReduce,TransformUtils } from '../../transformUtils';
 import {NodePath} from "ast-types/lib/node-path";
 import { PromiseResult } from '../../types';
 
@@ -138,7 +138,7 @@ export class ProcessInterfaces {
                 if(n.typeAnnotation != null && iface.module !== undefined) {
                     args.logger.debug('here it is');
                     // @ts-ignore
-                    return args.caller.handleType(args, iface.module.id, n.typeAnnotation.typeAnnotation);
+                    return TransformUtils.handleType(args, iface.module.id, n.typeAnnotation.typeAnnotation);
                 } else {
                 // fixme code smell
                     throw new Error('beep');

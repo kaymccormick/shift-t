@@ -26,8 +26,8 @@ parser.addArgument([ '--level' ], { help: 'console log level' });
 parser.addArgument([ 'dir' ], { help: 'dir to search' });
 const args = parser.parseArgs();
 
-const myFormat = printf(({ level, message, label, timestamp, type }) => {
-  return `${timestamp} [${type}] ${level}: ${message}`;
+const myFormat = printf(({ level, message, label, timestamp, type, meta}) => {
+  return `${timestamp} [${type}] ${level}: ${message} ${JSON.stringify(meta)}`;
 });
 
 try {
@@ -44,7 +44,7 @@ const console  = new winston.transports.Console({level: args.level || 'warn'});
 const file = new winston.transports.File({level: 'debug', filename:
       'collect.log'})
 const loggerTranports = [console, file/*, syslogTransport*/];
-const logger = winston.createLogger({format: combine(timestamp(), myFormat), transports:loggerTranports,
+const logger = winston.createLogger({format: format.json(), /*combine(timestamp(), myFormat),*/ transports:loggerTranports,
     defaultMeta: { runUuid }});
 
 const restClient = new RestClient(urlBase, new Factory(logger));

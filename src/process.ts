@@ -127,7 +127,7 @@ function updateClassImplements(
                                     });
                                 }
                             } else {
-                                throw new Error(`no export1`);
+                            logger.warn('no export discovered');
                             }
                         }
                     }
@@ -139,6 +139,7 @@ function updateClassImplements(
 }
 
 function updateSuperClass(
+logger: Logger,
 class_: EntityCore.Class,
 module: ModuleRecord,
 classRepo: Repository<EntityCore.Class>,
@@ -197,7 +198,7 @@ modules: Map<string, ModuleRecord>,
                             }).then((z) => undefined);
                         }
                     } else {
-                        throw new Error(`no export`);
+                        logger.warn('no export found');
                     }
                 }
             }
@@ -219,7 +220,7 @@ function handleClass(
     classRepo: Repository<EntityCore.Class>,
     interfaceRepo: Repository<EntityCore.Interface>,
 ): Promise<any> {
-    logger.debug('ENTER handleClass');
+    logger.info('handleClass', { type: 'functionInvocation' });
     const tasks: (() => Promise<any>)[] = [];
     if (class_.implementsNode && class_.implementsNode.length) {
         tasks.push(() => {
@@ -228,7 +229,7 @@ function handleClass(
     }
     if (class_.superClassNode) {
         tasks.push((): Promise<any> => {
-            return updateSuperClass(class_, module, classRepo, modules);
+            return updateSuperClass(logger, class_, module, classRepo, modules);
         });
     }
     logger.info('about to task reduce');

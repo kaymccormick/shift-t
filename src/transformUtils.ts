@@ -10,6 +10,8 @@ import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
 import EntityCore from "classModel/lib/src/entityCore";
 import {copyTree} from "./utils";
+import { ExportSpecifierKind, ExportBatchSpecifierKind}from 'ast-types/gen/kinds';
+
 import {PromiseResult, HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { visit } from "ast-types";
 import {PatternKind} from "ast-types/gen/kinds";
@@ -80,7 +82,6 @@ export class TransformUtils {
     ): Promise<any> {
         return ProcessInterfaces.processInterfaceDeclarations(args, module, file);
     }
-    /*
     public static processTypeDeclarations(
         args: TransformUtilsArgs,
         module: EntityCore.Module,
@@ -104,7 +105,6 @@ export class TransformUtils {
             return { id: error.id || 'unknown', success: false, hasResult: false} as PromiseResult<any>;
         })), Promise.resolve({success: false, hasResult: false, id: 'accumulator'} as PromiseResult<any>));
     }
-*/
 
     public static handleImportDeclarations1(
         file: namedTypes.File,
@@ -251,7 +251,7 @@ export class TransformUtils {
         };
         args.logger.debug('processExportNamedDeclarations',
             { module: module.toPojo()});
-        return myReduce(j(file).find(namedTypes.ExportNamedDeclaration,
+        return myReduce(args.logger, j(file).find(namedTypes.ExportNamedDeclaration,
             (n: namedTypes.ExportNamedDeclaration): boolean => true
         ).nodes(), result, (node: namedTypes.ExportNamedDeclaration): Promise<PromiseResult<EntityCore.Export>> => {
             const exportRepo = args.connection.getRepository(EntityCore.Export);
@@ -290,29 +290,36 @@ export class TransformUtils {
                 }
             } else {
                 if(node.specifiers && node.specifiers.length) {
-                    const inResult = {'id': specifiers, success: true, hasResult: true, result: []};
-                    return myReduce(args.logger, node.specifiers, inResult, (specifier) => {
-                        return exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
-                            if(exports.length === 0) {
-                                if(!specifier.local || !specifier.exported) {
-                                    throw new AppError('cant deal', 'cant deal');
+                    const inResult: PromiseResult<EntityCore.Export[]> = {'id': 'specifiers', success: true, hasResult: true, result: []};
+                    return myReduce<ExportSpecifierKind, EntityCore.Export>(
+                        args.logger,
+                        node.specifiers,
+                        inResult,
+                        // @ts-ignore
+                        (specifier: ExportSpecifierKind): PromiseResult<EntityCore.Export[]> => {
+                            // @ts-ignore
+                            return exportRepo.find({module, exportedName: specifier.exported.name}).then(exports => {
+                                if(exports.length === 0) {
+                                    if(!specifier.local || !specifier.exported) {
+                                        throw new AppError('cant deal', 'cant deal');
+                                    }
+                                    const export_ = new EntityCore.Export(
+                                        specifier.local.name,
+                                        specifier.exported.name,
+                                        module,
+                                    );
+                                    args.logger.debug('saving export');
+                                    return exportRepo.save(export_).then((export__) => {
+                                        return Promise.resolve({ ...result, hasResult: true, success: true, result:export__});
+                                    });
+                                } else {
+                                    return Promise.resolve({...result, success: true});
                                 }
-                                const export_ = new EntityCore.Export(
-                                    specifier.local.name,
-                                    specifier.exported.name,
-                                    module,
-                                );
-                                args.logger.debug('saving export');
-                                return exportRepo.save(export_).then((export__) => {
-                                    return Promise.resolve({ ...result, hasResult: true, success: true, result:export__});
-                                });
-                            } else {
-                                return Promise.resolve({...result, success: true});
-                            }
+                            });
                         });
-                    });
                 }
             }
+            //@ts-ignore
             return Promise.resolve(result);
         });
     }
