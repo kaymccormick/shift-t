@@ -265,7 +265,7 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 
 }
 
-export function doProject(project: EntityCore.Project, connection: Connection, logger: Logger): Promise<void> {
+export function doProject(project: EntityCore.Project, connection: Connection, logger: Logger): Promise<any> {
     logger.debug('ENTER doProject');
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({

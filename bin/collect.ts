@@ -15,7 +15,7 @@ import finder from 'find-package-json';
 import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
 import  winston, { format } from 'winston';
-const { combine, timestamp, label, printf } = format;
+/*const { combine, timestamp, label, printf } = format;*/
 
 import { Factory } from 'classModel/lib/src/entity/core/Factory';
 import uuidv4 from 'uuid/v4';
@@ -26,9 +26,9 @@ parser.addArgument([ '--level' ], { help: 'console log level' });
 parser.addArgument([ 'dir' ], { help: 'dir to search' });
 const args = parser.parseArgs();
 
-const myFormat = printf(({ level, message, label, timestamp, type, meta}) => {
-  return `${timestamp} [${type}] ${level}: ${message} ${JSON.stringify(meta)}`;
-});
+/*const myFormat = printf(({ level, message, label, timestamp, type, meta}) => {
+    return `${timestamp} [${type}] ${level}: ${message} ${JSON.stringify(meta)}`;
+});*/
 
 try {
     fs.unlinkSync('collect.log');
@@ -52,7 +52,7 @@ const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 //console.log = () => {throw new Error('no console use')};
 
-import { Args, HandleAst } from '../src/types';
+import { HandleAst } from '../src/types';
 import {Connection} from "typeorm";
 
 function reportError(error: Error): void {
@@ -90,7 +90,7 @@ function processFile(args: TransformUtilsArgs,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any
         return processSourceModule(args, project, fname, ast!).then(/*PM7*/(): Promise<any> => handleAst(args, project, fname, ast!)).then(/*PM8*/(): void => {
             args.logger.debug(`end process module ${fname}\n`);
-        }).catch(error => {
+        }).catch((error): void => {
             logger.error('error3', {error});
             //reportError(error);
         });
@@ -117,13 +117,14 @@ function processDir(args: TransformUtilsArgs,
         .then(/*PM9*/(ents: fs.Dirent[]): Promise<void> => {
             args.logger.debug('processDir got dir ents');
             return ents.map((ent): () => Promise<void> =>
-                () => processEntry(args,
+                (): Promise<void> => processEntry(args,
                     project,
                     dir,
                     ent,
                     processDir,
                     handleAst))
-                .reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(/*PM10*/() => v()), Promise.resolve(/*PM11*/undefined));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(/*PM10*/(): Promise<void> => v()), Promise.resolve(/*PM11*/undefined));
         });
 }
 
@@ -140,13 +141,14 @@ if(packageName === undefined) {
 logger.info('begin run', {program: process.argv[1], dir, packageName});
 
 // PM1             /* PM12 */
-createConnection(logger).then((connection: Connection) => {
-    (() => {
+createConnection(logger).then((connection: Connection): Promise<void> => {
+    ((): Promise<void> => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handlers: (() => any)[] = [];
 
         logger.debug('loading collector modules');
         fs.readdirSync(path.join(__dirname, '../src/collect'), { withFileTypes: true })
-            .forEach(entry => {
+            .forEach((entry): void => {
                 const match = /^(.*)\.tsx?$/i.exec(entry.name);
                 if(entry.isFile() && match) {
                     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -157,7 +159,7 @@ createConnection(logger).then((connection: Connection) => {
 
         const projectRepo = connection.getRepository(EntityCore.Project);
         const getOrCreateProject = (name: string): Promise<EntityCore.Project> => {
-            return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]) => {
+            return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]): Promise<EntityCore.Project> => {
                 if (!projects.length) {
                     // PM3
                     return projectRepo.save(new EntityCore.Project(name, []));
@@ -167,32 +169,34 @@ createConnection(logger).then((connection: Connection) => {
             });
         }
         /* No op? */
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const handleAst = (args: TransformUtilsArgs, project: EntityCore.Project,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
             fname: string, ast: namedTypes.File): Promise<void> => {
             return Promise.resolve(undefined);
         };
         const args: TransformUtilsArgs = {connection, restClient, logger};
         //PM2
-        return getOrCreateProject(packageName ||'').then(/*PM15*/(project) => {
+        return getOrCreateProject(packageName ||'').then(/*PM15*/(project): Promise<void> => {
             logger.debug('got project', {project});
             //PM4
-            return stat(dir).then(/*PM16*/stats => {
+            return stat(dir).then(/*PM16*/(stats): Promise<void> => {
                 logger.debug('got stats', { path: dir, stats });
                 if(stats.isFile()) {
                     return processFile(args, project, dir, handleAst);
                 } else if(stats.isDirectory()) {
                     return processDir(args, project, dir, handleAst);
                 }
-            }).then(/*PM17*/() => {
+            }).then(/*PM17*/(): Promise<void> => {
                 args.logger.debug('calling doProject');
-                return doProject(project, connection, args.logger).then(() => {
+                return doProject(project, connection, args.logger).then((): void => {
                     args.logger.debug('here');
                 });
-            }).catch((error: Error) => {
+            }).catch((error: Error): void => {
                 logger.error('error5', {error});
             });
         });
-    })().then(() => {
+    })().then((): void => {
         connection.close();
         logger.debug('final then');
     });
