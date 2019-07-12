@@ -2,6 +2,7 @@
  * Main AST collector script.
  */
 import {Promise} from 'bluebird';
+import {ArgumentParser} from 'argparse';
 import fs from 'fs';
 import {namedTypes} from 'ast-types/gen/namedTypes';
 import path from 'path';
@@ -13,14 +14,21 @@ import {createConnection} from "../src/TypeOrm/Factory";
 import finder from 'find-package-json';
 import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
-import winston from 'winston';
+import  winston, { format } from 'winston';
+const { combine, timestamp, label, printf } = format;
+
 import { Factory } from 'classModel/lib/src/entity/core/Factory';
 import uuidv4 from 'uuid/v4';
 import { TransformUtilsArgs } from '../src/transformUtils';
 
-//import { Syslog } from 'winston-syslog';
+const parser = new ArgumentParser({});
+parser.addArgument([ '--level' ], { help: 'console log level' });
+parser.addArgument([ 'dir' ], { help: 'dir to search' });
+const args = parser.parseArgs();
 
-//const syslogTransport = new Syslog({});
+const myFormat = printf(({ level, message, label, timestamp, type }) => {
+  return `${timestamp} [${type}] ${level}: ${message}`;
+});
 
 try {
     fs.unlinkSync('collect.log');
@@ -32,11 +40,11 @@ catch(error) {
 import File = namedTypes.File;
 const runUuid = uuidv4();
 const urlBase = 'http://localhost:7700/cme'
-const console  = new winston.transports.Console({level: 'error'});
+const console  = new winston.transports.Console({level: args.level || 'warn'});
 const file = new winston.transports.File({level: 'debug', filename:
       'collect.log'})
 const loggerTranports = [console, file/*, syslogTransport*/];
-const logger = winston.createLogger({transports:loggerTranports,
+const logger = winston.createLogger({format: combine(timestamp(), myFormat), transports:loggerTranports,
     defaultMeta: { runUuid }});
 
 const restClient = new RestClient(urlBase, new Factory(logger));
@@ -56,6 +64,7 @@ function processFile(args: TransformUtilsArgs,
     fname: string,
     handleAst: HandleAst,
 ): Promise<void> {
+    args.logger.warn('processFile', { type: 'functionInvocation', project: project.toPojo(), path: fname });
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
@@ -118,7 +127,7 @@ function processDir(args: TransformUtilsArgs,
         });
 }
 
-const dir = process.argv[2];
+const dir = args.dir;
 const f = finder(dir);
 const packageInfo = f.next().value;
 let packageName: string | undefined = undefined;

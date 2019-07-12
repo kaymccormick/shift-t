@@ -1,18 +1,22 @@
+import {Promise} from 'bluebird';
 import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import EntityCore from "classModel/lib/src/entityCore";
 import {copyTree} from "../../utils";
-import { TransformUtilsArgs } from '../../transformUtils';
-import File = namedTypes.File;
+import { TransformUtilsArgs, myReduce } from '../../transformUtils';
 import {NodePath} from "ast-types/lib/node-path";
+import { PromiseResult } from '../../types';
 
 export class ProcessInterfaces {
     public static processInterfaceDeclarations(
         args: TransformUtilsArgs,
         module: EntityCore.Module,
-        file: File,
-    ): Promise<any> {
-        return j(file).find(namedTypes.TSInterfaceDeclaration).nodes().map((iDecl: namedTypes.TSInterfaceDeclaration): () => Promise<void> => () => {
+        file: namedTypes.File,
+    ): Promise<PromiseResult<EntityCore.Interface[]>> {
+    const result = { success: false, hasResult: false, id: 'processInterfaceDeclarations' };
+        return myReduce<namedTypes.TSInterfaceDeclaration, EntityCore.Interface>(args.logger, j(file).find(namedTypes.TSInterfaceDeclaration).nodes(),
+         { success: true, hasResult: true, result: [] as EntityCore.Interface[], id: result.id },
+         (iDecl: namedTypes.TSInterfaceDeclaration): Promise<PromiseResult<EntityCore.Interface>> => {
             if(!iDecl.id) {
                 throw new Error('no interface name');
             }
@@ -70,11 +74,11 @@ export class ProcessInterfaces {
                     return this.processInterfaceMethod(args, interface_, node)
                 })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
             });
-        }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+            });
     }
 
     public static processInterfaceMethod(args: TransformUtilsArgs, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
-        process.stderr.write(`processInterfaceMethod\n`);
+    args.logger.debug(`processInterfaceMethod`);
         const methodDef = childNode;
         const key = methodDef.key;
         let methodName = '';

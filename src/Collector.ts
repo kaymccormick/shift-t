@@ -1,8 +1,8 @@
-
 import AppError from './AppError';
 import {Promise} from 'bluebird';
 import {ImportContext,ModuleSpecifier,Args} from "./types";
 import {TransformUtils} from "./transformUtils";
+import {ProcessClasses} from "./process/classes/ProcessClasses";
 import EntityCore from"classModel/lib/src/entityCore";
 import path from "path";
 import j from 'jscodeshift';
@@ -45,7 +45,7 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
     const handleModule = (
         module: EntityCore.Module
     ): Promise<void>    => {
-    args.logger.info('handleModule');
+        args.logger.warn('handleModule', { module });
         const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
@@ -119,18 +119,22 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
             }).catch((error: Error): void => {
         args.logger.error('error00000000', { error});
         }),
-        () => TransformUtils.processClassDeclarations(args, module, collection.nodes()[0]).catch((error: AppError): void => {
+        () => {
+        args.logger.debug('calling into processClassDeclarations');
+        return ProcessClasses.processClassDeclarations(args, module, collection.nodes()[0]).catch((error: AppError): void => {
         args.logger.error('error2', { error});
-        }),
-        () => TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
+        })},
+        () => {
+        args.logger.debug('calling into processInterfaceDEclarations');
+        return TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
         args.logger.error('error3', { error});
-        }),
+        })},
         () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]).catch((error: Error): void => {
         args.logger.error('error4', { error});
         }),
-        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
+/*        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
         args.logger.error('error5', { error});
-        }),
+        }),*/
         () => TransformUtils.processNames(args,module, collection.nodes()[0]).catch((error: Error): void => {
         args.logger.error('error6', { error});
         }),
@@ -139,7 +143,6 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
         }), */
     // @ts-ignore
     ].reduce((a, v: () => Promise<any>) => a.then(r => {
-    args.logger.info('here');
             const z = v();
             return z.then(cr => [...r, cr]).catch((error: Error) => {
         args.logger.error('errorz', {error});

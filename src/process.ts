@@ -1,4 +1,8 @@
 import {Promise} from 'bluebird';
+import AppError from './AppError';
+import { myReduce } from './transformUtils';
+import {PromiseResult} from './types';
+
 import {Map, Record, RecordOf} from "immutable";
 import {
     Connection,
@@ -6,7 +10,7 @@ import {
 } from "typeorm";
 import EntityCore from "classModel/lib/src/entityCore";
 import {namedTypes} from "ast-types/gen/namedTypes";
-import winston, {Logger} from 'winston';
+import {Logger} from 'winston';
 
 type ImportMap = Map<string, EntityCore.Import>;
 
@@ -27,7 +31,10 @@ export interface ModuleProps {
 
 export type ModuleRecord = RecordOf<ModuleProps>;
 
-function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Module): Promise<Map<string, EntityCore.Class>> {
+function classes(
+    classRepo: Repository<EntityCore.Class>,
+    module: EntityCore.Module,
+): Promise<Map<string, EntityCore.Class>> {
     return classRepo.find({module}).then(classes => {
         const noNames = classes.filter(c => !c.name);
         if (noNames.length > 1) {
@@ -44,8 +51,14 @@ function classes(classRepo: Repository<EntityCore.Class>, module: EntityCore.Mod
     // }))
 }
 
-function interfaces(interfaceRepo: Repository<EntityCore.Interface>, module: EntityCore.Module): Promise<Map<string, EntityCore.Interface>> {
-    return interfaceRepo.find({module}).then(ifaces => Map<string, EntityCore.Interface>(ifaces.map(iface => [iface.name || '', iface])));
+function interfaces(
+    interfaceRepo: Repository<EntityCore.Interface>,
+    module: EntityCore.Module,
+): Promise<Map<string, EntityCore.Interface>> {
+    return interfaceRepo.find({module})
+        .then(ifaces => Map<string, EntityCore.Interface>(
+            ifaces.map(iface => [iface.name || '', iface]))
+        );
 }
 
 function getExports(exportRepo: Repository<EntityCore.Export>, module: EntityCore.Module, logger: Logger): Promise<Map<string, EntityCore.Export>> {
@@ -67,9 +80,18 @@ function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.M
     });
 }
 
-function updateClassImplements(logger: Logger, classRepo: Repository<EntityCore.Class>, class_: EntityCore.Class, module: ModuleRecord, modules: Map<string, ModuleRecord>) {
+function updateClassImplements(
+    logger: Logger,
+    classRepo: Repository<EntityCore.Class>,
+    class_: EntityCore.Class,
+    module: ModuleRecord,
+    modules: Map<string, ModuleRecord>,
+): Promise<PromiseResult<EntityCore.Class[]>> {
     logger.debug('ENTER updateClassImplements');
-    return class_.implementsNode.map((o: namedTypes.TSExpressionWithTypeArguments): () => Promise<any> => (): Promise<any> => {
+    const inResult: PromiseResult<EntityCore.Class[]> =
+      { id: 'updateClassImplements',
+          success: true, hasResult: true, result: [] };
+    return myReduce<namedTypes.TSExpressionWithTypeArguments,EntityCore.Class>( logger, class_.implementsNode, inResult, (o: namedTypes.TSExpressionWithTypeArguments): Promise<PromiseResult<any>> => {
         let exportedName;
 
         if (o.expression.type === 'Identifier') {
@@ -100,23 +122,28 @@ function updateClassImplements(logger: Logger, classRepo: Repository<EntityCore.
                                     } else {
                                         class_.implements.push(interface2_);
                                     }
-                                    return classRepo.save(class_).catch((error: Error): void => {
-                                        console.log(`unable to persist class`);
-                                    }).then((z) => undefined);
+                                    return classRepo.save(class_).then(class__ => {
+                                        return Promise.resolve({id: inResult.id, success: true, hasResult: true, result: class__ });
+                                    });
                                 }
                             } else {
-                                throw new Error(`no export`);
+                                throw new Error(`no export1`);
                             }
                         }
                     }
                 }
             }
         }
-        return Promise.resolve(undefined);
-    }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+        return Promise.resolve({ id: inResult.id, success: true, hasResult: false });
+    });
 }
 
-function updateSuperClass(class_: EntityCore.Class, module: ModuleRecord, classRepo: Repository<EntityCore.Class>, modules: Map<string, ModuleRecord>) {
+function updateSuperClass(
+class_: EntityCore.Class,
+module: ModuleRecord,
+classRepo: Repository<EntityCore.Class>,
+modules: Map<string, ModuleRecord>,
+) {
     return (() => {
         let objectName;
         let exportedName;
@@ -207,7 +234,7 @@ function handleClass(
     logger.info('about to task reduce');
     return tasks.reduce((a: Promise<any>, v: () => Promise<any>): Promise<any> => a.then(() => {
         const r = v().catch((error: Error) => {
-            logger.error('error in reduce!', {error});
+            logger.error(`error in reduce ${error.message}`, {error});
         });
         return r;
     }), Promise.resolve(undefined)).then(() => {
@@ -216,8 +243,8 @@ function handleClass(
         })
     }).then(() => {
         logger.debug('FINISHED handleClass');
-    }).catch((error: Error) => {
-        logger.error('errorzzz', {error});
+    }).catch((error: AppError) => {
+        logger.error(error.message, {error});
     });
 }
 
