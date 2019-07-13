@@ -37,7 +37,7 @@ function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTyp
         node.comments = [];
         comments =  node.comments;
     }
-    if(comments.length < lastComment && firstStatement ? 2 : 1) {
+    if(comments.length < ((lastComment && firstStatement) ? 2 : 1)) {
         comments.push(j.commentBlock(''));
         if(lastComment && firstStatement && comments.length < 2) {
             comments.push(j.commentBlock(''));
