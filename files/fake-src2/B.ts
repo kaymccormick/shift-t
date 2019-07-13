@@ -15,6 +15,9 @@ export interface myIface {
     foo: number;
 }
 
+/*
+ * @uuid c803fc04-e368-4d04-98c2-7666676ff61f
+*/
 export default class B extends A implements myIface {
     poop(a: number): void {
         return 0;
