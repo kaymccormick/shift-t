@@ -19,54 +19,53 @@ const logger = winston.createLogger({format: format.json(),
     transports:loggerTranports });
 
 function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTypes.Node>, node: namedTypes.Node, args: any) {
-let result: namedTypes.commentBlock|undefined = undefined;
+    let result: namedTypes.commentBlock|undefined = undefined;
     const { lastComment }  = args;
+    let firstStatement = false;
+    if(!nodePath.parentPath) {
+        throw new Error(node.type);
+    }
+    if(nodePath.parentPath.name === "body" && nodePath.parent.name === "program" && nodePath.name === 0) {
+        firstStatement = true;
+    }
+
     if(uuid === undefined) {
         throw new Error('invalid uuid');
     }
-    if(nodePath) {
-        if(nodePath.value !== nodePath.node ) {
-            throw new Error('eep');
-        }
-        const p =  nodePath.parentPath;
+    let comments = node.comments;
+    if(!comments) {
+        node.comments = [];
+        comments =  node.comments;
     }
-    const comments = node.comments;
-    if(comments && comments.length) {
-        let commentIndex = lastComment? comments.length - 1 : 0;
-        if(lastComment && commentIndex === 0) {
-            throw new Error('adding comment, error');
-            node.comments.splice(0, 0, j.commentBlock('empty'));
-            commentIndex += 1;
+    if(comments.length < lastComment && firstStatement ? 2 : 1) {
+        comments.push(j.commentBlock(''));
+        if(lastComment && firstStatement && comments.length < 2) {
+            comments.push(j.commentBlock(''));
+        }
+    }
+
+    let commentIndex = lastComment ? comments.length - 1 : 0;
+    const comment = comments[commentIndex];
+    const val = comment.value;
+    result = comment;
+    const match = /@uuid\s+(\S+)/.exec(val);
+    if(match) {
+        if(match[1] !== uuid) {
+            node.comments[commentIndex].value = val.replace(/@uuid\s+(\S+)/, `@uuid ${uuid}`);
         }
 
-        const comment = comments[commentIndex];
-        const val = comment.value;
-        result = comment;
-        const match = /@uuid\s+(\S+)/.exec(val);
-        if(match) {
-            if(match[1] !== uuid) {
-                node.comments[commentIndex].value = val.replace(/@uuid\s+(\S+)/, `@uuid ${uuid}`);
-            }
-
-        } else {
-            const newVal = `${val}\n * @uuid ${uuid}\n`;
-            node.comments[commentIndex].value = newVal;
-            report(newVal);
-        }
     } else {
-        const comment = j.commentBlock(`* @uuid ${uuid}\n`);
-        result = comment;
-        if(lastComment) {
-            node.comments = [j.commentBlock('empty'), comment];
-        } else {
-            node.comments = [comment];
-        }
+        const newVal = `${val}\n * @uuid ${uuid}\n`;
+        node.comments[commentIndex].value = newVal;
+        report(newVal);
     }
     return result;
 }
 
 module.exports = function(fileInfo, api, options) {
-    const report = api.report;
+    const report = (arg) => {
+        api.report(arg);
+    }
     const j = api.jscodeshift;
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
@@ -113,14 +112,14 @@ module.exports = function(fileInfo, api, options) {
             if(!processed) {
                 const comment = embedUuidInComment(report, j, module1.uuid, path, path.node, {});
                 if(comment === undefined) {
-                throw new Error('unexpected undefined');
+                    throw new Error('unexpected undefined');
                 }
                 report(comment.value);
                 processed = true;
             }
-            return false;
+            this.traverse(path);
         },
-/*        visitClassDeclaration(path: NodePath<namedTypes.ClassDeclaration>): boolean {
+        visitClassDeclaration(path: NodePath<namedTypes.ClassDeclaration>): boolean {
             const classDecl = path.node;
             let theNode = classDecl;
             let thePath = path;
@@ -141,12 +140,12 @@ module.exports = function(fileInfo, api, options) {
             const comment = embedUuidInComment(report, j, class_.uuid, thePath, theNode, { lastComment: true });
             report(comment.value);
             return false;
-        },*/
+        },
     });
     try {
         const xx = print(newFile1);
         const code = xx.code;
-//        report(`code is ${code}`);
+        //        report(`code is ${code}`);
         return code;
     } catch(error) {
         report(error.message);
