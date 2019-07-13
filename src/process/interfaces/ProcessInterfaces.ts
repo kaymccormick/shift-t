@@ -6,6 +6,7 @@ import {copyTree} from "../../utils";
 import { TransformUtilsArgs, myReduce,TransformUtils } from '../../transformUtils';
 import {NodePath} from "ast-types/lib/node-path";
 import { PromiseResult } from '../../types';
+import AppError from '../../AppError';
 
 export class ProcessInterfaces {
     public static processInterfaceDeclarations(
@@ -13,7 +14,8 @@ export class ProcessInterfaces {
         module: EntityCore.Module,
         file: namedTypes.File,
     ): Promise<PromiseResult<EntityCore.Interface[]>> {
-    const result = { success: false, hasResult: false, id: 'processInterfaceDeclarations' };
+    const baseId = `processInterfaceDeclarations-${module.name}`;
+    const result = { success: false, hasResult: false, id: baseId };
         return myReduce<namedTypes.TSInterfaceDeclaration, EntityCore.Interface>(args.logger, j(file).find(namedTypes.TSInterfaceDeclaration).nodes(),
          { success: true, hasResult: true, result: [] as EntityCore.Interface[], id: result.id },
          (iDecl: namedTypes.TSInterfaceDeclaration): Promise<PromiseResult<EntityCore.Interface>> => {
@@ -85,7 +87,7 @@ export class ProcessInterfaces {
         if (key.type === "Identifier") {
             methodName = key.name;
         } else {
-            throw new Error(key.type);
+            throw new AppError(`unidentified key type ${key.type}`);
         }
 
         const methodRepo = args.connection.getRepository(EntityCore.InterfaceMethod);
@@ -164,16 +166,17 @@ export class ProcessInterfaces {
                         }
 
                         p.property.type = type;
-                        p.property.name = propName;
+                        p.name = propName;
                         p.property.computed = n.computed;
                         p.property.readonly = n.readonly;
                         p.property.optional = n.optional;
                         p.property.hasInitializer = n.initializer != null;
                         p.property.astNode = copyTree(n).toJS();
 
-                        args.logger.debug('saving property');
+                        args.logger.debug('saving property', { property: p.toPojo() });
                         return propertyRepo.save(p).catch((error: Error): Promise<any> => {
-                            args.logger.debug('unable to save property');
+                            args.logger.error(`unable to save property ${error.message}`, { error });
+                            process.exit(1);
                             return Promise.resolve(undefined);
                         });
                     } else {

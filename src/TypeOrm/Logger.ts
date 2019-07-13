@@ -1,3 +1,4 @@
+/** Typeorm logger */
 import { Logger as WinstonLogger } from 'winston';
 import {Logger as BaseLogger, QueryRunner} from 'typeorm';
 export class Logger implements BaseLogger {

@@ -6,6 +6,28 @@ import { Logger } from 'winston';
 import {RestClient} from './RestClient';
 import AppError from "./AppError";
 
+export interface MyLeveledLogMethod {
+    (message: string, callback: any): void|any;
+    (message: string, meta: any, callback: any): void|any;
+    (message: string, ...meta: any[]): void|any;
+    (infoObject: object): void|any;
+}
+
+export interface DebugLogger {
+    debug: MyLeveledLogMethod;
+}
+
+export interface BasicLogger extends DebugLogger {
+}
+
+export type ValueKind = any|any[];
+//namedTypes.Node | namedTypes.Node[] | string | Map<string, {}> | Map<string, {}>[];
+
+export interface HandleModuleResult {
+}
+export interface HandleModulePromiseResult extends PromiseResult<HandleModuleResult>  {
+}
+
 export interface PromiseResult<T> {
     id: string;
     success: boolean;
@@ -47,5 +69,5 @@ export interface ImportContext {
 }
 
 export interface HandleImportSpecifier {
-    (importContext: ImportContext, importModuleName: string, localName: string, exportedName?: string, isDefault?: boolean, isNamespace?: boolean): Promise<void>;
+    (importContext: ImportContext, importModuleName: string, localName: string, exportedName?: string, isDefault?: boolean, isNamespace?: boolean): Promise<PromiseResult<EntityCore.Import>>;
 }

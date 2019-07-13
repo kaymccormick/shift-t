@@ -44,11 +44,8 @@ function classes(
         if (noNames.length) {
             throw new Error('pop')
         }
-        return Map<string, EntityCore.Class>(classes.map(class_ => [class_.name!, class_]))
-    })//.then(classes => ({
-    //     classes,
-    //
-    // }))
+        return Map<string, EntityCore.Class>(classes.map(class_ => [class_.name!, class_]));
+    });
 }
 
 function interfaces(
@@ -76,7 +73,7 @@ function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.M
     return importRepo.find({where: {module}, relations: ["module"]}).then(imports => {
         const defaultImport = imports.find(i => i.isDefaultImport);
 
-        return Map<string, EntityCore.Import>(imports.map((import_: EntityCore.Import) => [import_.localName, import_]));
+        return Map<string, EntityCore.Import>(imports.map((import_: EntityCore.Import) => [import_.name!, import_]));
     });
 }
 
@@ -87,7 +84,9 @@ function updateClassImplements(
     module: ModuleRecord,
     modules: Map<string, ModuleRecord>,
 ): Promise<PromiseResult<EntityCore.Class[]>> {
-    logger.debug('ENTER updateClassImplements');
+    const baseId = 'updateClassImplements';
+        logger.info('updateClassImplements', { type: 'functionInvocation',
+        "class": class_.toPojo(), module: module.module.toPojo() });
     const inResult: PromiseResult<EntityCore.Class[]> =
       { id: 'updateClassImplements',
           success: true, hasResult: true, result: [] };
@@ -100,7 +99,7 @@ function updateClassImplements(
                 if (name.nameKind === 'import') {
                     const import_ = module.imports.get(o.expression.name);
                     if (import_) {
-                        const sourceModule = modules.get(import_.sourceModuleName);
+                        const sourceModule = modules.get(import_.sourceModuleName!);
                         if (sourceModule) {
                             let export_: EntityCore.Export | undefined = undefined;
                             if (import_.isDefaultImport) {
@@ -127,7 +126,7 @@ function updateClassImplements(
                                     });
                                 }
                             } else {
-                            logger.warn('no export discovered');
+                                logger.warn('no export discovered');
                             }
                         }
                     }
@@ -139,11 +138,11 @@ function updateClassImplements(
 }
 
 function updateSuperClass(
-logger: Logger,
-class_: EntityCore.Class,
-module: ModuleRecord,
-classRepo: Repository<EntityCore.Class>,
-modules: Map<string, ModuleRecord>,
+    logger: Logger,
+    class_: EntityCore.Class,
+    module: ModuleRecord,
+    classRepo: Repository<EntityCore.Class>,
+    modules: Map<string, ModuleRecord>,
 ) {
     return (() => {
         let objectName;
@@ -174,7 +173,7 @@ modules: Map<string, ModuleRecord>,
                 }
             }
             if (import_) {
-                const sourceModule = modules.get(import_.sourceModuleName);
+                const sourceModule = modules.get(import_.sourceModuleName!);
                 if (sourceModule) {
                     let export_: EntityCore.Export | undefined = undefined;
                     if (import_.isDefaultImport) {
@@ -190,7 +189,7 @@ modules: Map<string, ModuleRecord>,
                         export_ = sourceModule.exports.get(exportedName);
                     }
                     if (export_) {
-                        const class2_ = sourceModule.classes.get(export_.localName || '');
+                        const class2_ = sourceModule.classes.get(export_.name || '');
                         if (class2_) {
                             class_.superClass = class2_;
                             return classRepo.save(class_).catch((error: Error): void => {
@@ -204,6 +203,8 @@ modules: Map<string, ModuleRecord>,
             }
 
             if (!okay) {
+                logger.error(`unable to find superclass for ${class_.name}`);
+                process.exit(1);         
                 throw new Error(`unable to find superclass for ${class_.name}`);
             }
 
@@ -266,7 +267,7 @@ function names(nameRepo: Repository<EntityCore.Name>, module: EntityCore.Module)
 }
 
 export function doProject(project: EntityCore.Project, connection: Connection, logger: Logger): Promise<any> {
-    logger.debug('ENTER doProject');
+    logger.info('doProject', {type:'functionInvocation', project: project.toPojo()});
     const {moduleRepo, classRepo, importRepo, exportRepo, nameRepo, interfaceRepo} = getRepositories(connection);
     const factory = Record({
         classes: Map<string, EntityCore.Class>(),

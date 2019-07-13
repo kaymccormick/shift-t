@@ -14,8 +14,11 @@ import {createConnection} from "../src/TypeOrm/Factory";
 import finder from 'find-package-json';
 import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
+import AppError from '../src/AppError';
+
 import  winston, { format } from 'winston';
 /*const { combine, timestamp, label, printf } = format;*/
+import {Transport} from '../src/Transport';
 
 import { Factory } from 'classModel/lib/src/entity/core/Factory';
 import uuidv4 from 'uuid/v4';
@@ -40,12 +43,12 @@ catch(error) {
 import File = namedTypes.File;
 const runUuid = uuidv4();
 const urlBase = 'http://localhost:7700/cme'
-const console  = new winston.transports.Console({level: args.level || 'warn'});
+const consoleTransport  = new winston.transports.Console({level: args.level || 'warn'});
 const file = new winston.transports.File({level: 'debug', filename:
       'collect.log'})
-const loggerTranports = [console, file/*, syslogTransport*/];
+const loggerTranports = [consoleTransport, file/*, syslogTransport*/];
 const logger = winston.createLogger({format: format.json(), /*combine(timestamp(), myFormat),*/ transports:loggerTranports,
-    defaultMeta: { runUuid }});
+/*    defaultMeta: { runUuid }*/});
 
 const restClient = new RestClient(urlBase, new Factory(logger));
 const readdir = promisify(fs.readdir);
@@ -64,7 +67,7 @@ function processFile(args: TransformUtilsArgs,
     fname: string,
     handleAst: HandleAst,
 ): Promise<void> {
-    args.logger.warn('processFile', { type: 'functionInvocation', project: project.toPojo(), path: fname });
+    args.logger.debug('processFile', { type: 'functionInvocation', project: project.toPojo(), path: fname });
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
@@ -130,7 +133,9 @@ function processDir(args: TransformUtilsArgs,
 
 const dir = args.dir;
 const f = finder(dir);
-const packageInfo = f.next().value;
+const next = f.next();
+const packageInfo = next.value;
+const pkgFile = next.filename;
 let packageName: string | undefined = undefined;
 if(packageInfo !== undefined) {
     packageName = packageInfo.name;
@@ -142,7 +147,12 @@ logger.info('begin run', {program: process.argv[1], dir, packageName});
 
 // PM1             /* PM12 */
 createConnection(logger).then((connection: Connection): Promise<void> => {
-    ((): Promise<void> => {
+/*try {
+    const appTransport = new Transport({connection});
+    logger.add(appTransport);
+    } catch(error) {
+    }*/
+    return ((): Promise<void> => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handlers: (() => any)[] = [];
 
@@ -158,11 +168,11 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
             });
 
         const projectRepo = connection.getRepository(EntityCore.Project);
-        const getOrCreateProject = (name: string): Promise<EntityCore.Project> => {
+        const getOrCreateProject = (name: string, path: string): Promise<EntityCore.Project> => {
             return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]): Promise<EntityCore.Project> => {
                 if (!projects.length) {
                     // PM3
-                    return projectRepo.save(new EntityCore.Project(name, []));
+                    return projectRepo.save(new EntityCore.Project(name, path, []));
                 } else {
                     return Promise.resolve(/*PM14*/projects[0]);
                 }
@@ -177,7 +187,7 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
         };
         const args: TransformUtilsArgs = {connection, restClient, logger};
         //PM2
-        return getOrCreateProject(packageName ||'').then(/*PM15*/(project): Promise<void> => {
+        return getOrCreateProject(packageName ||'', path.dirname(pkgFile!)).then(/*PM15*/(project): Promise<void> => {
             logger.debug('got project', {project});
             //PM4
             return stat(dir).then(/*PM16*/(stats): Promise<void> => {
@@ -187,21 +197,25 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
                 } else if(stats.isDirectory()) {
                     return processDir(args, project, dir, handleAst);
                 }
+                return Promise.resolve(undefined);
             }).then(/*PM17*/(): Promise<void> => {
-                args.logger.debug('calling doProject');
+                args.logger.info('calling doProject', { project: project.toPojo() });
                 return doProject(project, connection, args.logger).then((): void => {
                     args.logger.debug('here');
                 });
             }).catch((error: Error): void => {
                 logger.error('error5', {error});
+                process.exit(1);
             });
         });
-    })().then((): void => {
+    })().then((): Promise<void> => {
         connection.close();
         logger.debug('final then');
+        return Promise.resolve(undefined);
     });
 }).catch((error: Error): void => {
-    logger.error('error6', {error});
+    process.stderr.write(error.message + '\n');
+    //logger.error(`Error: ${error.message}`, {error});
     //reportError(error);
 });
 

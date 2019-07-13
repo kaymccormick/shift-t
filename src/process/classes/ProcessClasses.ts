@@ -91,7 +91,6 @@ export class ProcessClasses {
                         return false;
                     },
                 });
-                args.logger.info('processClassDeclarations3');
                 return promises.reduce((a: Promise<PromiseResult<any>>, v: [string, () => Promise<PromiseResult<any>>]): Promise<PromiseResult<any>> => a.then(() => v[1]().catch((error: AppError): PromiseResult<any> => {
                     return { id: error.id, success: false, hasResult: false, error };
                 })), Promise.resolve({ ...mainResult, success: true }));

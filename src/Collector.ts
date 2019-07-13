@@ -1,12 +1,11 @@
 import AppError from './AppError';
 import {Promise} from 'bluebird';
-import {ImportContext,ModuleSpecifier,Args} from "./types";
+import {ImportContext,ModuleSpecifier,PromiseResult,HandleModulePromiseResult} from "./types";
 import {TransformUtils} from "./transformUtils";
 import {ProcessClasses} from "./process/classes/ProcessClasses";
 import EntityCore from"classModel/lib/src/entityCore";
 import path from "path";
 import j from 'jscodeshift';
-import { Connection } from "typeorm";
 import {namedTypes} from "ast-types/gen/namedTypes";
 import File = namedTypes.File;
 import { TransformUtilsArgs } from '../src/transformUtils';
@@ -14,43 +13,55 @@ import { TransformUtilsArgs } from '../src/transformUtils';
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
 }
-function getModuleName(path1: string): string {
-    const _f = path.resolve(path1);
+function getModuleName(path1: string, project: EntityCore.Project): string {
+    let _f = path.resolve(path1);
     // const relativeBase = path.dirname(_f);
-    const moduleName = _f.replace(/\.ts$/, '');
+    _f = path.relative(project.path!, _f);
+    const moduleName = _f.replace(/\.tsx?$/, '');
+
     return moduleName;
 }
 
-export function processSourceModule(args: TransformUtilsArgs, project: EntityCore.Project, path1: string, file: File): Promise<void> {
-    const moduleName = getModuleName(path1);
+export function processSourceModule(
+    args: TransformUtilsArgs,
+    project: EntityCore.Project,
+    path1: string,
+    file: File,
+): Promise<HandleModulePromiseResult> {
+    const moduleName = getModuleName(path1, project);
+    if(!moduleName) {
+    args.logger.error(`need module name for ${path1}`);
+    throw new Error('need module name');
+    }
+
     const moduleRepo = args.connection.getRepository(EntityCore.Module);
 
     const getOrCreateModule = (name: string): Promise<EntityCore.Module> => {
         if(!name) {
-            throw new AppError('name undefined');
+            throw new AppError(`invalid module name '${name}'`);
         }
-        return moduleRepo.find({project, name}).then((modules): Promise<EntityCore.Module> => {
-            if(!modules.length) {
-                //                console.log(`saving new module with ${name}`);
-                return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], [], []))/*.catch((error: Error): void => {
-                    console.log(error.message);
-                    console.log('unable to create module');
-                })*/;
-            } else {
-                return Promise.resolve(modules[0]);
-            }
-        });
+        return moduleRepo.find({project, name})
+            .then((modules): Promise<EntityCore.Module> => {
+                if(!modules.length) {
+                // console.log(`saving new module with ${name}`);
+                    return moduleRepo.save(new EntityCore.Module(name, project, [], [], [], [], []));
+                } else {
+                    return Promise.resolve(modules[0]);
+                }
+            });
     };
 
     const handleModule = (
         module: EntityCore.Module
-    ): Promise<void>    => {
-        args.logger.warn('handleModule', { module });
+    ): Promise<HandleModulePromiseResult>    => {
         const moduleName = module.name;
         const context: ImportContext = {
             module: getModuleSpecifier(path1),
             moduleEntity: module,
         };
+        const baseId = `handleModule-${module.id}`;
+        args.logger.info(`handleModule ${baseId}`, { type: 'functionInvocation', module: module.toPojo() });
+        const handleModuleResult: HandleModulePromiseResult = { id: baseId, success: false, hasResult: false };
         const handleImportSpecifier =
         // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
                 (argument: any,
@@ -59,104 +70,105 @@ export function processSourceModule(args: TransformUtilsArgs, project: EntityCor
                     localName?: string,
                     exportedName?: string,
                     isDefault?: boolean,
-                    isNamespace?: boolean): Promise<void> => {
+                    isNamespace?: boolean): Promise<PromiseResult<EntityCore.Import>> => {
+                    const handleImportSpecifierResult: PromiseResult<EntityCore.Import> = {
+                        id: `handleImportSpecifier`,
+                        success: false,
+                        hasResult: false,
+                    };
                     const importRepo = args.connection.getRepository(EntityCore.Import);
                     const nameRepo = args.connection.getRepository(EntityCore.Name);
                     const module = argument as EntityCore.Module;
                     if (localName === undefined) {
                         throw new AppError('no localName');
                     }
-                    return nameRepo.find({where: {name: localName, module: importContext.moduleEntity}}).then(names => {
-                        if (names.length === 0) {
-                            const name = new EntityCore.Name();
-                            name.module = importContext.moduleEntity;
-                            name.name = localName;
-                            name.nameKind = 'import';
-                            return nameRepo.save(name).then(() => undefined);
-                        } else {
-                        // update the thing here
-                            //console.log(names);
-                        }
-                    }).then(() =>
-                        importRepo.find({module, localName}).then(imports => {
-                            if (imports.length === 0) {
-                                const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
-                                return importRepo.save(import_).then((): undefined => undefined).catch((error: Error): void => {
-                                    console.log(`unable to create Import: ${error.message}`);
-                                });
-                            } else {
-                                //
-                            }
-                        }));
-                }
+                    return ((): Promise<PromiseResult<EntityCore.Import>> =>
+                        ((): Promise<PromiseResult<EntityCore.Name>> =>
+                            nameRepo.find( { name: localName, module: importContext.moduleEntity })
+                                .then((names): Promise<PromiseResult<EntityCore.Name>> => {
+                                    const nameResult = { id:'namerepo.find', success: true,
+                                        hasResult: false };
+                                    if (names.length === 0) {
+                                        const name = new EntityCore.Name();
+                                        name.module = importContext.moduleEntity;
+                                        name.name = localName;
+                                        name.nameKind = 'import';
+                                        return nameRepo.save(name).then((name_): PromiseResult<EntityCore.Name> => Object.assign({}, nameResult, { hasResult: true, success: true, result: name_ }));
+                                    } else {
+                                    // update the thing here
+                                    //console.log(names);
+                                    }
+                                    return Promise.resolve(nameResult);
+                                }))().then((): Promise<PromiseResult<EntityCore.Import>> => {
+                            const importResult = { id:'importRepo.find', success: true, hasResult: false };
+                            return importRepo.find({module, name: localName}).then((imports_): Promise<PromiseResult<EntityCore.Import>> => {
+                                if (imports_.length === 0) {
+                                    const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
+                                    return importRepo.save(import_)
+                                        .then((import__): PromiseResult<EntityCore.Import> => { return { id: '', success: true, hasResult: true, result: import__ }; });
+                                }
+                                return Promise.resolve(importResult);
+                            });
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        }))().then((lastResult): Promise<PromiseResult<EntityCore.Import>> => {
+                        return Promise.resolve(Object.assign({}, handleImportSpecifierResult, { success: true, hasResult: false }));
+                    });
+                };
 
-        // @ts-ignore
         const collection = j(file);
-        // const t = TransformUtils;
-        // Object.keys(t).forEach(key => {
-        // console.log(`key is ${key}`);
-        // });
         return [
-          () => {
-          args.logger.info('handling import declarations');
-          return TransformUtils.handleImportDeclarations(
-            args,
-            collection.nodes()[0],
-            moduleName!,
-            context,
-            (importContext: ImportContext,
-                importName: string,
-                localName: string,
-                exportedName?: string,
-                isDefault?: boolean,
-                isNamespace?: boolean): Promise<void> => {
-                return handleImportSpecifier(
-                    module,
-                    importContext,
-                    importName,
-                    localName,
-                    exportedName,
-                    isDefault,
-                    isNamespace);
-            }).catch((error: Error): void => {
-        args.logger.error('error00000000', { error});
-        });
-        },
-        () => {
-        args.logger.debug('calling into processClassDeclarations');
-        return ProcessClasses.processClassDeclarations(args, module, collection.nodes()[0]).catch((error: AppError): void => {
-        args.logger.error('error2', { error});
-        })},
-        () => {
-        args.logger.debug('calling into processInterfaceDEclarations');
-        return TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
-        args.logger.error('error3', { error});
-        })},
-        () => TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]).catch((error: Error): void => {
-        args.logger.error('error4', { error});
-        }),
-/*        () => TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
-        args.logger.error('error5', { error});
-        }),*/
-        () => TransformUtils.processNames(args,module, collection.nodes()[0]).catch((error: Error): void => {
-        args.logger.error('error6', { error});
-        }),
-/*      () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]).catch((error: Error): void => {
-        args.logger.error('error7', { error});
-        }), */
-    // @ts-ignore
-    ].reduce((a, v: () => Promise<any>) => a.then(r => {
+            (): Promise<PromiseResult<EntityCore.Import[][]>> => {
+                args.logger.info('handling import declarations');
+                return TransformUtils.handleImportDeclarations(
+                    args,
+                    collection.nodes()[0],
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    moduleName!,
+                    context,
+                    (importContext: ImportContext,
+                        importName: string,
+                        localName: string,
+                        exportedName?: string,
+                        isDefault?: boolean,
+                        isNamespace?: boolean): Promise<PromiseResult<EntityCore.Import>> => handleImportSpecifier(
+                        module,
+                        importContext,
+                        importName,
+                        localName,
+                        exportedName,
+                        isDefault,
+                        isNamespace));
+            },
+            (): Promise<PromiseResult<EntityCore.Class[]>> => {
+                args.logger.debug('calling into processClassDeclarations');
+                return ProcessClasses.processClassDeclarations(args, module, collection.nodes()[0]);
+            },
+            (): Promise<PromiseResult<EntityCore.Interface[]>> => {
+                args.logger.debug('calling into processInterfaceDEclarations');
+                return TransformUtils.processInterfaceDeclarations(args, module, collection.nodes()[0]);
+            },
+            (): Promise<PromiseResult<EntityCore.Export[]>> => {
+                return TransformUtils.processExportDefaultDeclaration(args, module, collection.nodes()[0]);
+            },
+            (): Promise<PromiseResult<EntityCore.Export[]>> => {
+                return TransformUtils.processExportNamedDeclarations(args, module, collection.nodes()[0]);
+            },
+            /*            (): Promise<void> => {
+                return TransformUtils.processNames(args,module, collection.nodes()[0]);
+            },*/
+            /*      () => TransformUtils.processTypeDeclarations(args, module, collection.nodes()[0]), */
+        // @ts-ignore eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
+        ].reduce((a, v: () => Promise<any>): Promise<any> => a.then((r): Promise<any> => {
             const z = v();
-            return z.then(cr => [...r, cr]).catch((error: Error) => {
-        args.logger.error('errorz', {error});
-        });;
-        }), Promise.resolve([])).then((results: any[]) => {
-        args.logger.debug('results', {results});
-        }).catch((error: Error): void => {
-        args.logger.error('error00000', { error});
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
+            return z.then((cr): any[] => [...r, cr]).catch((error: Error): void => {
+                args.logger.error('errorz', {error});
+            });;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
+        }), Promise.resolve([])).then((results: any[]): void => {
+            args.logger.debug('results', {results});
         });
     };
-    return getOrCreateModule(moduleName).then(handleModule).catch((error: Error): void => {
-    args.logger.error('error22', { error});
-    });
+
+    return getOrCreateModule(moduleName).then(handleModule);
 }

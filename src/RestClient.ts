@@ -24,7 +24,7 @@ export class RestClient {
     createTsType(moduleId: number, astNode?: any|undefined, origin?: string) {
         return axios.post(`${this.baseUri}/tstype`, {tstype:{moduleId, astNode,origin}}).then(response => response.data).then(data => {
             if(!data.success) {
-                const x = new Error(data.error);
+                const x = new Error(`rest error ${data.error.toString()}`);
                 x.stack = data.stack;
                 throw x;
             }
