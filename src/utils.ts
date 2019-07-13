@@ -34,9 +34,10 @@ export function copyTree(node: namedTypes.Node, logger?: BasicLogger, level: num
         }
     });
     if(logger) {
-        logger.debug(`copyTree returning ${JSON.stringify(out, null, 4)}`);
+    //    logger.debug(`copyTree returning ${JSON.stringify(out, null, 4)}`);
     }
     return out;
 }
 
-
+          
+     

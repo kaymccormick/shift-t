@@ -18,7 +18,8 @@ const loggerTranports = [consoleTransport, file];
 const logger = winston.createLogger({format: format.json(),
     transports:loggerTranports });
 
-function embedUuidInComment(j, uuid: string, nodePath: NodePath<namedTypes.Node>, node: namedTypes.Node, args: any) {
+function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTypes.Node>, node: namedTypes.Node, args: any) {
+let result: namedTypes.commentBlock|undefined = undefined;
     const { lastComment }  = args;
     if(uuid === undefined) {
         throw new Error('invalid uuid');
@@ -28,18 +29,19 @@ function embedUuidInComment(j, uuid: string, nodePath: NodePath<namedTypes.Node>
             throw new Error('eep');
         }
         const p =  nodePath.parentPath;
-        console.log(`XX ${nodePath}`);
     }
     const comments = node.comments;
     if(comments && comments.length) {
         let commentIndex = lastComment? comments.length - 1 : 0;
         if(lastComment && commentIndex === 0) {
+            throw new Error('adding comment, error');
             node.comments.splice(0, 0, j.commentBlock('empty'));
             commentIndex += 1;
         }
 
         const comment = comments[commentIndex];
         const val = comment.value;
+        result = comment;
         const match = /@uuid\s+(\S+)/.exec(val);
         if(match) {
             if(match[1] !== uuid) {
@@ -49,16 +51,18 @@ function embedUuidInComment(j, uuid: string, nodePath: NodePath<namedTypes.Node>
         } else {
             const newVal = `${val}\n * @uuid ${uuid}\n`;
             node.comments[commentIndex].value = newVal;
-            console.log(newVal);
+            report(newVal);
         }
     } else {
         const comment = j.commentBlock(`* @uuid ${uuid}\n`);
+        result = comment;
         if(lastComment) {
             node.comments = [j.commentBlock('empty'), comment];
         } else {
             node.comments = [comment];
         }
     }
+    return result;
 }
 
 module.exports = function(fileInfo, api, options) {
@@ -82,7 +86,6 @@ module.exports = function(fileInfo, api, options) {
     const p =  path.resolve(fileInfo.path);
     const model = JSON.parse(fs.readFileSync('dump.json', { encoding: 'utf-8'}));
     const project = model.Project.find((project): boolean => {
-        console.log(project);
         return project.name === packageName;
     });
     if(!project) {
@@ -95,54 +98,55 @@ module.exports = function(fileInfo, api, options) {
     const r2 = path.relative(project.path!, p);
     const name = r2.replace(/\.tsx?$/, '');
 
-    const module = model.Module.find((module): boolean => module.name === name);
-    if(!module) {
+    const module1 = model.Module.find((module2): boolean => module2.name === name);
+    if(!module1) {
         throw new Error(`no module ${name}`);
     }
+    report(`Module: ${JSON.stringify(module1)}`);
 
     const body = r.nodes()[0].program.body;
     const newBody: StatementKind[] = [];
-    body.forEach((stmt: StatementKind, index: number): void => {
-        const newStmt = copyTree(stmt, logger).toJS();
-        console.log(JSON.stringify(newStmt));
-        if(index === 0) {
-            embedUuidInComment(j, module.uuid, undefined, newStmt, {});
-        }
-        newBody.push(newStmt);
-    });
-
-
-
-
-    const newFile = b.file(b.program(newBody));
-
-    visit( newFile, {
-        visitClassDeclaration(path: NodePath<namedTypes.ClassDeclaration>): boolean {
+    const newFile1 = copyTree(r.nodes()[0]).toJS();
+    let processed = false;
+    visit(newFile1, {
+        visitStatement(path: NodePath<namedTypes.Statement>): any {
+            if(!processed) {
+                const comment = embedUuidInComment(report, j, module1.uuid, path, path.node, {});
+                if(comment === undefined) {
+                throw new Error('unexpected undefined');
+                }
+                report(comment.value);
+                processed = true;
+            }
+            return false;
+        },
+/*        visitClassDeclaration(path: NodePath<namedTypes.ClassDeclaration>): boolean {
             const classDecl = path.node;
             let theNode = classDecl;
             let thePath = path;
             const parent = path.parent;
-            if(parent && parent.node && (parent.node.type === 'ExportDefaultDeclaration' || parent.node.type === 'ExportNamedDeclaration')) {
+            if(parent && parent.node &&(parent.node.type === 'ExportDefaultDeclaration' || parent.node.type === 'ExportNamedDeclaration')) {
                 theNode = parent.node;
                 thePath = parent;
             }
             const class_ = model['Class'].find((class__) => {
-                return class__.moduleId === module.id && classDecl.id && class__.name === classDecl.id.name;
+                return class__.moduleId === module1.id && classDecl.id && class__.name === classDecl.id.name;
             });
             if(!class_) {
-                console.log(classDecl.id!.name);
-                console.log(model.Class.filter((class__) => class__.moduleId == module.id));
+                report(classDecl.id!.name);
+                report(model.Class.filter((class__) => class__.moduleId == module1.id));
                 throw new Error('no class');
             }
 
-            embedUuidInComment(j, class_.uuid, thePath, theNode, { lastComment: true });
+            const comment = embedUuidInComment(report, j, class_.uuid, thePath, theNode, { lastComment: true });
+            report(comment.value);
             return false;
-        },
+        },*/
     });
     try {
-        const xx = print(newFile);
+        const xx = print(newFile1);
         const code = xx.code;
-        report(`code is ${code}`);
+//        report(`code is ${code}`);
         return code;
     } catch(error) {
         report(error.message);

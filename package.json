@@ -4,7 +4,7 @@
     "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
     "collect": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
     "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
-    "embedIds": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src2",
+    "embedIds": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src2",
     "embedIds2": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts docutils-t/src",
     "embedIds3": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/new",
     "orm2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts files/fake-src2",
