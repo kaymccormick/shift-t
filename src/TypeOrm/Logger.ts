@@ -6,7 +6,7 @@ export class Logger implements BaseLogger {
     public constructor(private logger: WinstonLogger) {
     }
     public logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner): any {
-        this.logger.debug({logger: true, query, parameters});
+        this.logger.silly({logger: true, query, parameters});
     }
 
     public logQueryError(error: string, query: string, parameters?: any[], queryRunner?: QueryRunner): void {

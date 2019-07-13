@@ -126,8 +126,21 @@ export class TransformUtils {
         Promise<PromiseResult<EntityCore.Import[]>> => {
             const innerInResult: PromiseResult<EntityCore.Import[]> = { id: `${baseId}-importDecl-${index}`, success: true,
                 result: [], hasResult: true };
-            const importModule = importDecl.source.value != null &&
-            path.resolve(path.dirname(relativeBase), importDecl.source.value.toString()) || '';
+
+            if(importContext.moduleEntity.project === undefined) {
+                args.logger.error('no project');
+                throw new Error('no project');
+            } else {
+                args.logger.info('123', { path: importContext.moduleEntity.project.path! });
+            }
+
+            const y = path.dirname(relativeBase);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const x = path.relative(importContext.moduleEntity.project!.path!, path.resolve(importContext.moduleEntity.project!.path!, relativeBase, '..', importDecl.source.value!.toString()));
+            args.logger.info('pathfinder', { x, y, relativeBase, value: importDecl.source.value! });
+            const importModule: string = x;//importDecl.source.value != null && path.relative(importContext.moduleEntity.project!.path!, x) || '';
+
+
             const promises: (() => Promise<PromiseResult<EntityCore.Import>>)[] = [];
             visit(importDecl, {
                 visitImportNamespaceSpecifier(path: NodePath<namedTypes.ImportNamespaceSpecifier>): boolean {
@@ -202,7 +215,7 @@ export class TransformUtils {
                         return exportRepo.find({module, exportedName}).then((exports: EntityCore.Export[]): Promise<PromiseResult<EntityCore.Export>> => {
                             if (exports.length === 0) {
                                 const export_ = new EntityCore.Export(exportedName, exportedName, module);
-                                args.logger.debug('saving export');
+                                args.logger.debug(`saving export ${exportedName}`);
                                 return exportRepo.save(export_).then((export__): Promise<PromiseResult<EntityCore.Export>> => {
                                     return Promise.resolve(Object.assign({}, result, { result: export__, success: true, hasResult: true }));
                                 });
@@ -240,7 +253,7 @@ export class TransformUtils {
                                             specifier.exported.name,
                                             module,
                                         );
-                                        args.logger.debug('saving export');
+                                        args.logger.debug(`saving export ${export_}.name`);
                                         return exportRepo.save(export_).then((export__): Promise<PromiseResult<EntityCore.Export>> => {
                                             //@ts-ignore
                                             return Promise.resolve(Object.assign({},result, {hasResult: true, success: true, result:export__}));
@@ -296,7 +309,7 @@ export class TransformUtils {
                         if(exports.length === 0) {
                             const export_ = new EntityCore.Export(name, undefined, module);
                             export_.isDefaultExport = true;
-                            args.logger.debug('saving export');
+                            args.logger.debug(`saving export ${export_.name}`);
                             return exportRepo.save(export_).then((export_): Promise<PromiseResult<EntityCore.Export>> => {
                                 return Promise.resolve(Object.assign({}, exportResult, { success: true, hasResult: true, result: export_ }));
                             });
@@ -309,7 +322,7 @@ export class TransformUtils {
 
                             export_.name = name;
                             export_.exportedName = undefined;
-                            args.logger.debug('saving export');
+                            args.logger.debug(`saving export ${export_.name}`);
                             return exportRepo.save(export_).catch((error: Error): Promise<PromiseResult<EntityCore.Export>> => {
                                 args.logger.debug(`unable to persist class: ${error.message}`);
                                 return Promise.resolve(Object.assign({}, exportResult, { success: false, hasResult: false }));

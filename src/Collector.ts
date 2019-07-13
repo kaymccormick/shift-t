@@ -40,7 +40,7 @@ export function processSourceModule(
         if(!name) {
             throw new AppError(`invalid module name '${name}'`);
         }
-        return moduleRepo.find({project, name})
+        return moduleRepo.find({where: { project, name }, relations: ['project']})
             .then((modules): Promise<EntityCore.Module> => {
                 if(!modules.length) {
                 // console.log(`saving new module with ${name}`);
@@ -103,6 +103,7 @@ export function processSourceModule(
                             const importResult = { id:'importRepo.find', success: true, hasResult: false };
                             return importRepo.find({module, name: localName}).then((imports_): Promise<PromiseResult<EntityCore.Import>> => {
                                 if (imports_.length === 0) {
+                                args.logger.debug('importModuleName', { importModuleName });
                                     const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
                                     return importRepo.save(import_)
                                         .then((import__): PromiseResult<EntityCore.Import> => { return { id: '', success: true, hasResult: true, result: import__ }; });

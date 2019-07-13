@@ -160,18 +160,17 @@ export class ProcessInterfaces {
                     if(props.length === 0) {
                         const p = new EntityCore.InterfaceProperty();
                         p.iface = iface;
-                        p.property = new EntityCore.Property();
                         if(!type) {
                             throw new Error('no type');
                         }
 
-                        p.property.type = type;
+                        p.type = type;
                         p.name = propName;
-                        p.property.computed = n.computed;
-                        p.property.readonly = n.readonly;
-                        p.property.optional = n.optional;
-                        p.property.hasInitializer = n.initializer != null;
-                        p.property.astNode = copyTree(n).toJS();
+                        p.computed = n.computed;
+                        p.readonly = n.readonly;
+                        p.optional = n.optional;
+                        p.hasInitializer = n.initializer != null;
+                        p.astNode = copyTree(n).toJS();
 
                         args.logger.debug('saving property', { property: p.toPojo() });
                         return propertyRepo.save(p).catch((error: Error): Promise<any> => {

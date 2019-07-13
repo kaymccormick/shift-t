@@ -18,10 +18,10 @@ export class ProcessClasses {
     ): Promise<PromiseResult<EntityCore.Class[]>> {
     // @ts-ignore
         const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
-        args.logger.info('processClassDeclarations', {type: 'main', module});
+        args.logger.info('processClassDeclarations', {type: 'functionInvocation', module: module.toPojo()});
         args.logger.debug('looking for nodes of type ClassDeclaration');
         const x = j(file).find(namedTypes.ClassDeclaration).nodes();
-        args.logger.debug('found ${x.length} nodes');
+        args.logger.debug(`found ${x.length} nodes`);
 
         // @ts-ignore
         return myReduce<namedTypes.ClassDeclaration, EntityCore.Class>(args.logger, x, mainResult, (classDecl: namedTypes.ClassDeclaration): () => Promise<PromiseResult<EntityCore.Class>> => {
@@ -64,7 +64,7 @@ export class ProcessClasses {
                     class_.astNode = m;
                     class_.superClassNode = m.get('superClass');
                     class_.implementsNode = m.get('implements');
-                    args.logger.debug('saving class', { "class": class_.toPojo });
+                    args.logger.debug(`saving class ${class_.name}`, { "class": class_.toPojo({minimal: true}) });
                     return classRepo.save(class_).then(class__ => {
                         return Promise.resolve(Object.assign({}, classResult, { result: class__, success: true, hasResult: true }));
                     });
@@ -202,5 +202,4 @@ export class ProcessClasses {
             });
         });
     }
-
 }

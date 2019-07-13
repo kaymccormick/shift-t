@@ -201,7 +201,7 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
             }).then(/*PM17*/(): Promise<void> => {
                 args.logger.info('calling doProject', { project: project.toPojo() });
                 return doProject(project, connection, args.logger).then((): void => {
-                    args.logger.debug('here');
+                    args.logger.debug(`completed doProject for ${project.name}`);
                 });
             }).catch((error: Error): void => {
                 logger.error('error5', {error});
@@ -209,8 +209,8 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
             });
         });
     })().then((): Promise<void> => {
+        logger.info('Closing database connection.');
         connection.close();
-        logger.debug('final then');
         return Promise.resolve(undefined);
     });
 }).catch((error: Error): void => {

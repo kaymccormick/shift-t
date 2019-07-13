@@ -44,6 +44,7 @@ function classes(
         if (noNames.length) {
             throw new Error('pop')
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return Map<string, EntityCore.Class>(classes.map(class_ => [class_.name!, class_]));
     });
 }
@@ -73,6 +74,7 @@ function imports(importRepo: Repository<EntityCore.Import>, module: EntityCore.M
     return importRepo.find({where: {module}, relations: ["module"]}).then(imports => {
         const defaultImport = imports.find(i => i.isDefaultImport);
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return Map<string, EntityCore.Import>(imports.map((import_: EntityCore.Import) => [import_.name!, import_]));
     });
 }
@@ -85,10 +87,10 @@ function updateClassImplements(
     modules: Map<string, ModuleRecord>,
 ): Promise<PromiseResult<EntityCore.Class[]>> {
     const baseId = 'updateClassImplements';
-        logger.info('updateClassImplements', { type: 'functionInvocation',
-        "class": class_.toPojo(), module: module.module.toPojo() });
+    logger.info(baseId, { type: 'functionInvocation',
+        "class": class_.toPojo({ minimal: true }), module: module.module.toPojo() });
     const inResult: PromiseResult<EntityCore.Class[]> =
-      { id: 'updateClassImplements',
+      { id: baseId,
           success: true, hasResult: true, result: [] };
     return myReduce<namedTypes.TSExpressionWithTypeArguments,EntityCore.Class>( logger, class_.implementsNode, inResult, (o: namedTypes.TSExpressionWithTypeArguments): Promise<PromiseResult<any>> => {
         let exportedName;
@@ -143,8 +145,11 @@ function updateSuperClass(
     module: ModuleRecord,
     classRepo: Repository<EntityCore.Class>,
     modules: Map<string, ModuleRecord>,
-) {
-    return (() => {
+): Promise<PromiseResult<EntityCore.Class>> {
+const baseId = `updateSuperClass-${module.module.name}-${class_.name}`;
+const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, hasResult: false };
+    logger.info(baseId, { type: "functionInvocation", "class": class_.toPojo({minimal: true}) });
+    return ((): ReturnType<typeof updateSuperClass> => {
         let objectName;
         let exportedName;
         let okay = false;
@@ -159,26 +164,30 @@ function updateSuperClass(
             if (name_.nameKind === 'class') {
                 const c = module.classes.get(objectName);
                 class_.superClass = c;
-                return classRepo.save(class_).catch((error: Error): void => {
-                    console.log(`unable to persist class: ${error.message}`);
+                return classRepo.save(class_).then((class__): ReturnType<typeof updateSuperClass> =>  {
+                return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
                 });
             }
             // class might not even be an import!
+            logger.debug(`looking for import ${objectName} in module ${module.module.name}`);
             const import_ = module.imports.get(objectName)
             if (!import_) {
                 if (objectName === 'Array' || objectName === 'Error') {
+                    logger.debug(`encountered built-in class ${objectName}`);
                     okay = true;
                 } else {
                     throw new Error(`unable to find import for ${objectName}`);
                 }
             }
             if (import_) {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+//                logger.debug('got import', { "import": import_.toPojo({minimal: true})  });
+//                console.debug(`looking for source module name ${import_.sourceModuleName}`);
                 const sourceModule = modules.get(import_.sourceModuleName!);
                 if (sourceModule) {
                     let export_: EntityCore.Export | undefined = undefined;
                     if (import_.isDefaultImport) {
                         export_ = sourceModule.module.defaultExport;
-                        //export_ = sourceModule.exports.find((e) => e.isDefaultExport);
                         if (!export_) {
                             throw new Error(`updateSuperClass: no default export for ${sourceModule.module.id} ${sourceModule.module.name}`);
                         }
@@ -192,24 +201,25 @@ function updateSuperClass(
                         const class2_ = sourceModule.classes.get(export_.name || '');
                         if (class2_) {
                             class_.superClass = class2_;
-                            return classRepo.save(class_).catch((error: Error): void => {
-                                console.log(`unable to persist class: ${error.message}`);
-                            }).then((z) => undefined);
+                            return classRepo.save(class_).then((class__): ReturnType<typeof updateSuperClass> =>  {
+                return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
+                });
                         }
                     } else {
-                        logger.warn('no export found');
+                        logger.error('no export found');
+                        process.exit(1);
                     }
                 }
             }
 
             if (!okay) {
                 logger.error(`unable to find superclass for ${class_.name}`);
-                process.exit(1);         
+                process.exit(1);
                 throw new Error(`unable to find superclass for ${class_.name}`);
             }
 
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve(inResult);
     })();
 }
 
@@ -326,9 +336,7 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
                 logger.error('1errorz', {error});
             });;
         }), Promise.resolve([]))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
-        logger.info('zz', { modules });
         return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord] => {
-            logger.info('zz1');
             if (module === undefined) {
                 console.log('undefined module');
                 logger.error('woop');
@@ -337,6 +345,7 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
             if (!module.module) {
                 logger.error('woop2', { module });
                 throw new Error('module');
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             }
             return [module.module.name!, module];
         }));
