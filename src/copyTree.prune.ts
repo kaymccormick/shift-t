@@ -9,7 +9,6 @@ export function copyTree(node: namedTypes.Node,
     let depth = 0;
     visit(node, {
         visitNode(path: NodePath<namedTypes.Node>): any {
-            let myDepth = depth;
             depth++;
             this.traverse(path);
             depth--;
