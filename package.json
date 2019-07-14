@@ -1,4 +1,5 @@
 {
+  "name": "shift-t",
   "scripts": {
     "process": "ts-node bin/process.ts",
     "extractRegexps": "jscodeshift -d -t transforms/extractRegexps.js files/regexp1.js",
@@ -7,7 +8,8 @@
     "embedIds": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src2",
     "embedIdsCM": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts /local/home/jade/JsDev/classModel/src",
     "embedIds2": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts docutils-t/src",
-    "embedIds3": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/new",
+    "embedIds3": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src3",
+    "embedIds4": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/new",
     "orm2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts files/fake-src2",
     "collectClassStructureFake": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts files/fake-src",
     "transform666": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/transform666.ts /local/home/jade/JsDev/ast-types/gen/namedTypes.ts",
@@ -16,7 +18,7 @@
     "compile": "tsc -p .",
     "collectNew": "ts-node bin/collect.ts files/new",
     "collect1": "ts-node bin/collect.ts files/fake-src2",
-    "collect2": "ts-node bin/collect.ts docutils-t/src",
+    "collect2": "ts-node bin/collect.ts /local/home/jade/JsDev/docutils-t/src",
     "collect3": "ts-node bin/collect.ts files/fake-src3",
     "collect-nodes": "ts-node bin/collect.ts ../docutils-t/src/nodes.ts",
     "c-ast": "ts-node bin/collect.ts ../ast-types"
@@ -31,6 +33,7 @@
     "@types/find-package-json": "^1.1.0",
     "@types/jest": "^24.0.15",
     "@types/jscodeshift": "^0.6.0",
+    "@types/pg": "^7.4.14",
     "@types/uuid": "^3.4.5",
     "@types/winston-syslog": "^2.0.2",
     "@typescript-eslint/eslint-plugin": "^1.10.2",
@@ -45,6 +48,7 @@
     "immutable": "^4.0.0-rc.12",
     "jscodeshift": "^0.6.4",
     "jsdoc": "^3.6.2",
+    "leftpad": "^0.0.1",
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.3",
     "read-package-json": "^2.0.13",
@@ -67,6 +71,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.2",
     "jest": "^24.8.0",
-    "jest-cli": "^24.8.0"
+    "jest-cli": "^24.8.0",
+    "prettier": "^1.18.2"
   }
 }

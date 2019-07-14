@@ -6,7 +6,7 @@ import EntityCore from "classModel/lib/src/entityCore";
 import  winston, { format } from 'winston';
 import finder from 'find-package-json';
 import {builders as b, NodePath} from 'ast-types';
-import { copyTree }from '../src/utils';
+import { copyTree,processComments }from '../src/utils';
 import {StatementKind} from "ast-types/gen/kinds";
 import {namedTypes,visit} from 'ast-types';
 
@@ -57,7 +57,7 @@ function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTyp
     } else {
         const newVal = `${val}\n * @uuid ${uuid}\n`;
         node.comments[commentIndex].value = newVal;
-        report(newVal);
+        //report(newVal);
     }
     return result;
 }
@@ -101,22 +101,28 @@ module.exports = function(fileInfo, api, options) {
     if(!module1) {
         throw new Error(`no module ${name}`);
     }
-    report(`Module: ${JSON.stringify(module1)}`);
+    //
+    // report(`Module: ${JSON.stringify(module1)}`);
 
     const body = r.nodes()[0].program.body;
     const newBody: StatementKind[] = [];
     const newFile1 = copyTree(r.nodes()[0]).toJS();
     let processed = false;
     visit(newFile1, {
+        visitNode(path: NodePath<namedTypes.Node>): any {
+          processComments(report, path);
+          this.traverse(path);
+        },
         visitStatement(path: NodePath<namedTypes.Statement>): any {
             if(!processed) {
                 const comment = embedUuidInComment(report, j, module1.uuid, path, path.node, {});
                 if(comment === undefined) {
                     throw new Error('unexpected undefined');
                 }
-                report(comment.value);
+                //report(comment.value);
                 processed = true;
             }
+            processComments(report, path);
             this.traverse(path);
         },
         visitClassDeclaration(path: NodePath<namedTypes.ClassDeclaration>): boolean {
@@ -138,7 +144,8 @@ module.exports = function(fileInfo, api, options) {
             }
 
             const comment = embedUuidInComment(report, j, class_.uuid, thePath, theNode, { lastComment: true });
-            report(comment.value);
+            processComments(report, path);
+          //  report(comment.value);
             return false;
         },
     });

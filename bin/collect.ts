@@ -172,9 +172,13 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
             return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]): Promise<EntityCore.Project> => {
                 if (!projects.length) {
                     // PM3
-                    return projectRepo.save(new EntityCore.Project(name, path, []));
+                    const p = new EntityCore.Project(name, path, []);
+                    p.packageJson = packageInfo;
+                    return projectRepo.save(p);
                 } else {
-                    return Promise.resolve(/*PM14*/projects[0]);
+                    logger.error(packageInfo!);
+                    projects[0].packageJson = packageInfo;
+                    return projectRepo.save(projects[0]);
                 }
             });
         }
@@ -188,7 +192,7 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
         const args: TransformUtilsArgs = {connection, restClient, logger};
         //PM2
         return getOrCreateProject(packageName ||'', path.dirname(pkgFile!)).then(/*PM15*/(project): Promise<void> => {
-            logger.debug('got project', {project});
+            logger.error('got project', {project});
             //PM4
             return stat(dir).then(/*PM16*/(stats): Promise<void> => {
                 logger.debug('got stats', { path: dir, stats });

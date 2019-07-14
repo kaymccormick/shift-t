@@ -1,5 +1,6 @@
-/** @uuid 238eb6ba-a1e7-4a59-a7f3-6a0f6e0022ba
-*/
+/**
+ * @uuid 238eb6ba-a1e7-4a59-a7f3-6a0f6e0022ba
+ */
 import A from "./A";
 
 import { C } from "./C";
@@ -15,9 +16,9 @@ export interface myIface {
     foo: number;
 }
 
-/*
+/**
  * @uuid c803fc04-e368-4d04-98c2-7666676ff61f
-*/
+ */
 export default class B extends A implements myIface {
     poop(a: number): void {
         return 0;
