@@ -15,7 +15,7 @@ import {
 } from 'ast-types/gen/kinds';
 import uuidv4 from 'uuid/v4';
 import AppError from './AppError';
-import {copyTree, CopyTreeResult} from "./utils";
+import {copyTree, CopyTreeResult} from "./copyTree.prune";
 
 import {PromiseResult, HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { visit } from "ast-types";
@@ -344,7 +344,8 @@ export class TransformUtils {
         moduleId: number,
         typeAnnotation: namedTypes.Node,
     ): Promise<PromiseResult<EntityCore.TSType>> {
-        const result: PromiseResult<EntityCore.TSType> = { success: false, hasResult: false, id: 'handleType'};
+    const baseId = 'handleTypez';
+        const result: PromiseResult<EntityCore.TSType> = { success: false, hasResult: false, id: 'handleTypez'};
         const iterationId = uuidv4();
         args.logger.info('handleType', { iterationId, astNode: copyTree(typeAnnotation).toJS() });
         const astNode: {} = copyTree(typeAnnotation).toJS();

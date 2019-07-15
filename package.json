@@ -7,7 +7,7 @@
     "collectClassStructure": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/collectClassStructure.ts ../docutils-t/src",
     "embedIds": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src2",
     "embedIdsCM": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts /local/home/jade/JsDev/classModel/src",
-    "embedIds2": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts docutils-t/src",
+    "embedIds2": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts /local/home/jade/JsDev/docutils-t/src",
     "embedIds3": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/fake-src3",
     "embedIds4": "jscodeshift --run-in-band --extensions ts --parser=ts -t transforms/embedIds.ts files/new",
     "orm2": "jscodeshift --run-in-band -d --extensions ts --parser=ts -t transforms/orm.ts files/fake-src2",

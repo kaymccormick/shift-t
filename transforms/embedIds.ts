@@ -106,9 +106,9 @@ module.exports = function(fileInfo, api, options) {
 
     const body = r.nodes()[0].program.body;
     const newBody: StatementKind[] = [];
-    const newFile1 = copyTree(r.nodes()[0]).toJS();
+//    const newFile1 = copyTree(r.nodes()[0]).toJS();
     let processed = false;
-    visit(newFile1, {
+    visit(r.nodes()[0], {
         visitNode(path: NodePath<namedTypes.Node>): any {
           processComments(report, path);
           this.traverse(path);
@@ -150,7 +150,7 @@ module.exports = function(fileInfo, api, options) {
         },
     });
     try {
-        const xx = print(newFile1);
+        const xx = print(r.nodes()[0]);
         const code = xx.code;
         //        report(`code is ${code}`);
         return code;

@@ -3,7 +3,7 @@ import {getFieldNames, getFieldValue, eachField, namedTypes, builders} from 'ast
 import { CommentKind } from 'ast-types/gen/kinds';
 import { Map,List } from 'immutable';
 import { ValueKind, BasicLogger } from './types';
-export { copyTree, CopyTreeResult } from './copyTree';
+export { copyTree, CopyTreeResult } from './copyTree.prune';
 
 import { NodePath } from 'ast-types/lib/node-path';
 
@@ -23,6 +23,9 @@ export function normalizeDocComment(report: any, lines: string[]): string[] {
     return newLines;
 }
 
+/**
+ * Purpose: ?
+ */
 export function processComments(report: any, nodePath: NodePath<namedTypes.Node>) {
     const node = nodePath.node;
     let column: number|undefined;
@@ -36,8 +39,6 @@ export function processComments(report: any, nodePath: NodePath<namedTypes.Node>
         return;
     }
     comments.forEach((comment: CommentKind): void => {
-    report(comment.type);
-//        if(comment.type === "CommentBlock" || comment.type == "Block") {
             const val = comment.value;
             report(val.replace(/\n/g, '\\n'));
             let containsAtUuid = val.indexOf('@uuid') !== -1;
@@ -59,7 +60,6 @@ export function processComments(report: any, nodePath: NodePath<namedTypes.Node>
                 const newVal = newLines.join('\n');
                 //  report(`processComments: ${newVal}\n.\n`);
                 comment.value = newVal;
-//            }
         }
     });
 }

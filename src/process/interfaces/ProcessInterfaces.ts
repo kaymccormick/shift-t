@@ -14,73 +14,73 @@ export class ProcessInterfaces {
         module: EntityCore.Module,
         file: namedTypes.File,
     ): Promise<PromiseResult<EntityCore.Interface[]>> {
-    const baseId = `processInterfaceDeclarations-${module.name}`;
-    const result = { success: false, hasResult: false, id: baseId };
+        const baseId = `processInterfaceDeclarations-${module.name}`;
+        const result = { success: false, hasResult: false, id: baseId };
         return myReduce<namedTypes.TSInterfaceDeclaration, EntityCore.Interface>(args.logger, j(file).find(namedTypes.TSInterfaceDeclaration).nodes(),
-         { success: true, hasResult: true, result: [] as EntityCore.Interface[], id: result.id },
-         (iDecl: namedTypes.TSInterfaceDeclaration): Promise<PromiseResult<EntityCore.Interface>> => {
-            if(!iDecl.id) {
-                throw new Error('no interface name');
-            }
-            if(iDecl.id.type !== 'Identifier') {
-                throw new Error(`unsupported declaration type ${iDecl.id.type}`);
-            }
-            const idName = iDecl.id.name;
+            { success: true, hasResult: true, result: [] as EntityCore.Interface[], id: result.id },
+            (iDecl: namedTypes.TSInterfaceDeclaration): Promise<PromiseResult<EntityCore.Interface>> => {
+                if(!iDecl.id) {
+                    throw new Error('no interface name');
+                }
+                if(iDecl.id.type !== 'Identifier') {
+                    throw new Error(`unsupported declaration type ${iDecl.id.type}`);
+                }
+                const idName = iDecl.id.name;
 
-            if(iDecl.typeParameters) {
-                iDecl.typeParameters.params.map((param: namedTypes.TSTypeParameter) => {
-                });
-            }
-
-            const interfaceRepo = args.connection.getRepository(EntityCore.Interface);
-            const nameRepo = args.connection.getRepository(EntityCore.Name);
-            return nameRepo.find({module, name: idName}).then((names) => {
-                if(names.length === 0) {
-                    const name = new EntityCore.Name();
-                    name.name = idName;
-                    name.nameKind = 'interface';
-                    name.module = module;
-                    args.logger.debug('saving name');
-                    return nameRepo.save(name).catch((error: Error): void => {
-                        args.logger.debug(`unable to persist name: ${error.message}`);
-                    }).then(() => undefined);
-                } else {
-                    const name = names[0];
-                    name.nameKind = 'interface';
-                    args.logger.debug('saving name');
-                    return nameRepo.save(name).catch((error: Error): void => {
-                        args.logger.debug(`unable to persist name: ${error.message}`);
+                if(iDecl.typeParameters) {
+                    iDecl.typeParameters.params.map((param: namedTypes.TSTypeParameter) => {
                     });
                 }
-            }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then((interfaces): Promise<any> => {
-                if(!interfaces.length) {
+
+                const interfaceRepo = args.connection.getRepository(EntityCore.Interface);
+                const nameRepo = args.connection.getRepository(EntityCore.Name);
+                return nameRepo.find({module, name: idName}).then((names) => {
+                    if(names.length === 0) {
+                        const name = new EntityCore.Name();
+                        name.name = idName;
+                        name.nameKind = 'interface';
+                        name.module = module;
+                        args.logger.debug(`saving interface name ${idName}`);
+                        return nameRepo.save(name).catch((error: Error): void => {
+                            args.logger.debug(`unable to persist name: ${error.message}`);
+                        }).then(() => undefined);
+                    } else {
+                        const name = names[0];
+                        args.logger.debug(`resaving existing interface name ${idName} (kind was ${name.nameKind})`);
+                        name.nameKind = 'interface';
+                        return nameRepo.save(name).catch((error: Error): void => {
+                            args.logger.debug(`unable to persist name: ${error.message}`);
+                        });
+                    }
+                }).then(() => interfaceRepo.find({where: {module, name: idName}, relations: ['module']})).then((interfaces): Promise<any> => {
+                    if(!interfaces.length) {
                     /* create new class instance */
-                    const interface_ = new EntityCore.Interface()
-                    interface_.module = module;
-                    interface_.name = idName;
-                    //                    class_.astNode = m;
-                    interface_.astNode = copyTree(iDecl).toJS();
-                    args.logger.debug('saving interface');
-                    return interfaceRepo.save(interface_).catch((error: Error): void => {
-                        args.logger.debug(`unable to persist interface: ${error.message}`);
-                    });
-                } else {
+                        const interface_ = new EntityCore.Interface()
+                        interface_.module = module;
+                        interface_.name = idName;
+                        //                    class_.astNode = m;
+                        interface_.astNode = copyTree(iDecl).toJS();
+                        args.logger.debug('saving interface');
+                        return interfaceRepo.save(interface_).catch((error: Error): void => {
+                            args.logger.debug(`unable to persist interface: ${error.message}`);
+                        });
+                    } else {
                     /* should check and update, no? */
-                    return Promise.resolve(interfaces[0]);
-                }
-            }).then((interface_: EntityCore.Interface) => {
-                if(!interface_) {
-                    throw new Error('failure, no interface!');
-                }
-                return [() => this.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
-                    return this.processInterfaceMethod(args, interface_, node)
-                })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
-            });
+                        return Promise.resolve(interfaces[0]);
+                    }
+                }).then((interface_: EntityCore.Interface) => {
+                    if(!interface_) {
+                        throw new Error('failure, no interface!');
+                    }
+                    return [() => this.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
+                        return this.processInterfaceMethod(args, interface_, node)
+                    })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+                });
             });
     }
 
     public static processInterfaceMethod(args: TransformUtilsArgs, iface: EntityCore.Interface, childNode: namedTypes.TSMethodSignature): Promise<void> {
-    args.logger.debug(`processInterfaceMethod`);
+        args.logger.debug(`processInterfaceMethod`);
         const methodDef = childNode;
         const key = methodDef.key;
         let methodName = '';
@@ -123,48 +123,50 @@ export class ProcessInterfaces {
         args: TransformUtilsArgs,
         iface: EntityCore.Interface,
         inNode: namedTypes.Node,
-    ): Promise<any>
+    ): Promise<PromiseResult<EntityCore.InterfaceProperty[]>>
     {
+    const baseId = `processPropertyDeclarations`;
+        const inResult:PromiseResult<EntityCore.InterfaceProperty[]> = { id: baseId,
+         hasResult: true, success: true, result: [] };
+        args.logger.debug(`${baseId}(${iface.name}[${iface.id}])`, { type: 'functionInvocation' });
         if(!iface.module) {
             throw new Error('need module');
         }
-        return j(inNode).find(namedTypes.TSPropertySignature).nodes().map((n: namedTypes.TSPropertySignature): () => Promise<any> => () => {
+        args.logger.debug('find(namedTypes.TSPropertySignature)');
+        return myReduce(args.logger, j(inNode).find(namedTypes.TSPropertySignature).nodes(), inResult, (n: namedTypes.TSPropertySignature): Promise<PromiseResult<EntityCore.InterfaceProperty>> => {
+            args.logger.debug(`found ${JSON.stringify(copyTree(n).toJS())}`);
             if(n.key.type !== 'Identifier') {
                 throw new Error(`unsupported key type ${n.key.type}`);
             }
             const propName = n.key.name;
-            args.logger.debug(`name is ${n.key.name}`);
+
             const propertyRepo = args.connection.getRepository(EntityCore.InterfaceProperty);
 
-            return ((): Promise<any> => {
+            return ((): Promise<PromiseResult<EntityCore.TSType>> => {
                 if(n.typeAnnotation != null && iface.module !== undefined) {
-                    args.logger.debug('here it is');
-                    // @ts-ignore
-                    return TransformUtils.handleType(args, iface.module.id, n.typeAnnotation.typeAnnotation);
+                    return TransformUtils.handleType(args, iface.module!.id!, n.typeAnnotation.typeAnnotation);
                 } else {
-                // fixme code smell
-                    throw new Error('beep');
-                    return Promise.resolve(undefined);
+                return Promise.resolve({ success: true, hasResult: false, id: 'type'});
                 }
-            })().then((type: EntityCore.TSType|undefined): Promise<any> => {
-                if (type) {
+            })().then((typeResult: PromiseResult<EntityCore.TSType>): Promise<any> => {
+                if (typeResult.hasResult) {
+                    args.logger.debug(`received type: ${typeResult.toString()}`, { result: typeResult });
+                    /*
                     if (n.typeAnnotation) {
                         const t1 = n.typeAnnotation.typeAnnotation;
                         args.logger.debug(`t1.type is ${t1.type}`);
                         //this.handleTypeAnnotation(args);
-                    }
+                    }*/
                 }
+                args.logger.debug(`looking for property ${propName} on interface ${iface.name}`);
                 // @ts-ignore
-                return propertyRepo.find({iface, property: { name: propName }}
+                return propertyRepo.find({ relations: ['type'], where: {iface, property: { name: propName }}}
                 ).then((props: EntityCore.InterfaceProperty[]): Promise<any> => {
                     if(props.length === 0) {
+                        args.logger.debug('property not found, creating new property');
                         const p = new EntityCore.InterfaceProperty();
                         p.iface = iface;
-                        if(!type) {
-                            throw new Error('no type');
-                        }
-
-                        p.type = type;
+                        p.type = typeResult.result;
                         p.name = propName;
                         p.computed = n.computed;
                         p.readonly = n.readonly;
@@ -172,21 +174,33 @@ export class ProcessInterfaces {
                         p.hasInitializer = n.initializer != null;
                         p.astNode = copyTree(n).toJS();
 
-                        args.logger.debug('saving property', { property: p.toPojo() });
-                        return propertyRepo.save(p).catch((error: Error): Promise<any> => {
+                        args.logger.debug('saving property', { property: p.toPojo({minimal: true}) });
+                        return propertyRepo.save(p)/*.catch((error: Error): Promise<any> => {
                             args.logger.error(`unable to save property ${error.message}`, { error });
-                            process.exit(1);
                             return Promise.resolve(undefined);
+                        })*/.then(p_ => {
+                        return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
                         });
                     } else {
                         args.logger.debug('returning existing property');
-                        return Promise.resolve(props[0]);
+                        const p = props[0];
+                        p.type = typeResult.result;
+                        p.readonly = n.readonly;
+                        p.optional = n.optional;
+                        p.hasInitializer = n.initializer != null;
+                        p.astNode = copyTree(n).toJS();
+                        return propertyRepo.save(p)/*.catch((error: Error): Promise<any> => {
+                            args.logger.error(`unable to save property ${error.message}`, { error });
+                            return Promise.resolve(undefined);
+                        })*/.then(p_ => {
+                        return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
+                        });
                     }
 
                 }).catch((error: Error): void => {
-                    args.logger.debug(`error is ${error.message}`);
+                    args.logger.debug(`error is ${error.message}`, { error: { message: error.message, stack: error.stack }});
                 });
             });
-        }).reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
+        });
     }
 }

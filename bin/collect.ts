@@ -176,7 +176,6 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
                     p.packageJson = packageInfo;
                     return projectRepo.save(p);
                 } else {
-                    logger.error(packageInfo!);
                     projects[0].packageJson = packageInfo;
                     return projectRepo.save(projects[0]);
                 }
@@ -192,7 +191,6 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
         const args: TransformUtilsArgs = {connection, restClient, logger};
         //PM2
         return getOrCreateProject(packageName ||'', path.dirname(pkgFile!)).then(/*PM15*/(project): Promise<void> => {
-            logger.error('got project', {project});
             //PM4
             return stat(dir).then(/*PM16*/(stats): Promise<void> => {
                 logger.debug('got stats', { path: dir, stats });
