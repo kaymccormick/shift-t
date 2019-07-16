@@ -4,6 +4,7 @@ import {Promise} from 'bluebird';
 import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import EntityCore from "classModel/lib/src/entityCore";
+import { ProcessTypes } from '../types/ProcessTypes';
 import {copyTree} from "../../utils";
 import { TransformUtilsArgs, myReduce, TransformUtils } from '../../transformUtils';
 
@@ -156,7 +157,7 @@ export class ProcessClasses {
                     if (pk.type === 'Identifier')  {
                         name = pk.name;
                         if (pk.typeAnnotation) {
-                            return TransformUtils.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then((type_) => {
+                            return ProcessTypes.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then((type_) => {
                                 args.logger.debug(`got type ${type_}`);
                                 //@ts-ignore
                                 return Promise.resolve(Object.assign({}, typeResult, { success: true, hasResult: true, result: type_ }));

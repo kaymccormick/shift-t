@@ -3,6 +3,8 @@ import {Promise} from 'bluebird';
 import {ImportContext,ModuleSpecifier,PromiseResult,HandleModulePromiseResult} from "./types";
 import {TransformUtils} from "./transformUtils";
 import {ProcessClasses} from "./process/classes/ProcessClasses";
+import {ProcessInterfaces} from "./process/interfaces/ProcessInterfaces";
+import {ProcessTypes} from "./process/types/ProcessTypes";
 import EntityCore from"classModel/lib/src/entityCore";
 import path from "path";
 import j from 'jscodeshift';
@@ -139,6 +141,10 @@ export function processSourceModule(
                         exportedName,
                         isDefault,
                         isNamespace));
+            },
+            (): Promise<PromiseResult<EntityCore.TSTypeAlias[]>> => {
+                args.logger.debug('calling into ');
+                return ProcessTypes.processTypeAliasDeclarations(args, module, collection.nodes()[0]);
             },
             (): Promise<PromiseResult<EntityCore.Class[]>> => {
                 args.logger.debug('calling into processClassDeclarations');

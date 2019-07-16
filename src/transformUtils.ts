@@ -9,6 +9,7 @@ import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
 import EntityCore from "classModel/lib/src/entityCore";
+import { print } from 'recast';
 import {
     ExportSpecifierKind,
 //    ExportBatchSpecifierKind,
@@ -16,57 +17,15 @@ import {
 import uuidv4 from 'uuid/v4';
 import AppError from './AppError';
 import {copyTree, CopyTreeResult} from "./copyTree.prune";
+import { myReduce, PromiseResult, PromiseResultImpl } from '@heptet/common';
+export { myReduce }
 
-import {PromiseResult, HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
+import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { visit } from "ast-types";
-//import {PatternKind} from "ast-types/gen/kinds";
 import {ProcessInterfaces} from './process/interfaces';
 import { Args } from './types';
 
 export type TransformUtilsArgs = Args<TransformUtils>;
-
-export function myReduce<I,O>(
-    logger: Logger,
-    input: I[],
-    inputResult: PromiseResult<O[]>,
-    callback: (element: I, index: number) => Promise<PromiseResult<O>>,
-): Promise<PromiseResult<O[]>> {
-    return input.map((elem, index): () => Promise<PromiseResult<O>> => {
-        return (): Promise<PromiseResult<O>> => {
-            let r: Promise<PromiseResult<O>>|undefined = undefined;
-            try {
-                r = callback(elem, index);
-                if(r === undefined) {
-                    logger.debug("received undefined from callback", {r});
-                }
-            } catch(error) {
-                logger.error('error', { error });
-                return Promise.resolve( { success: false, hasResult: false, error, id: 'myreduce' } );
-            }
-
-            return r;
-        };
-    }).reduce((a: Promise<PromiseResult<O[]>>,
-        v: () =>
-        Promise<PromiseResult<O>>): Promise<PromiseResult<O[]>> =>
-        a.then((r: PromiseResult<O[]>): Promise<PromiseResult<O[]>> => {
-            let vR = v();
-            if(typeof vR === 'function') {
-                throw new Error('too many function layers');
-            }
-            return vR.catch((error: AppError): PromiseResult<O> => {
-                logger.error(`reduce error ${error.message}`, { error });
-                return { success: false, hasResult: false, id: inputResult.id };
-            }).then((cr: PromiseResult<O>): Promise<PromiseResult<O[]>> => {
-                if(r.hasResult && r.result !== undefined && cr.hasResult && cr.result !== undefined) {
-                    r.result.push(cr.result);
-                }
-                return Promise.resolve(r);
-            }).catch((error: AppError): PromiseResult<O[]> => {
-                return { id: inputResult.id, success: false, hasResult: false, error };
-            });
-        }), Promise.resolve({ id: inputResult.id, success: true, hasResult: true, result: []}));
-}
 
 
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
@@ -339,28 +298,4 @@ export class TransformUtils {
         return Promise.resolve(undefined);
     }
 */
-    public static handleType(
-        args: TransformUtilsArgs,
-        moduleId: number,
-        typeAnnotation: namedTypes.Node,
-    ): Promise<PromiseResult<EntityCore.TSType>> {
-    const baseId = 'handleTypez';
-        const result: PromiseResult<EntityCore.TSType> = { success: false, hasResult: false, id: 'handleTypez'};
-        const iterationId = uuidv4();
-        args.logger.info('handleType', { iterationId, astNode: copyTree(typeAnnotation).toJS() });
-        const astNode: {} = copyTree(typeAnnotation).toJS();
-        // process.stderr.write(`handleType, looking for type ${JSON.stringify(astNode)}\n`);
-        //@ts-ignore
-        return args.restClient.findTsType(moduleId, astNode).then((type_: EntityCore.TSType): Promise<PromiseResult<EntityCore.TSType>> => type_ ?                     Promise.resolve({ success: true, hasResult: true, result: type_, id: result.id }) :
-            args.restClient.createTsType(moduleId, astNode, 'propDecl').then((type_: EntityCore.TSType): PromiseResult<EntityCore.TSType> => {
-                args.logger.debug(`created type ${type_}`);
-                return { success: true, hasResult: true, result: type_, id: result.id };
-            }).catch((error: Error): PromiseResult<EntityCore.TSType> => {
-                if(error.stack) {
-                    args.logger.debug(error.stack.toString());
-                }
-                args.logger.debug(`unable to create ts type via rest: ${error.message}: ${JSON.stringify(astNode)}`);
-                return { success: false, hasResult: false, id: result.id };
-            }));
-    }
 }

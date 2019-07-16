@@ -1,4 +1,4 @@
-import { visit, getFieldValue, getFieldNames,eachField, getBuilderName, builders as b, namedTypes as n } from 'ast-types';
+import { visit, getFieldValue, getFieldNames,eachField, getBuilderName, builders as b } from 'ast-types';
 import { Map, List, Set} from 'immutable';
 import { ok } from 'assert';
 
@@ -8,7 +8,7 @@ export function copyTree(node: namedTypes.Node, report: (arg: string) => void, l
     report = (arg): void => {};
     }
     report(`1.0> [${depth}] COPYTREE[ ${level} ${node.type} ]`);
-    if(!n[node.type].check(node)) {
+    if(!namedTypes[node.type].check(node)) {
       throw new Error(`node of type ${node.type} doesn't check out`);
       }
     let out: Map<string, ValueKind> = Map<string, ValueKind>();

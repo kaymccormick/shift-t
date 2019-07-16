@@ -13,3 +13,5 @@ export default class A {
 
     doit2(hi: string): number;
 }
+export type Woot = A;
+

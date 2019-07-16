@@ -3,6 +3,7 @@ import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import EntityCore from "classModel/lib/src/entityCore";
 import {copyTree} from "../../utils";
+import { ProcessTypes } from '../types/ProcessTypes';
 import { TransformUtilsArgs, myReduce,TransformUtils } from '../../transformUtils';
 import {NodePath} from "ast-types/lib/node-path";
 import { PromiseResult } from '../../types';
@@ -144,7 +145,7 @@ export class ProcessInterfaces {
 
             return ((): Promise<PromiseResult<EntityCore.TSType>> => {
                 if(n.typeAnnotation != null && iface.module !== undefined) {
-                    return TransformUtils.handleType(args, iface.module!.id!, n.typeAnnotation.typeAnnotation);
+                    return ProcessTypes.handleType(args, iface.module!.id!, n.typeAnnotation.typeAnnotation);
                 } else {
                 return Promise.resolve({ success: true, hasResult: false, id: 'type'});
                 }

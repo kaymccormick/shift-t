@@ -1,5 +1,4 @@
-import { Project,Class,Export,Import,Method,Parameter,Module,Name,Interface,InterfaceMethod,Type,TypeEnum,TSType,InterfaceProperty,TSUnionType,TSTypeReference,LogEntry } from
-    "classModel/lib/src/entity/core"
+import EntityCore from 'classModel/lib/src/entityCore';
 import {Connection, createConnection} from "typeorm";
 import {Logger as WinstonLogger} from 'winston';
 import {Logger} from './Logger';
@@ -25,7 +24,7 @@ function myCreateConnection(logger: WinstonLogger): Promise<Connection> {
          "entitiesDir": "src/entity",
          "migrationsDir": "src/migration",
          "subscribersDir": "src/subscriber"
-      }, entities: [Project, Class, Export, Import, Method, Parameter, Module, Name, Interface,InterfaceMethod,Type,TSType,InterfaceProperty,TSUnionType,TSTypeReference,LogEntry]
+      }, entities: Object.values(EntityCore),
    });
 }
 
