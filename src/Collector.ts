@@ -32,8 +32,8 @@ export function processSourceModule(
 ): Promise<HandleModulePromiseResult> {
     const moduleName = getModuleName(path1, project);
     if(!moduleName) {
-    args.logger.error(`need module name for ${path1}`);
-    throw new Error('need module name');
+        args.logger.error(`need module name for ${path1}`);
+        throw new Error('need module name');
     }
 
     const moduleRepo = args.connection.getRepository(EntityCore.Module);
@@ -105,7 +105,7 @@ export function processSourceModule(
                             const importResult = { id:'importRepo.find', success: true, hasResult: false };
                             return importRepo.find({module, name: localName}).then((imports_): Promise<PromiseResult<EntityCore.Import>> => {
                                 if (imports_.length === 0) {
-                                args.logger.debug('importModuleName', { importModuleName });
+                                    args.logger.debug('importModuleName', { importModuleName });
                                     const import_ = new EntityCore.Import(module, localName, importModuleName, exportedName, isDefault, isNamespace);
                                     return importRepo.save(import_)
                                         .then((import__): PromiseResult<EntityCore.Import> => { return { id: '', success: true, hasResult: true, result: import__ }; });
@@ -118,6 +118,7 @@ export function processSourceModule(
                     });
                 };
 
+        // @ts-ignore
         const collection = j(file);
         return [
             (): Promise<PromiseResult<EntityCore.Import[][]>> => {
@@ -173,7 +174,7 @@ export function processSourceModule(
             });;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
         }), Promise.resolve([])).then((results: any[]): void => {
-            args.logger.debug('results', {results});
+            //            args.logger.debug('results', {results});
         });
     };
 

@@ -60,5 +60,23 @@
     "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
-  "exclude": ["files/**/*.ts", "node_modules/**/*", "lib/**/*", "lib/*", "**/*.test.ts", "**/*.test.tsx"]
+    "files": [
+"src/process.ts",
+"src/CommentHandler.ts",
+"src/Collector.ts",
+"src/types.ts",
+"src/AppError.ts",
+"src/copyTree.prune.ts",
+"src/process/interfaces/index.ts",
+"src/process/interfaces/ProcessInterfaces.ts",
+"src/process/classes/ProcessClasses.ts",
+"src/process/classes/index.ts",
+"src/process/types/ProcessTypes.ts",
+"src/TypeOrm/Factory.ts",
+"src/TypeOrm/Logger.ts",
+"src/utils.ts",
+        "src/RestClient.ts",
+        "bin/collect.ts",
+        "src/transformUtils.ts"],
+    "exclude": ["bak/**/*.ts", "files/**/*.ts", "node_modules/**/*", "lib/**/*", "lib/*", "**/*.test.ts", "**/*.test.tsx"]
 }

@@ -5,7 +5,8 @@ import { Connection } from 'typeorm';
 import { Logger } from 'winston';
 import {RestClient} from './RestClient';
 import AppError from "./AppError";
-export { PromiseResult } from './PromiseResultImpl';
+import {PromiseResult}from '@heptet/common'
+export { PromiseResult } 
 
 export interface MyLeveledLogMethod {
     (message: string, callback: any): void|any;
@@ -29,13 +30,10 @@ export interface HandleModuleResult {
 export interface HandleModulePromiseResult extends PromiseResult<HandleModuleResult>  {
 }
 
-
-
 export interface Args<T> {
     connection: Connection;
     restClient: RestClient;
     logger: Logger;
-    caller?: T;
 }
 
 export interface HandleAst {

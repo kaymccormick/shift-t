@@ -5,7 +5,9 @@ import assert from 'assert';
 import EntityCore from "classModel/lib/src/entityCore";
 import  winston, { format } from 'winston';
 import finder from 'find-package-json';
-import {builders as b, NodePath} from 'ast-types';
+import {builders as b} from 'ast-types';
+import { NodePath } from 'ast-types/lib/node-path';
+
 import { copyTree,processComments }from '../src/utils';
 import {StatementKind} from "ast-types/gen/kinds";
 import {namedTypes,visit} from 'ast-types';
@@ -18,6 +20,7 @@ const loggerTranports = [consoleTransport, file];
 const logger = winston.createLogger({format: format.json(),
     transports:loggerTranports });
 
+                // @ts-ignore
 function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTypes.Node>, node: namedTypes.Node, args: any) {
     let result: namedTypes.commentBlock|undefined = undefined;
     const { lastComment }  = args;
@@ -51,18 +54,20 @@ function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTyp
     const match = /@uuid\s+(\S+)/.exec(val);
     if(match) {
         if(match[1] !== uuid) {
-            node.comments[commentIndex].value = val.replace(/@uuid\s+(\S+)/, `@uuid ${uuid}`);
+            node.comments![commentIndex].value = val.replace(/@uuid\s+(\S+)/, `@uuid ${uuid}`);
         }
 
     } else {
         const newVal = `${val}\n * @uuid ${uuid}\n`;
-        node.comments[commentIndex].value = newVal;
+        node.comments![commentIndex].value = newVal;
         //report(newVal);
     }
     return result;
 }
 
+                // @ts-ignore
 module.exports = function(fileInfo, api, options) {
+                // @ts-ignore
     const report = (arg) => {
         api.report(arg);
     }
@@ -84,6 +89,7 @@ module.exports = function(fileInfo, api, options) {
 
     const p =  path.resolve(fileInfo.path);
     const model = JSON.parse(fs.readFileSync('dump.json', { encoding: 'utf-8'}));
+                // @ts-ignore
     const project = model.Project.find((project): boolean => {
         return project.name === packageName;
     });
@@ -97,6 +103,7 @@ module.exports = function(fileInfo, api, options) {
     const r2 = path.relative(project.path!, p);
     const name = r2.replace(/\.tsx?$/, '');
 
+                // @ts-ignore
     const module1 = model.Module.find((module2): boolean => module2.name === name);
     if(!module1) {
         throw new Error(`no module ${name}`);
@@ -134,11 +141,13 @@ module.exports = function(fileInfo, api, options) {
                 theNode = parent.node;
                 thePath = parent;
             }
+                // @ts-ignore
             const class_ = model['Class'].find((class__) => {
                 return class__.moduleId === module1.id && classDecl.id && class__.name === classDecl.id.name;
             });
             if(!class_) {
                 report(classDecl.id!.name);
+                // @ts-ignore
                 report(model.Class.filter((class__) => class__.moduleId == module1.id));
                 throw new Error('no class');
             }

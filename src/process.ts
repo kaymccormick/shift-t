@@ -146,8 +146,8 @@ function updateSuperClass(
     classRepo: Repository<EntityCore.Class>,
     modules: Map<string, ModuleRecord>,
 ): Promise<PromiseResult<EntityCore.Class>> {
-const baseId = `updateSuperClass-${module.module.name}-${class_.name}`;
-const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, hasResult: false };
+    const baseId = `updateSuperClass-${module.module.name}-${class_.name}`;
+    const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, hasResult: false };
     logger.info(baseId, { type: "functionInvocation", "class": class_.toPojo({minimal: true}) });
     return ((): ReturnType<typeof updateSuperClass> => {
         let objectName;
@@ -165,7 +165,7 @@ const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, 
                 const c = module.classes.get(objectName);
                 class_.superClass = c;
                 return classRepo.save(class_).then((class__): ReturnType<typeof updateSuperClass> =>  {
-                return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
+                    return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
                 });
             }
             // class might not even be an import!
@@ -181,8 +181,8 @@ const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, 
             }
             if (import_) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-//                logger.debug('got import', { "import": import_.toPojo({minimal: true})  });
-//                console.debug(`looking for source module name ${import_.sourceModuleName}`);
+                //                logger.debug('got import', { "import": import_.toPojo({minimal: true})  });
+                //                console.debug(`looking for source module name ${import_.sourceModuleName}`);
                 const sourceModule = modules.get(import_.sourceModuleName!);
                 if (sourceModule) {
                     let export_: EntityCore.Export | undefined = undefined;
@@ -202,8 +202,8 @@ const inResult: PromiseResult<EntityCore.Class> = { success: false, id: baseId, 
                         if (class2_) {
                             class_.superClass = class2_;
                             return classRepo.save(class_).then((class__): ReturnType<typeof updateSuperClass> =>  {
-                return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
-                });
+                                return Promise.resolve(Object.assign({}, inResult, {success:true,hasResult: true, result: class__}));
+                            });
                         }
                     } else {
                         logger.error('no export found');
@@ -287,6 +287,7 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
         names: Map<string, EntityCore.Name>(),
         module: undefined as unknown as EntityCore.Module
     });
+    logger.debug('searching for modules');
     return moduleRepo.find({
         where: {project},
         relations: ['defaultExport', 'types']
@@ -336,21 +337,20 @@ export function doProject(project: EntityCore.Project, connection: Connection, l
                 logger.error('1errorz', {error});
             });;
         }), Promise.resolve([]))).then((modules: ModuleRecord[]): Map<string, ModuleRecord> => {
+	    logger.debug('here');
         return Map<string, ModuleRecord>(modules.map((module: ModuleRecord): [string, ModuleRecord] => {
             if (module === undefined) {
-                console.log('undefined module');
-                logger.error('woop');
+                logger.error('undefined module');
                 throw new Error('undefined module');
             }
             if (!module.module) {
-                logger.error('woop2', { module });
+                logger.error('undefined module.module');
                 throw new Error('module');
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             }
             return [module.module.name!, module];
         }));
     }).then((modules: Map<string, ModuleRecord>): Promise<any> => {
-        logger.info('modules', {modules: modules.toJS()});
         console.log(`got ${modules.count()} modules`);
         // @ts-ignore
         return modules.map((module): () => Promise<any> => () => {

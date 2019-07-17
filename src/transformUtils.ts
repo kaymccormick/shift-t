@@ -4,29 +4,25 @@
 import path from 'path';
 import assert,{strictEqual} from 'assert';
 import {Promise} from 'bluebird';
-import { Logger } from 'winston';
+// @ts-ignore
 import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
 import {NodePath} from "ast-types/lib/node-path";
 import EntityCore from "classModel/lib/src/entityCore";
-import { print } from 'recast';
 import {
     ExportSpecifierKind,
 //    ExportBatchSpecifierKind,
 } from 'ast-types/gen/kinds';
-import uuidv4 from 'uuid/v4';
 import AppError from './AppError';
-import {copyTree, CopyTreeResult} from "./copyTree.prune";
-import { myReduce, PromiseResult, PromiseResultImpl } from '@heptet/common';
+import {copyTree} from "./copyTree.prune";
+import { myReduce, PromiseResult } from '@heptet/common';
 export { myReduce }
 
 import {HandleImportSpecifier, ImportContext, ModuleSpecifier} from './types';
 import { visit } from "ast-types";
 import {ProcessInterfaces} from './process/interfaces';
 import { Args } from './types';
-
 export type TransformUtilsArgs = Args<TransformUtils>;
-
 
 export function getModuleSpecifier(path: string): ModuleSpecifier  {
     return path;
@@ -47,19 +43,20 @@ export class TransformUtils {
     ): Promise<PromiseResult<EntityCore.TSType[]>> {
         const result = { id: 'processTypeDeclarations', success: false, hasResult: false };
         const inResult: PromiseResult<EntityCore.TSType[]> = { id: result.id, success: true, hasResult: true, result: [] };
-        return myReduce(args.logger, j(file).find(namedTypes.TSTypeAliasDeclaration).nodes(), inResult, (t: namedTypes.TSTypeAliasDeclaration): Promise<PromiseResult<EntityCore.TSType>> => {
-            if(t.id.type !== 'Identifier') {
-                throw new AppError(`unsupported declaration type ${t.id.type}`, t.id.type);
-            }
-            const idName = t.id.name;
-            const t2 = t.typeAnnotation;
+        return myReduce(args.logger,
+            // @ts-ignore
+            j(file).find(namedTypes.TSTypeAliasDeclaration).nodes(), inResult, (t: namedTypes.TSTypeAliasDeclaration): Promise<PromiseResult<EntityCore.TSType>> => {
+                if(t.id.type !== 'Identifier') {
+                    throw new AppError(`unsupported declaration type ${t.id.type}`, t.id.type);
+                }
+                const t2 = t.typeAnnotation;
 
-            // @ts-ignore
-            return args.restClient.findTsType(module.id, copyTree(t2).toJS()).then((type_: EntityCore.TSType): Promise<PromiseResult<EntityCore.TSType[]>> => {
-            // @ts-ignore
-                return Promise.resolve(Object.assign({}, result, { result: type_, success: true, hasResult: true }));
+                // @ts-ignore
+                return args.restClient.findTsType(module.id, copyTree(t2).toJS()).then((type_: EntityCore.TSType): Promise<PromiseResult<EntityCore.TSType[]>> => {
+                    // @ts-ignore
+                    return Promise.resolve(Object.assign({}, result, { result: type_, success: true, hasResult: true }));
+                });
             });
-        });
     }
 
     public static handleImportDeclarations(
@@ -73,72 +70,76 @@ export class TransformUtils {
         const baseId = `handleImportDeclarations`;
         const inResult: PromiseResult<EntityCore.Import[][]> =
           { id: baseId, success: true, hasResult: true, result: [] };
-        return myReduce(args.logger, j(file).find(namedTypes.ImportDeclaration,
-            (n: namedTypes.ImportDeclaration): boolean => {
-                const r: boolean = /*n.importKind === 'value'
+        return myReduce(args.logger,
+            // @ts-ignore
+            j(file).find(namedTypes.ImportDeclaration,
+                (n: namedTypes.ImportDeclaration): boolean => {
+                    const r: boolean = /*n.importKind === 'value'
             && */n.source && n.source.type === 'StringLiteral'
             && n.source.value != null && /^\.\.?\//.test(n.source.value);
-                return r;
-            }).nodes(),
-        inResult,
-        (importDecl: namedTypes.ImportDeclaration, index: number):
-        Promise<PromiseResult<EntityCore.Import[]>> => {
-            const innerInResult: PromiseResult<EntityCore.Import[]> = { id: `${baseId}-importDecl-${index}`, success: true,
-                result: [], hasResult: true };
+                    return r;
+                }).nodes(),
+            inResult,
+            (importDecl: namedTypes.ImportDeclaration, index: number):
+            Promise<PromiseResult<EntityCore.Import[]>> => {
+                const innerInResult: PromiseResult<EntityCore.Import[]> = { id: `${baseId}-importDecl-${index}`, success: true,
+                    result: [], hasResult: true };
 
-            if(importContext.moduleEntity.project === undefined) {
-                args.logger.error('no project');
-                throw new Error('no project');
-            } else {
-                args.logger.info('123', { path: importContext.moduleEntity.project.path! });
-            }
-
-            const y = path.dirname(relativeBase);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const x = path.relative(importContext.moduleEntity.project!.path!, path.resolve(importContext.moduleEntity.project!.path!, relativeBase, '..', importDecl.source.value!.toString()));
-            args.logger.info('pathfinder', { x, y, relativeBase, value: importDecl.source.value! });
-            const importModule: string = x;//importDecl.source.value != null && path.relative(importContext.moduleEntity.project!.path!, x) || '';
-
-
-            const promises: (() => Promise<PromiseResult<EntityCore.Import>>)[] = [];
-            visit(importDecl, {
-                visitImportNamespaceSpecifier(path: NodePath<namedTypes.ImportNamespaceSpecifier>): boolean {
-                    const node = path.node;
-
-                    promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
-                        if(!node.local) {
-                            throw new AppError('!node.local', '!node.local');
-                        }
-                        return callback(importContext, importModule, node.local.name, undefined, false, true);
-                    });
-
-                    return false;
-                },
-                visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
-                    const node = path.node;
-                    strictEqual(node.imported.type, 'Identifier');
-
-                    promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
-                        if(!node.local) {
-                            throw new AppError('!node.local', '!node.local 2');
-                        }
-                        return callback(importContext, importModule, node.local.name, node.imported.name, false, false);
-                    });
-                    return false;
-                },
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
-                    promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
-                        if(!path.node.local) {
-                            throw new AppError('undefined localName', 'undefined localName');
-                        }
-                        return callback(importContext, importModule, path.node.local.name, undefined, true, false);
-                    });
-                    return false;
+                if(importContext.moduleEntity.project === undefined) {
+                    args.logger.error('no project');
+                    throw new Error('no project');
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion                args.logger.info('123', { path: importContext.moduleEntity.project.path! });
                 }
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const y = path.dirname(relativeBase);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const x = path.relative(importContext.moduleEntity.project!.path!, path.resolve(importContext.moduleEntity.project!.path!, relativeBase, '..', importDecl.source.value!.toString()));
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                args.logger.info('pathfinder', { x, y, relativeBase, value: importDecl.source.value! });
+                const importModule: string = x;//importDecl.source.value != null && path.relative(importContext.moduleEntity.project!.path!, x) || '';
+
+
+                const promises: (() => Promise<PromiseResult<EntityCore.Import>>)[] = [];
+                visit(importDecl, {
+                    visitImportNamespaceSpecifier(path: NodePath<namedTypes.ImportNamespaceSpecifier>): boolean {
+                        const node = path.node;
+
+                        promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
+                            if(!node.local) {
+                                throw new AppError('!node.local', '!node.local');
+                            }
+                            return callback(importContext, importModule, node.local.name, undefined, false, true);
+                        });
+
+                        return false;
+                    },
+                    visitImportSpecifier(path: NodePath<namedTypes.ImportSpecifier>): boolean {
+                        const node = path.node;
+                        strictEqual(node.imported.type, 'Identifier');
+
+                        promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
+                            if(!node.local) {
+                                throw new AppError('!node.local', '!node.local 2');
+                            }
+                            return callback(importContext, importModule, node.local.name, node.imported.name, false, false);
+                        });
+                        return false;
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    visitImportDefaultSpecifier(path: NodePath<namedTypes.ImportDefaultSpecifier>): boolean {
+                        promises.push((): Promise<PromiseResult<EntityCore.Import>> => {
+                            if(!path.node.local) {
+                                throw new AppError('undefined localName', 'undefined localName');
+                            }
+                            return callback(importContext, importModule, path.node.local.name, undefined, true, false);
+                        });
+                        return false;
+                    }
+                });
+                return myReduce<() => Promise<PromiseResult<EntityCore.Import>>, EntityCore.Import>(args.logger, promises, innerInResult, (func: () => Promise<PromiseResult<EntityCore.Import>>): Promise<PromiseResult<EntityCore.Import>> => func());
             });
-            return myReduce<() => Promise<PromiseResult<EntityCore.Import>>, EntityCore.Import>(args.logger, promises, innerInResult, (func: () => Promise<PromiseResult<EntityCore.Import>>): Promise<PromiseResult<EntityCore.Import>> => func());
-        });
     }
 
     public static processExportNamedDeclarations(
@@ -154,6 +155,7 @@ export class TransformUtils {
         };
         args.logger.debug(baseId, { module: module.toPojo()});
         return myReduce(args.logger,
+            // @ts-ignore
             j(file).find(namedTypes.ExportNamedDeclaration).nodes(),
             result,
             (node: namedTypes.ExportNamedDeclaration):
@@ -161,7 +163,8 @@ export class TransformUtils {
                 const exportRepo = args.connection.getRepository(EntityCore.Export);
                 if(node.declaration) {
                     if (node.declaration.type === 'ClassDeclaration'
-                        || node.declaration.type === 'TSInterfaceDeclaration') {
+                        || node.declaration.type === 'TSInterfaceDeclaration'
+                        || node.declaration.type === 'TSTypeAliasDeclaration') {
                         if(!node.declaration
                             || !node.declaration.id
                             || node.declaration.id.type !== 'Identifier'){
@@ -188,7 +191,6 @@ export class TransformUtils {
                     else if(node.declaration.type === 'FunctionDeclaration') {
                     } else if(node.declaration.type === 'VariableDeclaration') {
                     } else if(node.declaration.type === 'TSEnumDeclaration') {
-                    } else if(node.declaration.type === 'TSTypeAliasDeclaration') {
                     } else{
                         throw new AppError(`unhandled ${node.declaration.type}`, node.declaration.type);
                     }
@@ -241,6 +243,7 @@ export class TransformUtils {
             { success: true, hasResult: true, result: [] });
         return myReduce(
             args.logger,
+            // @ts-ignore
             j(file).find(namedTypes.ExportDefaultDeclaration).nodes(),
             inResult,
             (n: namedTypes.ExportDefaultDeclaration): Promise<PromiseResult<EntityCore.Export>> => {

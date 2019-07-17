@@ -9,9 +9,73 @@ import {copyTree} from "../../utils";
 import { TransformUtilsArgs, myReduce, TransformUtils } from '../../transformUtils';
 
 import {NodePath} from "ast-types/lib/node-path";
-import { PromiseResult } from '../../types';
+import { PromiseResult, PromiseResultImpl } from '@heptet/common';
 
 export class ProcessClasses {
+    public static async processClassDeclarationsAsync(
+        args: TransformUtilsArgs,
+        module: EntityCore.Module,
+        file: namedTypes.File,
+    ): Promise<PromiseResult<EntityCore.Class[]>> {
+    // @ts-ignore
+        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
+        args.logger.info('processClassDeclarations', {type: 'functionInvocation', module: module.toPojo()});
+        args.logger.debug('looking for nodes of type ClassDeclaration');
+        // @ts-ignore
+        const x = j(file).find(namedTypes.ClassDeclaration).nodes();
+        args.logger.debug(`found ${x.length} nodes`);
+
+        // @ts-ignore
+        return myReduce<namedTypes.ClassDeclaration, EntityCore.Class>(args.logger, x, mainResult, async (classDecl: namedTypes.ClassDeclaration): () => PromiseResult<EntityCore.Class> => {
+            const classResult =  { id: 'processClassDeclarations.class', success: false, hasResult: false };
+            if(!classDecl.id) {
+                args.logger.error('no class name');
+                throw new AppError('no class name', 'no-class-name');
+            }
+            const classIdName = classDecl.id.name;
+            args.logger.info('processClassDeclarations1', { className: classIdName });
+
+            const classRepo = args.connection.getRepository(EntityCore.Class);
+            const nameRepo = args.connection.getRepository(EntityCore.Name);
+            const m = copyTree(classDecl).remove('body');
+            const superClass = m.get('superClass');
+
+            //@ts-ignore
+            const nameResult = { id: 'name', success: false, hasResult: false };
+            const names = await nameRepo.find({module, name: classIdName});
+            let name;
+            if(names.length === 0) {
+                name = new EntityCore.Name();
+                name.name = classIdName;
+                name.nameKind = 'class';
+                name.module = module;
+                args.logger.debug('saving name');
+                name = await nameRepo.save(name);
+            } else {
+                name = names[0];
+            }
+            let class_;
+            const classes = await classRepo.find({module, name: classIdName});
+            if(!classes.length) {
+                /* create new class instance */
+                class_ = new EntityCore.Class(module, classIdName, [], []);
+                class_.astNode = m;
+                class_.superClassNode = m.get('superClass');
+                class_.implementsNode = m.get('implements');
+                args.logger.debug(`saving class ${class_.name}`, { "class": class_.toPojo({minimal: true}) });
+                const class__ = await classRepo.save(class_);
+            } else {
+                class_ = classes[0];
+                class_.astNode = m;
+                class_.superClassNode = m.get('superClass');
+                class_.implementsNode = m.get('implements');
+                args.logger.debug('saving class');
+                const class__ = await classRepo.save(class_);
+            }
+            return PromiseResultImpl.successResult('', class_);
+        });
+    }
+
     public static processClassDeclarations(
         args: TransformUtilsArgs,
         module: EntityCore.Module,
@@ -21,12 +85,12 @@ export class ProcessClasses {
         const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
         args.logger.info('processClassDeclarations', {type: 'functionInvocation', module: module.toPojo()});
         args.logger.debug('looking for nodes of type ClassDeclaration');
+        // @ts-ignore
         const x = j(file).find(namedTypes.ClassDeclaration).nodes();
         args.logger.debug(`found ${x.length} nodes`);
 
         // @ts-ignore
         return myReduce<namedTypes.ClassDeclaration, EntityCore.Class>(args.logger, x, mainResult, (classDecl: namedTypes.ClassDeclaration): () => Promise<PromiseResult<EntityCore.Class>> => {
-            args.logger.debug('callback in again');
             const classResult =  { id: 'processClassDeclarations.class', success: false, hasResult: false };
             if(!classDecl.id) {
                 args.logger.error('no class name');
@@ -58,7 +122,7 @@ export class ProcessClasses {
                     }
                 });
             })().then((): Promise<PromiseResult<EntityCore.Class>> => classRepo.find({module, name: classIdName}).then((classes): Promise<PromiseResult<EntityCore.Class>> => {
-                args.logger.debug('found classes', { classes: classes.map(c => c.toPojo()) } );
+                //args.logger.debug('found classes', { classes: classes.map(c => c.toPojo()) } );
                 if(!classes.length) {
                     /* create new class instance */
                     const class_ = new EntityCore.Class(module, classIdName, [], []);
@@ -100,7 +164,8 @@ export class ProcessClasses {
     }
 
     public static processClassMethod(args: TransformUtilsArgs, moduleClass: EntityCore.Class, childNode: namedTypes.Node): Promise<PromiseResult<EntityCore.Method>> {
-        args.logger.info(`processClassMethod `, { "class": moduleClass.toPojo() });
+        const baseId = `processClassMethod`;
+        args.logger.info(baseId, { "class": moduleClass.toPojo({minimal: true}) });
         const processClassMethodResult: PromiseResult<EntityCore.Method> = { id:'processClassMethod', success: false, hasResult: false};
         const methodDef = childNode as namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
         const kind = methodDef.kind;
@@ -147,7 +212,7 @@ export class ProcessClasses {
             }
             const params = methodDef.params;
             // @ts-ignore
-            return myReduce<PatternKind, EntityCore.Parameter>(args.logger, params, {result: [], success: true, hasResult: true, id: 'hi'}, (pk: PatternKind, index: number): () => Promise<PromiseResult<EntityCore.Parameter>> => (): Promise<PromiseResult<EntityCore.Parameter>> => {
+            return myReduce<PatternKind, EntityCore.Parameter>(args.logger, params, {result: [], success: true, hasResult: true, id: 'hi'}, (pk: PatternKind, index: number): Promise<PromiseResult<EntityCore.Parameter>> => {
                 return ((): Promise<PromiseResult<EntityCore.TSType>> => { // IIFE
                     const typeResult: PromiseResult<EntityCore.TSType> = { success: false, id: 'parameter type',
                         hasResult: false };
@@ -157,11 +222,7 @@ export class ProcessClasses {
                     if (pk.type === 'Identifier')  {
                         name = pk.name;
                         if (pk.typeAnnotation) {
-                            return ProcessTypes.handleType(args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation).then((type_) => {
-                                args.logger.debug(`got type ${type_}`);
-                                //@ts-ignore
-                                return Promise.resolve(Object.assign({}, typeResult, { success: true, hasResult: true, result: type_ }));
-                            });
+                            return ProcessTypes.handleType(baseId, args, moduleClass.moduleId!, pk.typeAnnotation.typeAnnotation);
                         }
                     } else if (pk.type === 'AssignmentPattern') {
                         name = pk.left.type === 'Identifier' ? pk.left.name : pk.left.type;
@@ -203,4 +264,5 @@ export class ProcessClasses {
             });
         });
     }
+
 }

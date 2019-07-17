@@ -17,6 +17,7 @@ export class ProcessInterfaces {
     ): Promise<PromiseResult<EntityCore.Interface[]>> {
         const baseId = `processInterfaceDeclarations-${module.name}`;
         const result = { success: false, hasResult: false, id: baseId };
+        // @ts-ignore
         return myReduce<namedTypes.TSInterfaceDeclaration, EntityCore.Interface>(args.logger, j(file).find(namedTypes.TSInterfaceDeclaration).nodes(),
             { success: true, hasResult: true, result: [] as EntityCore.Interface[], id: result.id },
             (iDecl: namedTypes.TSInterfaceDeclaration): Promise<PromiseResult<EntityCore.Interface>> => {
@@ -73,6 +74,7 @@ export class ProcessInterfaces {
                     if(!interface_) {
                         throw new Error('failure, no interface!');
                     }
+                    // @ts-ignore
                     return [() => this.processPropertyDeclarations(args, interface_, iDecl), ...j(iDecl).find(namedTypes.TSMethodSignature).nodes().map((node: namedTypes.TSMethodSignature) => () => {
                         return this.processInterfaceMethod(args, interface_, node)
                     })].reduce((a: Promise<void>, v: () => Promise<void>): Promise<void> => a.then(() => v()), Promise.resolve(undefined));
@@ -126,14 +128,15 @@ export class ProcessInterfaces {
         inNode: namedTypes.Node,
     ): Promise<PromiseResult<EntityCore.InterfaceProperty[]>>
     {
-    const baseId = `processPropertyDeclarations`;
-        const inResult:PromiseResult<EntityCore.InterfaceProperty[]> = { id: baseId,
-         hasResult: true, success: true, result: [] };
+        const baseId = `processPropertyDeclarations`;
+        const inResult: PromiseResult<EntityCore.InterfaceProperty[]> = { id: baseId,
+            hasResult: true, success: true, result: [] };
         args.logger.debug(`${baseId}(${iface.name}[${iface.id}])`, { type: 'functionInvocation' });
         if(!iface.module) {
             throw new Error('need module');
         }
         args.logger.debug('find(namedTypes.TSPropertySignature)');
+        // @ts-ignore
         return myReduce(args.logger, j(inNode).find(namedTypes.TSPropertySignature).nodes(), inResult, (n: namedTypes.TSPropertySignature): Promise<PromiseResult<EntityCore.InterfaceProperty>> => {
             args.logger.debug(`found ${JSON.stringify(copyTree(n).toJS())}`);
             if(n.key.type !== 'Identifier') {
@@ -145,18 +148,17 @@ export class ProcessInterfaces {
 
             return ((): Promise<PromiseResult<EntityCore.TSType>> => {
                 if(n.typeAnnotation != null && iface.module !== undefined) {
-                    return ProcessTypes.handleType(args, iface.module!.id!, n.typeAnnotation.typeAnnotation);
+                    return ProcessTypes.handleType(baseId, args, iface.module!.id!, n.typeAnnotation.typeAnnotation);
                 } else {
-                return Promise.resolve({ success: true, hasResult: false, id: 'type'});
+                    return Promise.resolve({ success: true, hasResult: false, id: 'type'});
                 }
             })().then((typeResult: PromiseResult<EntityCore.TSType>): Promise<any> => {
                 if (typeResult.hasResult) {
-                    args.logger.debug(`received type: ${typeResult.toString()}`, { result: typeResult });
+                    args.logger.debug(`received type: ${typeResult.result!.toString()}`, { result: typeResult.result!.toPojo() });
                     /*
                     if (n.typeAnnotation) {
                         const t1 = n.typeAnnotation.typeAnnotation;
                         args.logger.debug(`t1.type is ${t1.type}`);
-                        //this.handleTypeAnnotation(args);
                     }*/
                 }
                 args.logger.debug(`looking for property ${propName} on interface ${iface.name}`);
@@ -180,8 +182,8 @@ export class ProcessInterfaces {
                             args.logger.error(`unable to save property ${error.message}`, { error });
                             return Promise.resolve(undefined);
                         })*/.then(p_ => {
-                        return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
-                        });
+                                return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
+                            });
                     } else {
                         args.logger.debug('returning existing property');
                         const p = props[0];
@@ -194,8 +196,8 @@ export class ProcessInterfaces {
                             args.logger.error(`unable to save property ${error.message}`, { error });
                             return Promise.resolve(undefined);
                         })*/.then(p_ => {
-                        return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
-                        });
+                                return Promise.resolve({ success: true, id: 'prop', result: p_, hasResult: true });
+                            });
                     }
 
                 }).catch((error: Error): void => {

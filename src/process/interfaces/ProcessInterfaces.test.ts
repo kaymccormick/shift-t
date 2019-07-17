@@ -8,8 +8,8 @@ jest.mock('../../RestClient');
 
 beforeEach(() => {
 // @ts-ignore
-RestClient.mockClear();
-Connection.mockClear();
+    RestClient.mockClear();
+    Connection.mockClear();
 });
 
 const console  = new winston.transports.Console({level: 'error'});
@@ -19,10 +19,10 @@ const loggerTranports = [console, fileTransport/*, syslogTransport*/];
 const logger = winston.createLogger({transports:loggerTranports});
 
 test('processInterfaceDeclarations', () => {
-const file = builders.file(builders.program([builders.classDeclaration(builders.identifier('test'), builders.classBody([]))]));
-const connection = new Connection();
-const restClient = new RestClient({baseUri: ''});
+    const file = builders.file(builders.program([builders.classDeclaration(builders.identifier('test'), builders.classBody([]))]));
+    const connection = new Connection();
+    const restClient = new RestClient({baseUri: ''});
 
-const args: TransformUtilsArgs = { connection, restClient, logger };
-ProcessInterfaces.processInterfaceDeclarations(args,module, file);
+    const args: TransformUtilsArgs = { connection, restClient, logger };
+    ProcessInterfaces.processInterfaceDeclarations(args,module, file);
 });

@@ -8,7 +8,7 @@ export class RestClient {
 
     constructor(private baseUri: string, private factory: FactoryInterface) {
     }
-    findTsType(moduleId: number, astNode?: any) {
+    public findTsType(moduleId: number, astNode?: any) {
         return axios.post(`${this.baseUri}/tstype/find/${moduleId}`, {astNode}).then(response => response.data.tstype).then(tsTypeInfo => {
             if(!tsTypeInfo) {
                 return undefined;

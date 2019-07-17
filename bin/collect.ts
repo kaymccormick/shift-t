@@ -15,6 +15,7 @@ import finder from 'find-package-json';
 import {doProject} from "../src/process";
 import{RestClient}from '../src/RestClient';
 import AppError from '../src/AppError';
+import {p,promises as Promises} from '../src/utils';
 
 import  winston, { format } from 'winston';
 /*const { combine, timestamp, label, printf } = format;*/
@@ -29,10 +30,6 @@ parser.addArgument([ '--level' ], { help: 'console log level' });
 parser.addArgument([ 'dir' ], { help: 'dir to search' });
 const args = parser.parseArgs();
 
-/*const myFormat = printf(({ level, message, label, timestamp, type, meta}) => {
-    return `${timestamp} [${type}] ${level}: ${message} ${JSON.stringify(meta)}`;
-});*/
-
 try {
     fs.unlinkSync('collect.log');
 
@@ -43,12 +40,13 @@ catch(error) {
 import File = namedTypes.File;
 const runUuid = uuidv4();
 const urlBase = 'http://localhost:7700/cme'
-const consoleTransport  = new winston.transports.Console({level: args.level || 'warn'});
+const consoleTransport  = new winston.transports.Console(
+{level: args.level || 'warn'});
 const file = new winston.transports.File({level: 'debug', filename:
       'collect.log'})
-const loggerTranports = [consoleTransport, file/*, syslogTransport*/];
-const logger = winston.createLogger({format: format.json(), /*combine(timestamp(), myFormat),*/ transports:loggerTranports,
-/*    defaultMeta: { runUuid }*/});
+const loggerTransports = [consoleTransport, file];
+const logger = winston.createLogger({format: format.json(),
+transports:loggerTransports});
 
 const restClient = new RestClient(urlBase, new Factory(logger));
 const readdir = promisify(fs.readdir);
@@ -67,7 +65,7 @@ function processFile(args: TransformUtilsArgs,
     fname: string,
     handleAst: HandleAst,
 ): Promise<void> {
-    args.logger.debug('processFile', { type: 'functionInvocation', project: project.toPojo(), path: fname });
+    args.logger.debug('processFile', {type: 'functionInvocation', project: project.toPojo(), path: fname });
     const content = fs.readFileSync(fname, { 'encoding': 'utf-8' });
     let ast:    File|undefined = undefined;
     try {
@@ -116,7 +114,7 @@ function processDir(args: TransformUtilsArgs,
     handleAst: HandleAst): Promise<void> {
     //PM6
     args.logger.debug('ENTRY processDir', { dir, project });
-    return readdir(dir, { withFileTypes: true})
+    return p(readdir(dir, { withFileTypes: true}))
         .then(/*PM9*/(ents: fs.Dirent[]): Promise<void> => {
             args.logger.debug('processDir got dir ents');
             return ents.map((ent): () => Promise<void> =>
@@ -169,15 +167,15 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
 
         const projectRepo = connection.getRepository(EntityCore.Project);
         const getOrCreateProject = (name: string, path: string): Promise<EntityCore.Project> => {
-            return projectRepo.find({name}).then(/*PM13*/(projects: EntityCore.Project[]): Promise<EntityCore.Project> => {
+            return p(projectRepo.find({name})).then(/*PM13*/(projects: EntityCore.Project[]): Promise<EntityCore.Project> => {
                 if (!projects.length) {
                     // PM3
-                    const p = new EntityCore.Project(name, path, []);
-                    p.packageJson = packageInfo;
-                    return projectRepo.save(p);
+                    const pr = new EntityCore.Project(name, path, []);
+                    pr.packageJson = packageInfo;
+                    return p(projectRepo.save(pr));
                 } else {
                     projects[0].packageJson = packageInfo;
-                    return projectRepo.save(projects[0]);
+                    return p(projectRepo.save(projects[0]));
                 }
             });
         }
@@ -192,15 +190,15 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
         //PM2
         return getOrCreateProject(packageName ||'', path.dirname(pkgFile!)).then(/*PM15*/(project): Promise<void> => {
             //PM4
-            return stat(dir).then(/*PM16*/(stats): Promise<void> => {
+            return p(p(stat(dir)).then(/*PM16*/(stats): Promise<void> => {
                 logger.debug('got stats', { path: dir, stats });
                 if(stats.isFile()) {
                     return processFile(args, project, dir, handleAst);
                 } else if(stats.isDirectory()) {
                     return processDir(args, project, dir, handleAst);
                 }
-                return Promise.resolve(undefined);
-            }).then(/*PM17*/(): Promise<void> => {
+                return p(Promise.resolve(undefined));
+            })).then(/*PM17*/(): Promise<void> => {
                 args.logger.info('calling doProject', { project: project.toPojo() });
                 return doProject(project, connection, args.logger).then((): void => {
                     args.logger.debug(`completed doProject for ${project.name}`);
@@ -211,9 +209,13 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
             });
         });
     })().then((): Promise<void> => {
-        logger.info('Closing database connection.');
-        connection.close();
-        return Promise.resolve(undefined);
+    logger.info('Closing database connection.');
+    connection.close();
+    logger.error(`${Promises.length} promises`, );
+    return Promise.all(Promises).then((results) => {
+    logger.error(results);
+    });
+
     });
 }).catch((error: Error): void => {
     process.stderr.write(error.message + '\n');
