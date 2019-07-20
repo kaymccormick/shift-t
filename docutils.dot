@@ -1,0 +1,16 @@
+graph {
+  document -- { title subtitle decoration docinfo transition section  }
+  section -- { title }
+  { document section } -- { paragraph bullet_list enumerated_list definition_list field_list docinfo option_list literal_block line_block block_quote doctest_block table footnote citation target }
+  paragraph -- "inline text"
+  bullet_list -- list_item
+  enumerated_list -- enumerated_list_item
+  definition_list -- definition_list_item
+  table -- { title tgroup }
+  tgroup -- { colspec thead tbody }
+  thead -- row
+  tbody -- row
+  row -- entry
+  
+  "inline text" -- { emphasis strong literal reference target footnote_reference citation_reference substitution_reference }
+}
