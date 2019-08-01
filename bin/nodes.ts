@@ -1,3 +1,7 @@
+/**
+ * Perform code generation procedures based on the type information stored
+ * in the classModel database.
+ */
 import {Promise} from 'bluebird';
 import { Map, List } from 'immutable';
 import fs from 'fs';
@@ -9,6 +13,7 @@ import EntityCore from "classModel/lib/src/entityCore";
 import {createConnection} from "../src/TypeOrm/Factory";
 import { Connection } from 'typeorm';
 import  winston, { format } from 'winston';
+import { Pojo } from 'classModel';
 
 const outStream = fs.createWriteStream('out.graph', { encoding: 'utf-8'});
 //outStream = process.stdout;
@@ -26,7 +31,7 @@ const logger = winston.createLogger({format: format.json(),
 
 createConnection(logger).then((connection: Connection): Promise<void> => {
     const projectRepo = connection.getRepository(EntityCore.Project);
-    return projectRepo.find({ relations: ['modules', 'modules.classes', 'modules.classes.superClass', 'modules.classes.superClass.module', 'modules.classes.subClasses', 'modules.classes.subClasses.module'], where: {name: 'docutils-js'}}).then((projects): never|Pojo.ProjectPojo => {
+    return projectRepo.find({ relations: ['modules', 'modules.classes', 'modules.classes.superClass', 'modules.classes.superClass.module', 'modules.classes.subClasses', 'modules.classes.subClasses.module'], where: {name: 'docutils-js'}}).then((projects): never|EntityCore.Project => {
         if(!projects.length) {
             throw new Error(`couldn't find project`);
         }
@@ -43,7 +48,7 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
 	      return;
 	      }
 	      let mod = Map<string, EntityCore.Class>();
-	      m.classes.forEach((c): void => {
+	      m.classes.forEach((c: EntityCore.Class): void => {
 	      if(!c || !c.name) {
 	      return;
 	      }
@@ -102,9 +107,14 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
 	  
         const leaves: EntityCore.Class[]= [];
         findLeaves(node!, leaves);
+	const typesFile:namedTypes.File = b.file(b.program([b.importDeclaration([b.importNamespaceSpecifier(b.identifier('nodes'))], b.stringLiteral('./nodes'), 'value'), 		b.exportDeclaration(true, b.objectExpression(
+		        leaves.map(l => {
+           
         const file: namedTypes.File =
 		b.file(b.program([
-		    b.expressionStatement(b.objectExpression(
+		b.importDeclaration([b.importSpecifier(b.identifier('NodeInterface')), b.importSpecifier(b.identifier('Attributes'))], b.stringLiteral('./types'), 'value'),
+		b.importDeclaration([b.importNamespaceSpecifier(b.identifier('nodes'))], b.stringLiteral('./nodes'), 'value'),
+		b.exportDeclaration(true, b.objectExpression(
 		        leaves.map(l => {
 		            //			console.log(JSON.stringify(l.astNode));
 		            const p: k.PatternKind[] = [];
@@ -135,12 +145,16 @@ createConnection(logger).then((connection: Connection): Promise<void> => {
 			    b.objectExpression([])));
 		                a.push(b.identifier('children'), b.identifier('attributes'));
 		            }
-			
-		            return b.property("init", b.identifier(l.name!),
-		            b.arrowFunctionExpression(p,
-		            b.newExpression(b.memberExpression(b.identifier('nodes'),
-		                b.identifier(l.name!)), a)));
-		        })))]));
+
+//l			    p[p.length - 1].comments = [b.commentLine('eslint-disable-next-line @typescript-eslint/camelcase', true, false)];
+		            const prop = b.property("init",
+		            b.identifier(l.name!),
+		            b.arrowFunctionExpression.from({ returnType: b.tsTypeAnnotation.from({ typeAnnotation: b.tsTypeReference(b.tsQualifiedName.from({comments: [b.commentLine('eslint-disable-next-line @typescript-eslint/camelcase', true, false)], left: b.identifier('nodes'), right: b.identifier(l.name!) }))}),
+			    params: p, body: b.newExpression(b.memberExpression(b.identifier('nodes'),
+		                b.identifier(l.name!)), a) }));
+		            prop.comments = [b.commentLine('eslint-disable-next-line @typescript-eslint/camelcase')];
+			    return prop;
+			    })))]));
 
 
         fs.writeFileSync('factory.ts', print(file).code, 'utf-8');

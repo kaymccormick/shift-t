@@ -11,6 +11,7 @@ export function copyTree(node: namedTypes.Node,
     let depth = 0;
     visit(node, {
         visitNode(path: NodePath<namedTypes.Node>): any {
+            console.log(`${path.node.type} ${path.name} ${path.parentPath.name}`)
             depth++;
             this.traverse(path);
             depth--;
@@ -45,5 +46,7 @@ export function copyTree(node: namedTypes.Node,
         },
     });
 
-    return cache.get(0)!.get('root');
+    const result = cache.get(0)!.get('root');
+    console.log(JSON.stringify(result,null, 4));
+    return result;
 }

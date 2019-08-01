@@ -3,9 +3,11 @@ import { visit } from "ast-types";
 import {Promise} from 'bluebird';
 import j from 'jscodeshift';
 import {namedTypes} from "ast-types/gen/namedTypes";
+import {PatternKind} from "ast-types/gen/kinds";
 import EntityCore from "classModel/lib/src/entityCore";
 import { ProcessTypes } from '../types/ProcessTypes';
 import {copyTree} from "../../utils";
+import { compareAst } from '../../compareAst';
 import { TransformUtilsArgs, myReduce } from '../../transformUtils';
 
 import {NodePath} from "ast-types/lib/node-path";
@@ -18,7 +20,7 @@ export class ProcessClasses {
         file: namedTypes.File,
     ): Promise<PromiseResult<EntityCore.Class[]>> {
     // @ts-ignore
-        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
+        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarationsAsync', success: true, hasResult: true, result: [] };
         args.logger.info('processClassDeclarations', {type: 'functionInvocation', module: module.toPojo()});
         args.logger.debug('looking for nodes of type ClassDeclaration');
         // @ts-ignore
@@ -27,7 +29,8 @@ export class ProcessClasses {
 
         // @ts-ignore
         return myReduce<namedTypes.ClassDeclaration, EntityCore.Class>(args.logger, x, mainResult, async (classDecl: namedTypes.ClassDeclaration): () => PromiseResult<EntityCore.Class> => {
-            const classResult =  { id: 'processClassDeclarations.class', success: false, hasResult: false };
+            const classResult =  { id: 'processClassDeclarations.class',
+	      success: false, hasResult: false };
             if(!classDecl.id) {
                 args.logger.error('no class name');
                 throw new AppError('no class name', 'no-class-name');
@@ -62,7 +65,8 @@ export class ProcessClasses {
                 class_.astNode = m;
                 class_.superClassNode = m.get('superClass');
                 class_.implementsNode = m.get('implements');
-                args.logger.debug(`saving class ${class_.name}`, { "class": class_.toPojo({minimal: true}) });
+                args.logger.debug(`saving class ${class_.name}`,
+                    { "class": class_.toPojo({minimal: true}) });
                 const class__ = await classRepo.save(class_);
             } else {
                 class_ = classes[0];
@@ -82,8 +86,10 @@ export class ProcessClasses {
         file: namedTypes.File,
     ): Promise<PromiseResult<EntityCore.Class[]>> {
     // @ts-ignore
-        const mainResult: PromiseResult<EntityCore.Class[]> = { id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
-        args.logger.info('processClassDeclarations', {type: 'functionInvocation', module: module.toPojo()});
+        const mainResult: PromiseResult<EntityCore.Class[]> = {
+            id: 'processClassDeclarations', success: true, hasResult: true, result: [] };
+        args.logger.info('processClassDeclarations', {type: 'functionInvocation',
+            module: module.toPojo()});
         args.logger.debug('looking for nodes of type ClassDeclaration');
         // @ts-ignore
         const x = j(file).find(namedTypes.ClassDeclaration).nodes();
@@ -94,8 +100,7 @@ export class ProcessClasses {
             args.logger,
             x,
             mainResult,
-            (classDecl: namedTypes.ClassDeclaration):
-            () => Promise<PromiseResult<EntityCore.Class>> => {
+            (classDecl: namedTypes.ClassDeclaration): Promise<PromiseResult<EntityCore.Class>> => {
                 const classResult =  { id: 'processClassDeclarations.class',
 	    success: false, hasResult: false };
                 if(!classDecl.id) {
@@ -132,7 +137,9 @@ export class ProcessClasses {
 			    hasResult: true }));
                                     });
                             } else {
-                                return Promise.resolve(Object.assign({}, nameResult, { result: names[0], success: true, hasResult: true }));
+                                return Promise.resolve(Object.assign({},
+                                    nameResult, { result: names[0], success: true,
+                                        hasResult: true }));
                             }
                         });
                 })().then((): Promise<PromiseResult<EntityCore.Class>> => classRepo.find({module, name: classIdName}).then((classes): Promise<PromiseResult<EntityCore.Class>> => {
@@ -182,33 +189,37 @@ export class ProcessClasses {
         moduleClass: EntityCore.Class,
         childNode: namedTypes.Node,
     ): Promise<PromiseResult<EntityCore.Method>> {
+
         const baseId = `processClassMethod`;
+
         args.logger.info(baseId, { "class":
 	moduleClass.toPojo({minimal: true}) });
+
         const processClassMethodResult: PromiseResult<EntityCore.Method> = {
-            id:'processClassMethod', success: false, hasResult: false};
+            id: baseId, success: false, hasResult: false};
+	    
         const methodDef = childNode as
 	  namedTypes.TSDeclareMethod|namedTypes.ClassMethod;
+
         const kind = methodDef.kind;
-        const key = methodDef.key;
         if (kind !== "method") {
             return Promise.resolve(processClassMethodResult);
         }
+        const key = methodDef.key;
 
         let methodName = '';
         if (key.type === "Identifier") {
             methodName = key.name;
         } else {
-            args.logger.error('ast node type error', { expected: 'Identifier',
-	    got: key.type});
+            args.logger.error('ast node type error', { expected: 'Identifier', got: key.type});
             throw new AppError('ast node type error', 'ast node type error');
         }
 
         const methodRepo = args.connection.getRepository(EntityCore.Method);
-        return methodRepo.find({
+        return methodRepo.find({ relations: ['parameters'], where:{
             "classProperty": moduleClass,
-            "name": methodName}).
-	    then((methods: EntityCore.Method[]): Promise<any> => {
+            "name": methodName}})
+	    .then((methods: EntityCore.Method[]): Promise<any> => {
                 if(methods.length === 0) {
                     const m = new EntityCore.Method(methodName, [], moduleClass);
                     if(methodDef.accessibility) {
@@ -219,13 +230,13 @@ export class ProcessClasses {
                 } else {
                     return Promise.resolve(methods[0]);
                 }
-            }).then((method: EntityCore.Method|undefined):
-            Promise<PromiseResult<EntityCore.Method>> => {
+            }).then((method: EntityCore.Method|undefined): Promise<PromiseResult<EntityCore.Method>> => {
                 const methodResult: PromiseResult<EntityCore.Method> = {
 	    id: 'method', success: false, hasResult: false };
                 if(!method) {
                     return Promise.resolve(methodResult);
                 }
+		
                 method.astNode = copyTree(methodDef).remove('body');
                 args.logger.debug('updating ast Node in method');
                 return methodRepo.save(method).then(method_ => {
@@ -238,6 +249,7 @@ export class ProcessClasses {
                     return methodResult;
                 }
                 const params = methodDef.params;
+
                 // @ts-ignore
                 return myReduce<PatternKind, EntityCore.Parameter>(
 	    args.logger,
@@ -245,6 +257,13 @@ export class ProcessClasses {
 	    {result: [], success: true, hasResult: true, id: 'hi'},
 	    (pk: PatternKind, index: number):
 	    Promise<PromiseResult<EntityCore.Parameter>> => {
+	    // @ts-ignore
+	    		const foundP = methodResult.result!.parameters!.find((p: EntityCore.Parameter) => pk.type === 'Identifier' && p.name === pk.name);
+			if(foundP !== undefined) {
+			  if(!compareAst(foundP.astNode, pk)) {
+			  foundP.astNode == pk;
+			  }
+}
                         return ((): Promise<PromiseResult<EntityCore.TSType>> => { // IIFE
                             const typeResult: PromiseResult<EntityCore.TSType> =
 		    { success: false, id: 'parameter type',

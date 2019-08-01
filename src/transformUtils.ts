@@ -29,6 +29,7 @@ export function getModuleSpecifier(path: string): ModuleSpecifier  {
 }
 
 export class TransformUtils {
+    /** @deprecated */
     public static processInterfaceDeclarations(
         args: TransformUtilsArgs,
         module: EntityCore.Module,
