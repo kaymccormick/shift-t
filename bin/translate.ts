@@ -4,7 +4,6 @@ import * as k from 'ast-types/gen/kinds';
 import {print} from 'recast';
 import fs from 'fs';
 import * as ts from 'typescript';
-import winston from 'winston';
 import { ok } from 'assert';
 
 const argParser = new ArgumentParser({});
@@ -55,6 +54,7 @@ function visit(collect?: any) {
             if (symbol) {
                 const node1 = symbol.valueDeclaration!;
 		const sig = checker.getSignatureFromDeclaration(node)
+		if(sig) {
                 const typ = checker.getReturnTypeOfSignature(sig);
                 //console.log(printer.printNode(ts.EmitHint.Unspecified, node, resultFile))
                 node.type = checker.typeToTypeNode(typ)
@@ -62,6 +62,7 @@ function visit(collect?: any) {
                 const t = checker.typeToString(
                     typ)
 //                console.log(node);
+}
 	    }
         } else if (ts.isVariableDeclaration(node)) {
             let symbol = checker.getSymbolAtLocation(node.name);
@@ -88,10 +89,7 @@ function visit(collect?: any) {
             }
             ts.forEachChild(node, visit());
         } else {
-            const x = ts.forEachChild(node, visit());
-            if (x) {
-                console.log(x);
-            }
+            ts.forEachChild(node, visit());
         }
     };
 }
