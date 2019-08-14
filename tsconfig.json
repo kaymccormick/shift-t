@@ -75,8 +75,10 @@
 "src/TypeOrm/Factory.ts",
 "src/TypeOrm/Logger.ts",
 "src/utils.ts",
+"src/Py.ts",
         "src/RestClient.ts",
         "bin/collect.ts",
+        "bin/translate.ts",
         "src/transformUtils.ts"],
     "exclude": ["bak/**/*.ts", "files/**/*.ts", "node_modules/**/*", "lib/**/*", "lib/*", "**/*.test.ts", "**/*.test.tsx"]
 }

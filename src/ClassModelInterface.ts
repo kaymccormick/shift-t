@@ -1,0 +1,3 @@
+class ClassModelInterface {
+  findProject
+}
