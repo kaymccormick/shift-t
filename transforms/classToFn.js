@@ -2,7 +2,7 @@ const assert = require('assert');
 const fs = require('fs');
 const recast = require('recast');
 const camelcase = require('camelcase');
-const { namedTypes, builders, getFieldNames } = require('ast-types');
+const { builders } = require('ast-types');
 
 const b = builders;
 /**
@@ -31,6 +31,7 @@ module.exports = (fileInfo, api, options) => {
             const [superDeclPath] = x2.paths();
             if (superDeclPath) {
                 const superNode = superDeclPath.value;
+		/* ?? */
             } else {
                 throw new Error(`need superclass for ${decl.id.name}`);
             }
