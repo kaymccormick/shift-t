@@ -1,9 +1,16 @@
-const recast = require('recast');
+/**
+ * Collect various sorts of class information, opening and rewriting
+ * a 'sources_1.json' file each time. This file is intended for further 
+ * processing. This is the precursor to the more complete collector which
+ * stores information into PostgreSQL using TypeORM.
+ * 
+ * Before use, you must 'echo {}' > sources_1.json. Lame, I know.
+ *
+ * This file remains for reference.
+ */
 const path = require('path');
 const fs = require('fs');
 const assert = require('assert');
-
-import { A } from '../misc';
 
 module.exports = function(fileInfo, api, options) {
     const sources = JSON.parse(fs.readFileSync('sources_1.json', { encoding: 'utf-8' }));
@@ -13,10 +20,7 @@ module.exports = function(fileInfo, api, options) {
     if(sources.files === undefined) {
         sources.files = {};
     }
-    const report = api.report;
     const j = api.jscodeshift;
-    const superClasses = [];
-    const leafClasses = [];
     const r = j(fileInfo.source);
     const fullpath = path.resolve(fileInfo.path);
     sources.namespace[fullpath] = {};
@@ -31,15 +35,12 @@ module.exports = function(fileInfo, api, options) {
             n.specifiers.forEach( kind => {
                 if(kind.type === 'ImportSpecifier') {
                     assert.equal(kind.imported.type, 'Identifier');
-                    report(kind.imported.name);
                     sources.namespace[fullpath][kind.imported.name] = [full];
                 } else if(kind.type === 'ImportDefaultSpecifier') {
                 }
                 x.push(kind.type);
             });
             sources.files[full] = { x };
-        } else {
-            report(source);
         }
     });
     const paths = r.find(j.ClassDeclaration).paths();
@@ -50,7 +51,6 @@ module.exports = function(fileInfo, api, options) {
                 const o = n.superClass.object;
                 const p = n.superClass.property;
                 assert.equal(p.type, 'Identifier');
-                report(`${o.name}.${p.name}`);
             } else {
                 assert.equal(n.superClass.type, 'Identifier');
             }
