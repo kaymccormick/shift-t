@@ -1,8 +1,9 @@
 /**
- * Collect various sorts of class information, opening and rewriting
- * a 'sources_1.json' file each time. This file is intended for further 
- * processing. This is the precursor to the more complete collector which
- * stores information into PostgreSQL using TypeORM.
+ * Collect various sorts of class information, opening and rewriting a
+ * 'sources_1.json' file each time. This file is intended for further
+ * processing. This is the precursor to the more complete collector
+ * which stores information into PostgreSQL using TypeORM. This
+ * program is somewhat incomplete.
  * 
  * Before use, you must 'echo {}' > sources_1.json. Lame, I know.
  *
@@ -27,6 +28,7 @@ module.exports = function(fileInfo, api, options) {
     r.find(j.ImportDeclaration).forEach(p => {
         const n = p.value;
         const source = n.source.value;
+	/* Limit to relative imports starting with ./ or ../ */
         if(/^\.\.?\//.test(source)) {
             const dir = path.dirname(fullpath);
             const full = path.resolve(dir, source);
@@ -37,6 +39,7 @@ module.exports = function(fileInfo, api, options) {
                     assert.equal(kind.imported.type, 'Identifier');
                     sources.namespace[fullpath][kind.imported.name] = [full];
                 } else if(kind.type === 'ImportDefaultSpecifier') {
+		    /* Nonexistent handling here. */
                 }
                 x.push(kind.type);
             });

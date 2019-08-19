@@ -1,4 +1,5 @@
-import { parse, print } from 'recast';
+/**
+ * import { parse, print } from 'recast';
 import path from 'path';
 import fs from 'fs';
 import assert from 'assert';
@@ -20,7 +21,7 @@ const loggerTranports = [consoleTransport, file];
 const logger = winston.createLogger({format: format.json(),
     transports:loggerTranports });
 
-                // @ts-ignore
+// @ts-ignore
 function embedUuidInComment(report, j, uuid: string, nodePath: NodePath<namedTypes.Node>, node: namedTypes.Node, args: any) {
     let result: namedTypes.commentBlock|undefined = undefined;
     const { lastComment }  = args;

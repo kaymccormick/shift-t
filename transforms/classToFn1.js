@@ -20,11 +20,10 @@ module.exports = function(fileInfo, api, options) {
         const spec = `${decl.id.name}.${n.key.name}`;
         const fname = camelcase(spec);
         map[spec] = fname;
-//	process.stdout.write(`${decl.id.name}.${n.key.name}\n`);
-        //        const fName = decl.id.name.replace(/^([A-Z][a-z]*)([A-Z][a-z]*)*$/,
+	// process.stdout.write(`${decl.id.name}.${n.key.name}\n`);
+        // const fName = decl.id.name.replace(/^([A-Z][a-z]*)([A-Z][a-z]*)*$/,
         //const fname = camelcase(decl.id.name + n.key.name.substring(0, 1).toUpperCase() + n.key.name.substring(1));
 	process.stdout.write(`${spec}\t${fname}\n`);
-//        j.functionDeclaration(j.identifier('
     });
     process.stdout.write(`${fileInfo.path}: ${p.size()}\n`);
 
